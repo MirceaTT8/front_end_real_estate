@@ -48,6 +48,10 @@ const settings = ref([
     route: "/Profile"
   }
 ]);
+
+const navigateToProfile = () => {
+  router.push({ name: "Profile" }); // Navigate to the ProfileView route
+};
 // Profile menu items
 const op = ref();
 const selectedMember = ref(null);
@@ -80,19 +84,34 @@ const selectMember = (member) => {
         </div>
       </template>
       <template #end>
-        <div class="flex items-center gap-2">
-          <Button
-              type="button"
-              label="Your Profile"
-              @click="toggle"
-          />
-          <Popover ref="op">
-            <div>
-              <div>
-                <span class="font-medium block mb-2">Share this document</span>
-              </div>
+<!--        <div class="flex items-center gap-2">-->
+<!--          <Button-->
+<!--              type="button"-->
+<!--              label="Your Profile"-->
+<!--              @click="toggle"-->
+<!--          />-->
+<!--          <Popover>-->
+<!--            <div class="p-4">-->
+<!--              <div>-->
+<!--                <span class="font-medium block mb-2">Share this document</span>-->
+<!--              </div>-->
+<!--  &lt;!&ndash;            <RouterLink to="/profile" class="text-blue-500 hover:underline">&ndash;&gt;-->
+<!--  &lt;!&ndash;              Go to Profile&ndash;&gt;-->
+<!--  &lt;!&ndash;            </RouterLink>&ndash;&gt;-->
+<!--            </div>-->
+<!--          </Popover>-->
+<!--        </div>-->
+        <div class="navbar-user">
+          <div class="dropdown">
+            <!-- Clicking on this navigates to the Dashboard -->
+            <button class="dropdown-button" >
+              <p> Ma man!</p>
+            </button>
+            <!-- Dropdown content -->
+            <div class="dropdown-content">
+              <p @click="navigateToProfile">Manage Account</p>
             </div>
-          </Popover>
+          </div>
         </div>
       </template>
 
@@ -106,5 +125,54 @@ const selectMember = (member) => {
   font-family: 'Brush Script MT', cursive;
   color:#ffffff;
   margin-left:10px;
+}
+
+.navbar-user {
+  position: relative;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-button {
+  background-color: #36849c;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.dropdown-button:hover {
+  background-color: #555;
+  cursor: pointer;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: #17ecec;
+  min-width: 150px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.dropdown-content p {
+  color: white;
+  padding: 0.5rem 1rem;
+  margin: 0;
+  cursor: pointer;
+}
+
+.dropdown-content p:hover {
+  background-color: #17ecec;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
 }
 </style>
