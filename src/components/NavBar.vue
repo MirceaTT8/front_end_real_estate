@@ -8,60 +8,49 @@ import {Button} from "primevue";
 
 const router = useRouter();
 
-// Menubar items for property management
 const items = ref([
   {
-
-    label: "Properties",
+    label: "Dashboard",
+    icon: PrimeIcons.TWITTER,
+    route: "/"
+  },
+  {
+    label: "Property",
     icon: PrimeIcons.HOME,
-    items: [
-      { label: "View Properties" },
-      { separator: true} ,
-      { label: "Add Property" }
-    ],
+    route: "/properties"
   },
   {
     label: "Tenants",
     icon: "pi pi-users",
-    items: [
-      { label: "View Tenants" },
-      { label: "Add Tenant" },
-    ],
+    route: "/tenants"
   },
   {
     label: "Leases",
     icon: "pi pi-file",
-    items: [
-      { label: "View Leases" },
-      { label: "Create Lease" },
-    ],
+    route: "/leases"
   },
   {
     label: "Payments",
     icon: "pi pi-dollar",
-    items: [
-      { label: "View Payments" },
-      { label: "Generate Invoice" },
-    ],
+    route: "/payments"
   },
   {
     label: "Maintenance",
     icon: "pi pi-wrench",
-    items: [
-      { label: "View Requests" },
-      { label: "Create Request" },
-    ],
+    route: "/maintenance"
   },
 ]);
 
+const settings = ref([
+  {
+    label: "Profile",
+    icon: PrimeIcons.GITHUB,
+    route: "/Profile"
+  }
+]);
 // Profile menu items
 const op = ref();
 const selectedMember = ref(null);
-const members = ref([
-  { name: 'Amy Elsner', image: 'amyelsner.png', email: 'amy@email.com', role: 'Owner' },
-  { name: 'Bernardo Dominic', image: 'bernardodominic.png', email: 'bernardo@email.com', role: 'Editor' },
-  { name: 'Ioni Bowcher', image: 'ionibowcher.png', email: 'ioni@email.com', role: 'Viewer' }
-]);
 
 const toggle = (event) => {
   op.value.toggle(event);
@@ -80,16 +69,18 @@ const selectMember = (member) => {
       <template #start >
         <span class="logo">Immobille</span>
       </template>
-      <template #item="{ item }" #>
+      <template #item="{ item,props }" #>
         <div class="flex items-center gap-2 p-4 bg-blue-500 text-white hover:bg-blue-600 transition-colors">
-          <i v-if="item.icon" :class="item.icon" class="mr-2"></i>
-          <span class="font-bold">{{ item.label }} </span>
+          <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+            <a v-ripple :href="href" v-bind="props.action" @click="navigate">
+              <i v-if="item.icon" :class="item.icon" class="mr-2"></i>
+              <span class="font-bold">{{ item.label }} </span>
+            </a>
+          </router-link>
         </div>
       </template>
       <template #end>
         <div class="flex items-center gap-2">
-
-
           <Button
               type="button"
               label="Your Profile"

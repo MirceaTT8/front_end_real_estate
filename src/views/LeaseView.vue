@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  <h1>This is DashboardView</h1>
+<h1>This is LeaseView</h1>
 </template>
 
 <style scoped>

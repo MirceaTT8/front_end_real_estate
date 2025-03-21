@@ -1,5 +1,10 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import DashboardView from "@/views/DashboardView.vue";
+import PropertyView from "@/views/PropertyView.vue";
+import TenantView from "@/views/TenantView.vue";
+import LeaseView from "@/views/LeaseView.vue";
+import MaintenanceRequestView from "@/views/MaintenanceRequestView.vue";
+import PaymentView from "@/views/PaymentView.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -8,7 +13,33 @@ const router = createRouter({
             path: '/',
             name: 'Dashboard',
             component: DashboardView
-        }
+        },
+        {
+            path: '/properties',
+            name: 'Property',
+            component: PropertyView
+        },
+        {
+            path: '/tenants',
+            name: 'Tenant',
+            component: TenantView
+        },
+        {
+            path: '/leases',
+            name: 'Lease',
+            component: LeaseView
+        },
+        {
+            path: '/payments',
+            name: 'Payment',
+            component: PaymentView
+        },
+        {
+            path: '/maintenance',
+            name: 'Maintenance',
+            component: MaintenanceRequestView
+        },
+
 
     ]
 })
