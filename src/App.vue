@@ -3,13 +3,12 @@ import NavBar from "@/components/NavBar.vue";
 
 import { RouterView } from 'vue-router';
 
-import {onMounted, ref} from "vue";
 </script>
 
 <template>
   <main>
     <div>
-      <NavBar/>
+      <NavBar />
       <RouterView class="router-view"/>
     </div>
   </main>

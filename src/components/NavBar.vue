@@ -1,12 +1,14 @@
 <script setup>
 import { ref } from "vue";
-import { useRouter } from "vue-router";
 import Menubar from "primevue/menubar";
 import { PrimeIcons } from '@primevue/core/api';
-import Popover from "primevue/popover";
-import {Button} from "primevue";
+import router from "@/router/index.js";
 
-const router = useRouter();
+/*const props = defineProps({
+  userId: {
+    type: Number
+  },
+});*/
 
 const items = ref([
   {
@@ -50,20 +52,11 @@ const settings = ref([
 ]);
 
 const navigateToProfile = () => {
-  router.push({ name: "Profile" }); // Navigate to the ProfileView route
+  router.push({ name: "Profile" });
 };
-// Profile menu items
 const op = ref();
 const selectedMember = ref(null);
 
-const toggle = (event) => {
-  op.value.toggle(event);
-}
-
-const selectMember = (member) => {
-  selectedMember.value = member;
-  op.value.hide();
-}
 </script>
 
 <template>
@@ -76,7 +69,7 @@ const selectMember = (member) => {
       <template #item="{ item,props }" #>
         <div class="flex items-center gap-2 p-4 bg-blue-500 text-white hover:bg-blue-600 transition-colors">
           <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
-            <a v-ripple :href="href" v-bind="props.action" @click="navigate">
+            <a :href="href" v-bind="props.action" @click="navigate">
               <i v-if="item.icon" :class="item.icon" class="mr-2"></i>
               <span class="font-bold">{{ item.label }} </span>
             </a>
@@ -84,30 +77,11 @@ const selectMember = (member) => {
         </div>
       </template>
       <template #end>
-<!--        <div class="flex items-center gap-2">-->
-<!--          <Button-->
-<!--              type="button"-->
-<!--              label="Your Profile"-->
-<!--              @click="toggle"-->
-<!--          />-->
-<!--          <Popover>-->
-<!--            <div class="p-4">-->
-<!--              <div>-->
-<!--                <span class="font-medium block mb-2">Share this document</span>-->
-<!--              </div>-->
-<!--  &lt;!&ndash;            <RouterLink to="/profile" class="text-blue-500 hover:underline">&ndash;&gt;-->
-<!--  &lt;!&ndash;              Go to Profile&ndash;&gt;-->
-<!--  &lt;!&ndash;            </RouterLink>&ndash;&gt;-->
-<!--            </div>-->
-<!--          </Popover>-->
-<!--        </div>-->
         <div class="navbar-user">
           <div class="dropdown">
-            <!-- Clicking on this navigates to the Dashboard -->
             <button class="dropdown-button" >
               <p> Ma man!</p>
             </button>
-            <!-- Dropdown content -->
             <div class="dropdown-content">
               <p @click="navigateToProfile">Manage Account</p>
             </div>

@@ -9,7 +9,7 @@ const user = reactive({
 
 onMounted(async () => {
   try {
-    const userData = await fetchUserById(2);
+    const userData = await fetchUserById(1);
     Object.assign(user, userData);
   } catch (error) {
     console.error("Error fetching user data:", error);
