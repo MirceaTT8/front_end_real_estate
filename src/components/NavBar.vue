@@ -21,11 +21,11 @@ const items = ref([
     icon: PrimeIcons.HOME,
     route: "/properties"
   },
-  {
-    label: "Tenants",
-    icon: "pi pi-users",
-    route: "/tenants"
-  },
+  // {
+  //   label: "Tenants",
+  //   icon: "pi pi-users",
+  //   route: "/tenants"
+  // },
   {
     label: "Leases",
     icon: "pi pi-file",

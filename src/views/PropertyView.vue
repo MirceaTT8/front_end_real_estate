@@ -1,3 +1,5 @@
+
+
 <template>
   <div>
     <h1>Properties for User</h1>
@@ -20,11 +22,11 @@ import { onMounted, ref } from 'vue';
 import { fetchPropertiesByUserId } from '@/services/propertyService.js';
 
 export default {
-/*  props: {
-    userId: {
-      type: Number,
-      required: true,
-    },*/
+  /*  props: {
+      userId: {
+        type: Number,
+        required: true,
+      },*/
   // },
 
   setup(props) {
@@ -50,6 +52,8 @@ export default {
     };
   },
 };
+
+
 </script>
 
 <style scoped>
