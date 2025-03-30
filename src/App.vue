@@ -17,7 +17,7 @@ import { RouterView } from 'vue-router';
 <style scoped>
 
 main {
-  width: 100%; /* Full width */
+  width: 100%;
 }
 
 

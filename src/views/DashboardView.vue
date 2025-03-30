@@ -1,5 +1,7 @@
 <script setup>
 
+import Chart from 'primevue/chart';
+
 </script>
 
 <template>

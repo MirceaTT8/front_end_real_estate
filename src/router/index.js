@@ -6,6 +6,7 @@ import LeaseView from "@/views/LeaseView.vue";
 import MaintenanceRequestView from "@/views/MaintenanceRequestView.vue";
 import PaymentView from "@/views/PaymentView.vue";
 import ProfileView from "@/views/ProfileView.vue";
+import AddPropertyView from "@/views/AddPropertyView.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,6 +46,11 @@ const router = createRouter({
             name: 'Profile',
             component: ProfileView
         },
+        {
+            path: '/add-property',
+            name: 'AddProperty',
+            component: AddPropertyView
+        }
 
 
     ]

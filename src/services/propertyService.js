@@ -14,3 +14,22 @@ export const fetchPropertiesByUserId = async (userId) => {
         throw error;
     }
 };
+
+export const addProperty = async (propertyDTO) => {
+    try{
+        const response = await fetch(`${API}/property`, {
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            method: "POST",
+            body: JSON.stringify(propertyDTO),
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    }
+    catch(error){
+        console.log('Adding property failed: ', error);
+    }
+}
