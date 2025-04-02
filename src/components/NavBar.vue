@@ -50,12 +50,27 @@ const menuItems = ref({
       route: "/maintenance"
     }
   ],
-  administrator: [
+  tenant: [
     {
-      label: "Property",
-      icon: PrimeIcons.HOME,
-      route: "/properties"
+      label: "Dashboard",
+      icon: PrimeIcons.CHART_BAR,
+      route: "/"
     },
+    {
+      label: "Lease",
+      icon: PrimeIcons.HOME,
+      route: "/leases"
+    },
+    {
+      label: "Payments",
+      icon: "pi pi-dollar",
+      route: "/payments"
+    },
+    {
+      label: "Maintenance",
+      icon: "pi pi-wrench",
+      route: "/maintenance"
+    }
   ]
 });const settings = ref([
   {

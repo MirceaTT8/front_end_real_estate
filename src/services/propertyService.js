@@ -17,7 +17,7 @@ export const fetchPropertiesByUserId = async (userId) => {
 
 export const addProperty = async (propertyDTO) => {
     try{
-        const response = await fetch(`${API}/property`, {
+        const response = await fetch(`${API}`, {
             headers: {
                 'Content-Type': 'application/json'
             },
