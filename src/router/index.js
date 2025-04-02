@@ -7,6 +7,9 @@ import MaintenanceRequestView from "@/views/MaintenanceRequestView.vue";
 import PaymentView from "@/views/PaymentView.vue";
 import ProfileView from "@/views/ProfileView.vue";
 import AddPropertyView from "@/views/AddPropertyView.vue";
+import LeaseTenantView from "@/views/LeaseTenantView.vue";
+import PaymentTenantView from "@/views/PaymentTenantView.vue";
+import MaintenanceRequestTenantView from "@/views/MaintenanceRequestTenantView.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,6 +53,21 @@ const router = createRouter({
             path: '/add-property',
             name: 'AddProperty',
             component: AddPropertyView
+        },
+        {
+            path: '/leases-tenant',
+            name: 'LeaseTenant',
+            component: LeaseTenantView
+        },
+        {
+            path: '/payments-tenant',
+            name: 'Payments',
+            component: PaymentTenantView
+        },
+        {
+            path: '/maintenance-tenant',
+            name: 'Maintenance',
+            component: MaintenanceRequestTenantView
         }
 
 

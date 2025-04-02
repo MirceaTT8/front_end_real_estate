@@ -59,17 +59,17 @@ const menuItems = ref({
     {
       label: "Lease",
       icon: PrimeIcons.HOME,
-      route: "/leases"
+      route: "/leases-tenant"
     },
     {
       label: "Payments",
       icon: "pi pi-dollar",
-      route: "/payments"
+      route: "/payments-tenant"
     },
     {
       label: "Maintenance",
       icon: "pi pi-wrench",
-      route: "/maintenance"
+      route: "/maintenance-tenant"
     }
   ]
 });const settings = ref([
@@ -81,7 +81,7 @@ const menuItems = ref({
 ]);
 
 const items = computed(() => {
-  return menuItems.value.landlord;
+  return menuItems.value.tenant;
 });
 
 const navigateToProfile = () => {
