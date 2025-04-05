@@ -66,7 +66,7 @@ const router = createRouter({
         },
         {
             path: '/maintenance-tenant',
-            name: 'Maintenance',
+            name: 'MaintenanceTenant',
             component: MaintenanceRequestTenantView
         }
 
