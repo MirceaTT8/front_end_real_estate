@@ -1,18 +1,100 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { Loader } from '@googlemaps/js-api-loader'
 import { fetchPropertiesByUserId } from '@/services/propertyService.js'
+import {GOOGLE_API_KEY} from "@/configs/config.js";
 
 const properties = ref([])
 const loading = ref(true)
 const error = ref(null)
+const map = ref(null)
+const mapContainer = ref(null)
+const showMapView = ref(false)
+
+// Filter states
+const filters = ref({
+  location: '',
+  type: '',
+  status: ''
+})
+
+// Available filter options
+const filterOptions = {
+  types: ['Apartment', 'House', 'Commercial', 'Land'],
+  statuses: ['Available', 'Occupied', 'Maintenance']
+}
+
+const initMap = async () => {
+  try {
+    await nextTick()
+
+    if (!mapContainer.value) {
+      throw new Error('Map container element not found')
+    }
+
+    const loader = new Loader({
+      apiKey: GOOGLE_API_KEY, 
+      version: 'weekly',
+      libraries: ['places']
+    })
+
+    await loader.load()
+
+    map.value = new google.maps.Map(mapContainer.value, {
+      center: { lat: 45.7489, lng: 21.2087 },
+      zoom: 12,
+      disableDefaultUI: true,
+      zoomControl: true,
+      gestureHandling: 'cooperative'
+    })
+  } catch (err) {
+    console.error('Map initialization error:', err)
+    error.value = new Error('Failed to load map. Please try again later.')
+  }
+}
+
+// Computed property for filtered properties
+const filteredProperties = computed(() => {
+  return properties.value.filter(property => {
+    const matchesLocation = !filters.value.location ||
+        property.address.toLowerCase().includes(filters.value.location.toLowerCase())
+
+    const matchesType = !filters.value.type ||
+        property.type.toLowerCase() === filters.value.type.toLowerCase()
+
+    const matchesStatus = !filters.value.status ||
+        property.status.toLowerCase() === filters.value.status.toLowerCase()
+
+    return matchesLocation && matchesType && matchesStatus
+  })
+})
+
+const resetFilters = () => {
+  filters.value = {
+    location: '',
+    type: '',
+    status: ''
+  }
+}
 
 onMounted(async () => {
   try {
-    properties.value = await fetchPropertiesByUserId(1) // Replace with actual user ID
+    properties.value = await fetchPropertiesByUserId(1)
+    // Initialize map only if map view is active
+    if (showMapView.value) {
+      await initMap()
+    }
   } catch (err) {
     error.value = err
   } finally {
     loading.value = false
+  }
+})
+
+// Watch for map view toggle
+watch(showMapView, async (newVal) => {
+  if (newVal && !map.value) {
+    await initMap()
   }
 })
 </script>
@@ -20,6 +102,85 @@ onMounted(async () => {
 <template>
   <div class="container mx-auto px-4 py-8 max-w-6xl">
     <h1 class="text-3xl font-semibold text-gray-800 mb-8">My Properties</h1>
+
+    <!-- View Toggle Buttons -->
+    <div class="flex justify-between items-center mb-4">
+      <div class="flex gap-2 mb-4">
+        <button
+            @click="showMapView = false"
+            :class="!showMapView ? 'bg-blue-100 text-blue-700' : 'bg-gray-100'"
+            class="px-4 py-2 rounded-md transition-colors"
+        >
+          List View
+        </button>
+        <button
+            @click="showMapView = true"
+            :class="showMapView ? 'bg-blue-100 text-blue-700' : 'bg-gray-100'"
+            class="px-4 py-2 rounded-md transition-colors"
+        >
+          Map View
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-100">
+      <div class="flex flex-col md:flex-row md:items-end gap-4">
+        <!-- Location Filter -->
+        <div class="flex-1">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+          <input
+              v-model="filters.location"
+              type="text"
+              placeholder="Search by address"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+          >
+        </div>
+
+        <!-- Type Filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+          <select
+              v-model="filters.type"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">All Types</option>
+            <option v-for="type in filterOptions.types" :key="type" :value="type">
+              {{ type }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Status Filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select
+              v-model="filters.status"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">All Statuses</option>
+            <option v-for="status in filterOptions.statuses" :key="status" :value="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Reset Button -->
+        <button
+            @click="resetFilters"
+            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm"
+        >
+          Reset Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Results Count -->
+    <div class="flex justify-between items-center mb-4">
+      <p class="text-sm text-gray-600">
+        Showing {{ filteredProperties.length }} of {{ properties.length }} properties
+      </p>
+    </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="flex flex-col items-center justify-center gap-4 py-12">
@@ -33,20 +194,45 @@ onMounted(async () => {
       <p>Error loading properties: {{ error.message }}</p>
     </div>
 
-    <!-- Properties Grid -->
-    <div v-if="!loading && !error">
-      <div v-if="properties.length === 0" class="text-center py-12">
+    <!-- Map View -->
+    <div v-if="!loading && !error && showMapView" class="h-[500px] bg-gray-100 rounded-lg overflow-hidden mb-8 relative">
+      <div
+          ref="mapContainer"
+          class="w-full h-full absolute top-0 left-0"
+      ></div>
+      <div v-if="error" class="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+        <div class="text-center p-4 bg-white rounded-lg shadow-md">
+          <p class="text-red-500">{{ error.message }}</p>
+          <button
+              @click="initMap"
+              class="mt-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-md"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- List View -->
+    <div v-if="!loading && !error && !showMapView">
+      <div v-if="filteredProperties.length === 0" class="text-center py-12">
         <div class="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
         </div>
         <h3 class="text-xl text-gray-600 mb-2">No properties found</h3>
-        <p class="text-gray-500">You don't have any properties listed yet.</p>
+        <p class="text-gray-500">No properties match your current filters.</p>
+        <button
+            @click="resetFilters"
+            class="mt-4 px-4 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors text-sm"
+        >
+          Clear all filters
+        </button>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="property in properties" :key="property.id" class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
+        <div v-for="property in filteredProperties" :key="property.id" class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
           <div class="h-48 overflow-hidden">
             <img
                 :src="property.image || '@/assets/property-placeholder.jpg'"
@@ -99,3 +285,16 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
+<style>
+.gm-style iframe {
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+</style>

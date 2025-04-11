@@ -7,42 +7,57 @@ const error = ref(null)
 const showCreateForm = ref(false)
 const newRequest = ref({
   description: '',
-  urgency: 'medium' // low, medium, high
+  urgency: 'medium', // low, medium, high
+  attachments: []
 })
 
-// Status options that tenant can see (can't see cancelled/completed)
+// Status options that tenant can see
 const statusDisplay = {
   pending: { label: 'Pending', color: 'orange' },
   in_progress: { label: 'In Progress', color: 'blue' },
-  resolved: { label: 'Resolved', color: 'green' }
+  completed: { label: 'Completed', color: 'green' }
 }
 
 // Load tenant's maintenance requests
 const loadRequests = async () => {
   try {
     loading.value = true
-    // Replace with actual API call
+    // Mock data with attachments
     requests.value = [
       {
         request_id: 1,
         description: 'Kitchen sink is leaking',
         status: 'pending',
         created_at: '2024-05-15 09:30:00',
-        updated_at: '2024-05-15 09:30:00'
+        updated_at: '2024-05-15 09:30:00',
+        attachments: [
+          'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=200',
+          'https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=200'
+        ]
       },
       {
         request_id: 2,
         description: 'AC not cooling properly',
         status: 'in_progress',
         created_at: '2024-05-10 14:15:00',
-        updated_at: '2024-05-11 10:00:00'
+        updated_at: '2024-05-11 10:00:00',
+        attachments: [
+          'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=200'
+        ]
       },
       {
         request_id: 3,
         description: 'Broken bedroom window',
-        status: 'resolved',
+        status: 'completed',
         created_at: '2024-04-20 16:45:00',
-        updated_at: '2024-04-22 11:30:00'
+        updated_at: '2024-04-22 11:30:00',
+        attachments: [
+          'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=200',
+          'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=200',
+          'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=200'
+        ],
+        is_fixed: true,
+        resolution_time: 2
       }
     ]
   } catch (err) {
@@ -52,22 +67,35 @@ const loadRequests = async () => {
   }
 }
 
+// Handle file upload (mock implementation)
+const handleFileUpload = (event) => {
+  const files = event.target.files
+  if (files.length > 0) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const mockUrl = URL.createObjectURL(file)
+      newRequest.value.attachments.push(mockUrl)
+    }
+  }
+}
+
 // Submit new maintenance request
 const submitRequest = async () => {
   try {
-    // In a real app: await createMaintenanceRequest(newRequest.value)
     const newId = Math.max(...requests.value.map(r => r.request_id), 0) + 1
 
     requests.value.unshift({
       request_id: newId,
       description: newRequest.value.description,
       status: 'pending',
+      urgency: newRequest.value.urgency,
+      attachments: newRequest.value.attachments,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     })
 
     showCreateForm.value = false
-    newRequest.value = { description: '', urgency: 'medium' }
+    newRequest.value = { description: '', urgency: 'medium', attachments: [] }
   } catch (err) {
     error.value = err.message || 'Failed to submit request'
   }
@@ -156,6 +184,29 @@ onMounted(() => {
           </div>
         </div>
 
+        <div class="form-group">
+          <label>Attach Photos (Max 5)</label>
+          <input
+              type="file"
+              multiple
+              accept="image/*"
+              @change="handleFileUpload"
+              class="file-input"
+          >
+          <div class="attachment-preview" v-if="newRequest.attachments.length > 0">
+            <div v-for="(attachment, index) in newRequest.attachments" :key="index" class="preview-item">
+              <img :src="attachment" alt="Attachment preview" class="preview-image">
+              <button
+                  type="button"
+                  @click="newRequest.attachments.splice(index, 1)"
+                  class="remove-attachment"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="form-actions">
           <button
               type="button"
@@ -207,6 +258,16 @@ onMounted(() => {
           <div class="request-details">
             <p class="description">{{ request.description }}</p>
 
+            <!-- Attachments Gallery -->
+            <div v-if="request.attachments && request.attachments.length > 0" class="attachments-gallery">
+              <h4>Attached Photos ({{ request.attachments.length }})</h4>
+              <div class="gallery-grid">
+                <div v-for="(attachment, index) in request.attachments" :key="index" class="gallery-item">
+                  <img :src="attachment" :alt="`Attachment ${index + 1}`" class="gallery-image">
+                </div>
+              </div>
+            </div>
+
             <div class="meta-details">
               <div class="meta-item">
                 <span class="meta-label">Submitted:</span>
@@ -215,6 +276,14 @@ onMounted(() => {
               <div class="meta-item">
                 <span class="meta-label">Last Updated:</span>
                 <span>{{ formatDate(request.updated_at) }}</span>
+              </div>
+              <div v-if="request.status === 'completed'" class="meta-item">
+                <span class="meta-label">Resolution Time:</span>
+                <span>{{ request.resolution_time }} days</span>
+              </div>
+              <div v-if="request.status === 'completed'" class="meta-item">
+                <span class="meta-label">Fixed?:</span>
+                <span>{{ request.is_fixed ? 'Yes' : 'No' }}</span>
               </div>
             </div>
           </div>
@@ -397,6 +466,85 @@ onMounted(() => {
   line-height: 1.5;
 }
 
+/* Attachment Styles */
+.file-input {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.attachment-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.preview-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-attachment {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 0 0 0 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attachments-gallery {
+  margin: 1.5rem 0;
+}
+
+.attachments-gallery h4 {
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  color: #555;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.gallery-item {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #eee;
+}
+
+.gallery-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.gallery-image:hover {
+  transform: scale(1.05);
+}
+
 .meta-details {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -453,5 +601,21 @@ onMounted(() => {
 
 .empty-state p {
   margin-bottom: 1.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .gallery-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .meta-details {
+    grid-template-columns: 1fr;
+  }
+
+  .urgency-options {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 </style>

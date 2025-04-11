@@ -51,11 +51,11 @@ const menuItems = ref({
     }
   ],
   tenant: [
-    {
+   /* {
       label: "Dashboard",
       icon: PrimeIcons.CHART_BAR,
       route: "/"
-    },
+    },*/
     {
       label: "Lease",
       icon: PrimeIcons.HOME,

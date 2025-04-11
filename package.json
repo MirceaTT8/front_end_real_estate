@@ -9,13 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^1.16.8",
     "@primeuix/themes": "^1.0.0",
     "@primevue/core": "^4.3.3",
     "chart.js": "^4.4.8",
     "primeicons": "^7.0.0",
     "primevue": "^4.3.1",
     "vue": "^3.5.13",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.0",
+    "vue3-google-map": "^0.21.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",

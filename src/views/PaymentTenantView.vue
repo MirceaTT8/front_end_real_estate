@@ -4,14 +4,8 @@ import { ref, onMounted, computed } from 'vue'
 const payments = ref([])
 const loading = ref(true)
 const error = ref(null)
-const showPaymentModal = ref(false)
-const paymentForm = ref({
-  amount: '',
-  paymentMethod: 'bank_transfer',
-  leaseId: null // Will be set to the active lease
-})
 
-// Mock data - replace with actual API calls
+// Mock data - static display only
 const loadPaymentData = async () => {
   try {
     // Simulate API call
@@ -44,9 +38,6 @@ const loadPaymentData = async () => {
         invoice_id: 'INV-2024-03-001'
       }
     ]
-
-    // Set the active lease ID for payment form
-    paymentForm.value.leaseId = 1
   } catch (err) {
     error.value = err.message || 'Failed to load payment history'
   } finally {
@@ -69,7 +60,7 @@ const currentBalance = computed(() => {
     )
   })
 
-  return hasPaidCurrentMonth ? 0 : 1800.00 // Replace with actual rent amount
+  return hasPaidCurrentMonth ? 0 : 1800.00
 })
 
 // Format date for display
@@ -89,26 +80,10 @@ const formatCurrency = (amount) => {
   }).format(amount)
 }
 
-// Submit payment
-const processPayment = async () => {
-  try {
-    // In a real app: await submitPayment(paymentForm.value)
-    const newPayment = {
-      payment_id: Math.max(...payments.value.map(p => p.payment_id), 0) + 1,
-      lease_id: paymentForm.value.leaseId,
-      amount: parseFloat(paymentForm.value.amount),
-      payment_date: new Date().toISOString(),
-      payment_method: paymentForm.value.paymentMethod,
-      status: 'pending',
-      invoice_id: `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`
-    }
-
-    payments.value.unshift(newPayment)
-    showPaymentModal.value = false
-    paymentForm.value.amount = ''
-  } catch (err) {
-    error.value = err.message || 'Payment failed. Please try again.'
-  }
+// Empty function for the pay rent button
+const handlePayRent = () => {
+  // This button has no functionality
+  console.log('Pay rent button clicked (no functionality)')
 }
 
 onMounted(() => {
@@ -119,10 +94,10 @@ onMounted(() => {
 <template>
   <div class="payment-tenant-view">
     <header class="page-header">
-      <h1>Payment History</h1>
+      <h1>Rent Payment Information</h1>
       <button
           v-if="currentBalance > 0"
-          @click="showPaymentModal = true"
+          @click="handlePayRent"
           class="btn btn-primary"
       >
         Pay Rent
@@ -146,12 +121,12 @@ onMounted(() => {
     <!-- Payment Status -->
     <div v-else class="payment-status">
       <div class="balance-card" :class="{ 'paid': currentBalance === 0 }">
-        <h3>Current Balance</h3>
+        <h3>Rent Due</h3>
         <p class="balance-amount">
           {{ formatCurrency(currentBalance) }}
         </p>
         <p class="balance-status">
-          {{ currentBalance === 0 ? 'Rent paid for this month' : 'Payment due' }}
+          {{ currentBalance === 0 ? 'Rent paid for this month' : 'Due by the 5th of each month' }}
         </p>
       </div>
     </div>
@@ -186,73 +161,10 @@ onMounted(() => {
           <span :class="payment.status">{{ payment.status }}</span>
           <span class="invoice-link">
             <a href="#" @click.prevent="console.log('Download invoice', payment.invoice_id)">
-              Download
+              View
             </a>
           </span>
         </div>
-      </div>
-    </div>
-
-    <!-- Payment Modal -->
-    <div v-if="showPaymentModal" class="payment-modal">
-      <div class="modal-content">
-        <h2>Make a Payment</h2>
-        <form @submit.prevent="processPayment">
-          <div class="form-group">
-            <label>Lease ID</label>
-            <input
-                v-model="paymentForm.leaseId"
-                type="text"
-                disabled
-                class="form-control"
-            >
-          </div>
-
-          <div class="form-group">
-            <label>Amount to Pay</label>
-            <input
-                v-model.number="paymentForm.amount"
-                type="number"
-                min="0.01"
-                step="0.01"
-                :max="currentBalance"
-                required
-                class="form-control"
-                placeholder="Enter amount"
-            >
-            <small class="hint">Current balance: {{ formatCurrency(currentBalance) }}</small>
-          </div>
-
-          <div class="form-group">
-            <label>Payment Method</label>
-            <select
-                v-model="paymentForm.paymentMethod"
-                required
-                class="form-control"
-            >
-              <option value="bank_transfer">Bank Transfer</option>
-              <option value="credit_card">Credit Card</option>
-              <option value="debit_card">Debit Card</option>
-            </select>
-          </div>
-
-          <div class="form-actions">
-            <button
-                type="button"
-                @click="showPaymentModal = false"
-                class="btn btn-secondary"
-            >
-              Cancel
-            </button>
-            <button
-                type="submit"
-                class="btn btn-primary"
-                :disabled="!paymentForm.amount || paymentForm.amount <= 0"
-            >
-              Submit Payment
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   </div>
@@ -294,20 +206,6 @@ onMounted(() => {
 
 .btn-primary:hover {
   background-color: #3d8b40;
-}
-
-.btn-primary:disabled {
-  background-color: #a5d6a7;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background-color: #f0f0f0;
-  color: #333;
-}
-
-.btn-secondary:hover {
-  background-color: #e0e0e0;
 }
 
 .btn-retry {
@@ -421,66 +319,6 @@ onMounted(() => {
 
 .invoice-link a:hover {
   text-decoration: underline;
-}
-
-/* Payment Modal */
-.payment-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.modal-content h2 {
-  margin-top: 0;
-  color: #333;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.form-control {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.hint {
-  display: block;
-  margin-top: 0.25rem;
-  color: #666;
-  font-size: 0.85rem;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 2rem;
 }
 
 /* States */
