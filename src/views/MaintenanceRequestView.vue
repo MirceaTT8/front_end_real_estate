@@ -1,102 +1,81 @@
 <script setup>
-import {ref, onMounted, computed} from 'vue'
-import {createWebHistory as $router} from "vue-router";
+import {computed, onMounted, ref} from 'vue'
+import {useRouter} from "vue-router";
 
-// Mock data - replace with actual API calls
+import {fetchMaintenanceRequestsByOwner} from "@/services/maintenanceService.js";
+
 const requests = ref([])
 const loading = ref(true)
 const error = ref(null)
 const selectedStatus = ref('all')
+const router = useRouter()
 
-const fetchMaintenanceRequests = async () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          request_id: 1,
-          lease_id: 1,
-          description: 'Kitchen sink is leaking',
-          status: 'pending',
-          created_at: '2024-05-01 09:30:00',
-          updated_at: '2024-05-01 09:30:00',
-          tenant_name: 'Jane Smith',
-          property_address: '456 Elm St, Metropolis'
-        },
-        {
-          request_id: 2,
-          lease_id: 1,
-          description: 'AC not cooling properly',
-          status: 'in_progress',
-          created_at: '2024-05-10 14:15:00',
-          updated_at: '2024-05-11 10:00:00',
-          tenant_name: 'Jane Smith',
-          property_address: '456 Elm St, Metropolis'
-        },
-        {
-          request_id: 3,
-          lease_id: 2,
-          description: 'Broken window in bedroom',
-          status: 'resolved',
-          created_at: '2024-04-15 16:45:00',
-          updated_at: '2024-04-18 11:30:00',
-          tenant_name: 'Mike Johnson',
-          property_address: '123 Main St, Cityville'
-        }
-      ])
-    }, 800)
-  })
-}
-
-// Initialize data
 onMounted(async () => {
   try {
-    requests.value = await fetchMaintenanceRequests()
+
+    const ownerId = 1;
+
+    requests.value = await fetchMaintenanceRequestsByOwner(ownerId);
   } catch (err) {
-    error.value = err.message || 'Failed to load maintenance requests'
+    error.value = err.message || 'Failed to load maintenance requests';
+    console.error('Error:', err);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 })
 
-// Filter requests by status
 const filteredRequests = computed(() => {
   if (selectedStatus.value === 'all') return requests.value
   return requests.value.filter(req => req.status === selectedStatus.value)
 })
 
-// Update request status
-const updateRequestStatus = (requestId, newStatus) => {
-  const request = requests.value.find(req => req.request_id === requestId)
-  if (request) {
-    request.status = newStatus
-    request.updated_at = new Date().toISOString()
-    // Here you would normally make an API call to update the status
-    console.log(`Updated request ${requestId} to ${newStatus}`)
+const updateRequestStatus = async (requestId, newStatus) => {
+  try {
+    const request = requests.value.find(req => req.request_id === requestId)
+    if (request) {
+      const response = await fetch(`${API}/${requestId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Update local state if API call succeeds
+      request.status = newStatus
+      request.updated_at = new Date().toISOString()
+    }
+  } catch (err) {
+    console.error('Error updating request status:', err)
+    error.value = err.message || 'Failed to update request status'
   }
 }
 
-// Format date for display
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleString()
 }
 </script>
 
 <template>
-  <div class="maintenance-view">
-    <header class="page-header">
-      <h1>Maintenance Requests</h1>
+  <div class="p-6 max-w-6xl mx-auto">
+    <header class="mb-8">
+      <h1 class="text-2xl text-gray-800">Maintenance Requests</h1>
     </header>
 
     <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+    <div v-if="loading" class="flex flex-col items-center justify-center p-8">
+      <div class="w-10 h-10 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
       <p>Loading maintenance requests...</p>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="error-state">
-      <p>⚠️ {{ error }}</p>
-      <button @click="$router.go(0)" class="btn btn-secondary">
+    <div v-else-if="error" class="bg-red-50 p-6 rounded-lg text-center">
+      <p class="text-red-500 mb-4">⚠️ {{ error }}</p>
+      <button @click="router.go(0)" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded transition-all duration-200">
         Try Again
       </button>
     </div>
@@ -104,9 +83,9 @@ const formatDate = (dateString) => {
     <!-- Content -->
     <div v-else>
       <!-- Status Filter -->
-      <div class="status-filter">
-        <label>Filter by status:</label>
-        <select v-model="selectedStatus" class="status-select">
+      <div class="flex items-center gap-4 mb-6">
+        <label class="font-medium">Filter by status:</label>
+        <select v-model="selectedStatus" class="py-2 px-4 border border-gray-300 rounded-md min-w-48">
           <option value="all">All Requests</option>
           <option value="pending">Pending</option>
           <option value="in_progress">In Progress</option>
@@ -115,50 +94,58 @@ const formatDate = (dateString) => {
       </div>
 
       <!-- Request List -->
-      <div v-if="filteredRequests.length > 0" class="request-list">
-        <div v-for="request in filteredRequests" :key="request.request_id" class="request-card">
-          <div class="request-header">
-            <h3>Request #{{ request.request_id }}</h3>
-            <span class="request-status" :class="request.status">
+      <div v-if="filteredRequests.length > 0" class="grid gap-6">
+        <div v-for="request in filteredRequests" :key="request.request_id" class="bg-white rounded-lg p-6 shadow">
+          <div class="flex justify-between items-center pb-4 mb-4 border-b border-gray-100">
+            <h3 class="text-lg font-medium m-0">Request #{{ request.request_id }}</h3>
+            <span
+                class="inline-block px-3 py-1 rounded-full text-sm font-medium capitalize"
+                :class="{
+                'bg-amber-50 text-amber-600': request.status === 'pending',
+                'bg-blue-50 text-blue-600': request.status === 'in_progress',
+                'bg-green-50 text-green-600': request.status === 'resolved',
+                'bg-red-50 text-red-500': request.status === 'cancelled'
+              }"
+            >
               {{ request.status.replace('_', ' ') }}
             </span>
           </div>
 
-          <div class="request-details">
-            <div class="detail-row">
-              <span class="detail-label">Property:</span>
-              <span class="detail-value">{{ request.property_address }}</span>
+          <div class="grid gap-3 mb-6">
+            <div class="flex">
+              <span class="font-medium w-32 text-gray-600">Property:</span>
+              <span class="flex-1">{{ request.property_address }}</span>
             </div>
-            <div class="detail-row">
-              <span class="detail-label">Tenant:</span>
-              <span class="detail-value">{{ request.tenant_name }}</span>
+            <div class="flex">
+              <span class="font-medium w-32 text-gray-600">Tenant:</span>
+              <span class="flex-1">{{ request.tenant_name }}</span>
             </div>
-            <div class="detail-row">
-              <span class="detail-label">Description:</span>
-              <span class="detail-value">{{ request.description }}</span>
+            <div class="flex">
+              <span class="font-medium w-32 text-gray-600">Description:</span>
+              <span class="flex-1">{{ request.description }}</span>
             </div>
-            <div class="detail-row">
-              <span class="detail-label">Submitted:</span>
-              <span class="detail-value">{{ formatDate(request.created_at) }}</span>
+            <div class="flex">
+              <span class="font-medium w-32 text-gray-600">Submitted:</span>
+              <span class="flex-1">{{ formatDate(request.created_at) }}</span>
             </div>
-            <div class="detail-row">
-              <span class="detail-label">Last Updated:</span>
-              <span class="detail-value">{{ formatDate(request.updated_at) }}</span>
+            <div class="flex">
+              <span class="font-medium w-32 text-gray-600">Last Updated:</span>
+              <span class="flex-1">{{ formatDate(request.updated_at) }}</span>
             </div>
           </div>
 
           <!-- Status Actions -->
-          <div class="request-actions">
+          <div class="flex flex-wrap gap-3">
             <template v-if="request.status === 'pending'">
               <button
                   @click="updateRequestStatus(request.request_id, 'in_progress')"
-                  class="btn btn-primary"
+                  class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded font-medium text-sm transition-all duration-200"
               >
                 Mark In Progress
               </button>
               <button
                   @click="updateRequestStatus(request.request_id, 'cancelled')"
-                  class="btn btn-warning"
+                  class="bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded font-medium text-sm transition-all duration-200"
               >
                 Cancel Request
               </button>
@@ -167,13 +154,13 @@ const formatDate = (dateString) => {
             <template v-else-if="request.status === 'in_progress'">
               <button
                   @click="updateRequestStatus(request.request_id, 'resolved')"
-                  class="btn btn-success"
+                  class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded font-medium text-sm transition-all duration-200"
               >
                 Mark Resolved
               </button>
               <button
                   @click="updateRequestStatus(request.request_id, 'pending')"
-                  class="btn btn-secondary"
+                  class="bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded font-medium text-sm transition-all duration-200"
               >
                 Revert to Pending
               </button>
@@ -182,7 +169,7 @@ const formatDate = (dateString) => {
             <template v-else-if="request.status === 'resolved'">
               <button
                   @click="updateRequestStatus(request.request_id, 'in_progress')"
-                  class="btn btn-secondary"
+                  class="bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded font-medium text-sm transition-all duration-200"
               >
                 Reopen
               </button>
@@ -191,7 +178,7 @@ const formatDate = (dateString) => {
             <template v-else-if="request.status === 'cancelled'">
               <button
                   @click="updateRequestStatus(request.request_id, 'pending')"
-                  class="btn btn-secondary"
+                  class="bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded font-medium text-sm transition-all duration-200"
               >
                 Reactivate
               </button>
@@ -201,232 +188,11 @@ const formatDate = (dateString) => {
       </div>
 
       <!-- Empty State -->
-      <div v-else class="empty-state">
-        <div class="empty-icon">🔧</div>
-        <h3>No maintenance requests found</h3>
-        <p>There are no {{ selectedStatus === 'all' ? '' : selectedStatus.replace('_', ' ') + ' ' }}requests at this time.</p>
+      <div v-else class="bg-white rounded-lg shadow p-8 text-center">
+        <div class="text-5xl mb-4 opacity-50">🔧</div>
+        <h3 class="text-lg font-medium text-gray-800 mb-2">No maintenance requests found</h3>
+        <p class="text-gray-600">There are no {{ selectedStatus === 'all' ? '' : selectedStatus.replace('_', ' ') + ' ' }}requests at this time.</p>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.maintenance-view {
-  padding: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.page-header {
-  margin-bottom: 2rem;
-}
-
-.page-header h1 {
-  font-size: 1.8rem;
-  color: #333;
-}
-
-.status-filter {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.status-filter label {
-  font-weight: 500;
-}
-
-.status-select {
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  min-width: 200px;
-}
-
-.request-list {
-  display: grid;
-  gap: 1.5rem;
-}
-
-.request-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.request-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f5f5f5;
-}
-
-.request-header h3 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.request-status {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.request-status.pending {
-  background-color: #fff3e0;
-  color: #ff9800;
-}
-
-.request-status.in_progress {
-  background-color: #e3f2fd;
-  color: #2196f3;
-}
-
-.request-status.resolved {
-  background-color: #e8f5e9;
-  color: #4caf50;
-}
-
-.request-status.cancelled {
-  background-color: #ffebee;
-  color: #f44336;
-}
-
-.request-details {
-  display: grid;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.detail-row {
-  display: flex;
-}
-
-.detail-label {
-  font-weight: 500;
-  min-width: 120px;
-  color: #666;
-}
-
-.detail-value {
-  flex: 1;
-}
-
-.request-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-  border: none;
-}
-
-.btn-primary {
-  background: #2196f3;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #0d8bf2;
-}
-
-.btn-success {
-  background: #4caf50;
-  color: white;
-}
-
-.btn-success:hover {
-  background: #3d8b40;
-}
-
-.btn-warning {
-  background: #ff9800;
-  color: white;
-}
-
-.btn-warning:hover {
-  background: #e68a00;
-}
-
-.btn-secondary {
-  background: #f0f0f0;
-  color: #333;
-}
-
-.btn-secondary:hover {
-  background: #e0e0e0;
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #2196f3;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-state {
-  background: #ffebee;
-  padding: 1.5rem;
-  border-radius: 8px;
-  text-align: center;
-}
-
-.error-state p {
-  margin: 0 0 1rem 0;
-  color: #f44336;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 2rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-.empty-state h3 {
-  margin: 0 0 0.5rem 0;
-  color: #333;
-}
-
-.empty-state p {
-  margin: 0 0 1.5rem 0;
-  color: #666;
-}
-</style>

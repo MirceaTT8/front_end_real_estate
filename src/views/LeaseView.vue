@@ -1,13 +1,12 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-
+import { createPayment} from "@/services/paymentService.js";
 // Mock data - replace with your actual API calls
 const leases = ref([])
 const loading = ref(true)
 const error = ref(null)
 const activeTab = ref('active')
 
-// Simulated API call
 const fetchActiveLeasesByOwnerId = async () => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -50,6 +49,7 @@ const fetchActiveLeasesByOwnerId = async () => {
   })
 }
 
+
 // Initialize data
 onMounted(async () => {
   try {
@@ -76,38 +76,42 @@ const totalMonthlyRent = computed(() => {
 })
 
 const statusColors = {
-  active: { bg: '#e8f5e9', text: '#4CAF50' },
-  terminated: { bg: '#ffebee', text: '#f44336' },
-  pending: { bg: '#fff3e0', text: '#ff9800' }
+  active: { bg: 'bg-green-50', text: 'text-green-600' },
+  terminated: { bg: 'bg-red-50', text: 'text-red-600' },
+  pending: { bg: 'bg-orange-50', text: 'text-orange-600' }
 }
 
-// Actions
 const handleTerminate = (leaseId) => {
   console.log('Terminating lease:', leaseId)
-  // Add your termination logic here
 }
 </script>
 
 <template>
-  <div class="lease-view">
+  <div class="max-w-6xl mx-auto px-4 py-8">
     <!-- Header -->
-    <header class="page-header">
-      <h1>Lease Management</h1>
-      <router-link to="/leases/new" class="btn btn-primary">
+    <header class="flex justify-between items-center mb-8">
+      <h1 class="text-2xl font-bold text-gray-800">Lease Management</h1>
+      <router-link
+          to="/leases/new"
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+      >
         + Add New Lease
       </router-link>
     </header>
 
     <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Loading leases...</p>
+    <div v-if="loading" class="flex flex-col items-center justify-center py-12">
+      <div class="w-10 h-10 border-4 border-gray-200 border-t-green-500 rounded-full animate-spin mb-4"></div>
+      <p class="text-gray-600">Loading leases...</p>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="error-state">
-      <p>⚠️ {{ error }}</p>
-      <button @click="$router.go(0)" class="btn btn-secondary">
+    <div v-else-if="error" class="bg-red-50 p-6 rounded-lg text-center">
+      <p class="text-red-600 mb-4">⚠️ {{ error }}</p>
+      <button
+          @click="$router.go(0)"
+          class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md transition-colors"
+      >
         Try Again
       </button>
     </div>
@@ -115,103 +119,107 @@ const handleTerminate = (leaseId) => {
     <!-- Content -->
     <div v-else>
       <!-- Summary Cards -->
-      <div class="summary-cards">
-        <div class="summary-card">
-          <h3>Total Leases</h3>
-          <p>{{ leases.length }}</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+          <h3 class="text-gray-600 text-sm font-medium mb-1">Total Leases</h3>
+          <p class="text-2xl font-bold text-gray-800">{{ leases.length }}</p>
         </div>
-        <div class="summary-card">
-          <h3>Active Leases</h3>
-          <p>{{ leases.filter(l => l.status === 'active').length }}</p>
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+          <h3 class="text-gray-600 text-sm font-medium mb-1">Active Leases</h3>
+          <p class="text-2xl font-bold text-gray-800">{{ leases.filter(l => l.status === 'active').length }}</p>
         </div>
-        <div class="summary-card highlight">
-          <h3>Monthly Revenue</h3>
-          <p>${{ totalMonthlyRent.toLocaleString() }}</p>
+        <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-green-500">
+          <h3 class="text-gray-600 text-sm font-medium mb-1">Monthly Revenue</h3>
+          <p class="text-2xl font-bold text-gray-800">${{ totalMonthlyRent.toLocaleString() }}</p>
         </div>
       </div>
 
       <!-- Lease Tabs -->
-      <div class="lease-tabs">
+      <div class="flex border-b border-gray-200 mb-6">
         <button
             @click="activeTab = 'active'"
-            :class="{ active: activeTab === 'active' }"
+            :class="{ 'text-green-600 border-b-2 border-green-600': activeTab === 'active' }"
+            class="px-4 py-2 font-medium text-gray-500 hover:text-gray-700 focus:outline-none"
         >
           Active
         </button>
         <button
             @click="activeTab = 'terminated'"
-            :class="{ active: activeTab === 'terminated' }"
+            :class="{ 'text-red-600 border-b-2 border-red-600': activeTab === 'terminated' }"
+            class="px-4 py-2 font-medium text-gray-500 hover:text-gray-700 focus:outline-none"
         >
           Terminated
         </button>
         <button
             @click="activeTab = 'all'"
-            :class="{ active: activeTab === 'all' }"
+            :class="{ 'text-blue-600 border-b-2 border-blue-600': activeTab === 'all' }"
+            class="px-4 py-2 font-medium text-gray-500 hover:text-gray-700 focus:outline-none"
         >
           All Leases
         </button>
       </div>
 
       <!-- Lease List -->
-      <div v-if="filteredLeases.length > 0" class="lease-list">
-        <div v-for="lease in filteredLeases" :key="lease.leaseId" class="lease-card">
-          <div class="lease-header">
-            <h3>
+      <div v-if="filteredLeases.length > 0" class="space-y-6">
+        <div
+            v-for="lease in filteredLeases"
+            :key="lease.leaseId"
+            class="bg-white p-6 rounded-lg shadow-sm"
+        >
+          <div class="flex justify-between items-center pb-4 mb-4 border-b border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
               Lease #{{ lease.leaseId }}
               <span
-                  class="status-badge"
-                  :style="{
-                  backgroundColor: statusColors[lease.status].bg,
-                  color: statusColors[lease.status].text
-                }"
+                  :class="[statusColors[lease.status].bg, statusColors[lease.status].text]"
+                  class="px-3 py-1 rounded-full text-xs font-medium capitalize"
               >
                 {{ lease.status }}
               </span>
             </h3>
-            <span class="lease-amount">${{ lease.monthlyRent }}/month</span>
+            <span class="text-lg font-bold text-gray-800">${{ lease.monthlyRent }}/month</span>
           </div>
 
-          <div class="lease-details">
-            <div class="detail-group">
-              <span class="detail-label">Property:</span>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div>
+              <span class="block text-sm text-gray-500 mb-1">Property:</span>
               <router-link
                   :to="`/properties/${lease.propertyId}`"
-                  class="detail-value link"
+                  class="text-blue-600 hover:text-blue-800 hover:underline font-medium"
               >
                 {{ lease.propertyName || `Property #${lease.propertyId}` }}
               </router-link>
             </div>
 
-            <div class="detail-group">
-              <span class="detail-label">Tenant:</span>
+            <div>
+              <span class="block text-sm text-gray-500 mb-1">Tenant:</span>
               <router-link
                   :to="`/tenants/${lease.tenantId}`"
-                  class="detail-value link"
+                  class="text-blue-600 hover:text-blue-800 hover:underline font-medium"
               >
                 {{ lease.tenantName || `Tenant #${lease.tenantId}` }}
               </router-link>
             </div>
 
-            <div class="detail-group">
-              <span class="detail-label">Duration:</span>
-              <span class="detail-value">
+            <div>
+              <span class="block text-sm text-gray-500 mb-1">Duration:</span>
+              <span class="font-medium">
                 {{ new Date(lease.startDate).toLocaleDateString() }} -
                 {{ new Date(lease.endDate).toLocaleDateString() }}
               </span>
             </div>
           </div>
 
-          <div class="lease-actions">
+          <div class="flex justify-end gap-3">
             <router-link
                 :to="`/leases/${lease.leaseId}`"
-                class="btn btn-outline"
+                class="border border-green-600 text-green-600 hover:bg-green-50 px-4 py-2 rounded-md transition-colors"
             >
               View Details
             </router-link>
             <button
                 v-if="lease.status === 'active'"
-                class="btn btn-warning"
                 @click="handleTerminate(lease.leaseId)"
+                class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors"
             >
               Terminate
             </button>
@@ -220,286 +228,17 @@ const handleTerminate = (leaseId) => {
       </div>
 
       <!-- Empty State -->
-      <div v-else class="empty-state">
-        <div class="empty-icon">📄</div>
-        <h3>No leases found</h3>
-        <p>You don't have any {{ activeTab }} leases yet.</p>
-        <router-link to="/leases/new" class="btn btn-primary">
+      <div v-else class="bg-white p-12 rounded-lg shadow-sm text-center">
+        <div class="text-5xl mb-4 opacity-50">📄</div>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">No leases found</h3>
+        <p class="text-gray-600 mb-6">You don't have any {{ activeTab }} leases yet.</p>
+        <router-link
+            to="/leases/new"
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors inline-block"
+        >
           Create New Lease
         </router-link>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.lease-view {
-  padding: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.page-header h1 {
-  font-size: 1.8rem;
-  color: #333;
-}
-
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.summary-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.summary-card.highlight {
-  border-left: 4px solid #4CAF50;
-}
-
-.summary-card h3 {
-  margin: 0 0 0.5rem 0;
-  color: #666;
-  font-size: 1rem;
-}
-
-.summary-card p {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-}
-
-.lease-tabs {
-  display: flex;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 1.5rem;
-}
-
-.lease-tabs button {
-  padding: 0.75rem 1.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-  color: #666;
-  position: relative;
-}
-
-.lease-tabs button.active {
-  color: #4CAF50;
-}
-
-.lease-tabs button.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #4CAF50;
-}
-
-.lease-list {
-  display: grid;
-  gap: 1.5rem;
-}
-
-.lease-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.lease-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f5f5f5;
-}
-
-.lease-header h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.lease-amount {
-  font-weight: bold;
-  color: #333;
-  font-size: 1.1rem;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.lease-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.detail-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.detail-label {
-  font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 0.25rem;
-}
-
-.detail-value {
-  font-weight: 500;
-}
-
-.link {
-  color: #2196F3;
-  text-decoration: none;
-}
-
-.link:hover {
-  text-decoration: underline;
-}
-
-.lease-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.btn-primary {
-  background: #4CAF50;
-  color: white;
-  border: none;
-}
-
-.btn-primary:hover {
-  background: #45a049;
-}
-
-.btn-outline {
-  background: white;
-  color: #4CAF50;
-  border: 1px solid #4CAF50;
-}
-
-.btn-outline:hover {
-  background: #f5f5f5;
-}
-
-.btn-warning {
-  background: #ff9800;
-  color: white;
-  border: none;
-}
-
-.btn-warning:hover {
-  background: #e68a00;
-}
-
-.btn-secondary {
-  background: #f0f0f0;
-  color: #333;
-  border: none;
-}
-
-.btn-secondary:hover {
-  background: #e0e0e0;
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #4CAF50;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-state {
-  background: #ffebee;
-  padding: 1.5rem;
-  border-radius: 8px;
-  text-align: center;
-}
-
-.error-state p {
-  margin: 0 0 1rem 0;
-  color: #f44336;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 2rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-.empty-state h3 {
-  margin: 0 0 0.5rem 0;
-  color: #333;
-}
-
-.empty-state p {
-  margin: 0 0 1.5rem 0;
-  color: #666;
-}
-</style>
