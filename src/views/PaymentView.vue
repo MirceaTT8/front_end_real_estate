@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-
+import { getPaymentsByOwnerId, createPayment } from "@/services/paymentService.js";
+import { fetchPropertyById } from "@/services/propertyService.js";
+import { fetchUserById } from "@/services/userService.js";
+import { fetchActiveLeasesByOwnerId} from "@/services/leaseService.js";
 // Data
 const payments = ref([])
 const leases = ref([])
@@ -8,91 +11,57 @@ const properties = ref([])
 const tenants = ref([])
 const selectedLease = ref(null)
 const showManualPaymentModal = ref(false)
+const error = ref(null)
+const propertyCache = ref({})
+const tenantCache = ref({})
 const newPayment = ref({
-  lease_id: null,
+  leaseId: null,
   amount: 0,
   payment_date: new Date().toISOString().split('T')[0],
-  payment_method: 'bank_transfer'
+  payment_method: 'BANK_TRANSFER'
 })
 
-const initializeData = () => {
-  leases.value = [
-    {
-      lease_id: 1,
-      tenant_id: 2, // Jane Smith
-      property_id: 2, // Downtown Loft
-      start_date: '2024-01-01',
-      end_date: '2024-12-31',
-      monthly_rent: 1800.00,
-      status: 'active',
-      created_at: '2024-01-01 00:00:00'
-    }
-  ]
+const fetchPayments = async () => {
+  error.value = null
+  try {
 
-  payments.value = [
-    {
-      payment_id: 1,
-      lease_id: 1,
-      amount: 1800.00,
-      payment_date: '2024-01-05 14:30:00',
-      payment_method: 'credit_card',
-      status: 'completed'
-    },
-    {
-      payment_id: 2,
-      lease_id: 1,
-      amount: 1800.00,
-      payment_date: '2024-02-05 14:30:00',
-      payment_method: 'credit_card',
-      status: 'completed'
-    },
-    {
-      payment_id: 3,
-      lease_id: 1,
-      amount: 1800.00,
-      payment_date: '2024-03-05 14:30:00',
-      payment_method: 'credit_card',
-      status: 'pending'
-    }
-  ]
+    const ownerId = 1
+    payments.value = await getPaymentsByOwnerId(ownerId)
 
-  properties.value = [
-    {
-      property_id: 1,
-      owner_id: 1,
-      name: 'Sunset Apartments',
-      address: '123 Main St, Cityville',
-      type: 'apartment',
-      rent_amount: 1200.00,
-      status: 'available',
-      created_at: '2024-01-01 00:00:00'
-    },
-    {
-      property_id: 2,
-      owner_id: 1,
-      name: 'Downtown Loft',
-      address: '456 Elm St, Metropolis',
-      type: 'apartment',
-      rent_amount: 1800.00,
-      status: 'rented',
-      created_at: '2024-01-01 00:00:00'
-    }
-  ]
+    const [paymentsData, leasesData] = await Promise.all([
+      getPaymentsByOwnerId(ownerId),
+      fetchActiveLeasesByOwnerId(ownerId)
+    ])
 
-  tenants.value = [
-    {
-      user_id: 1,
-      last_name: 'Doe',
-      first_name: 'John',
-      email: 'john.doe@example.com'
-    },
-    {
-      user_id: 2,
-      last_name: 'Smith',
-      first_name: 'Jane',
-      email: 'jane.smith@example.com'
-    }
-  ]
+    payments.value = paymentsData
+    leases.value = leasesData
+
+    console.log(payments)
+    console.log(leases)
+
+    const uniquePropertyIds = [...new Set(leases.value.map(l => l.propertyId))]
+    const uniqueTenantIds = [...new Set(leases.value.map(l => l.tenantId))]
+
+    console.log(uniquePropertyIds)
+    console.log(uniqueTenantIds)
+
+    await Promise.all([
+      ...uniquePropertyIds.map(id =>
+          fetchPropertyById(id).then(property => {
+            propertyCache.value[id] = property
+          })
+      ),
+      ...uniqueTenantIds.map(id =>
+          fetchUserById(id).then(tenant => {
+            tenantCache.value[id] = tenant
+          })
+      )
+    ])
+
+  } catch (err) {
+    error.value = err.message || 'Failed to fetch payments'
+    console.error('Error fetching payments:', err)
+  }
 }
 
 // Computed properties
@@ -118,13 +87,19 @@ const summary = computed(() => {
 
 // Helper methods
 const getTenantName = (tenantId) => {
-  const tenant = tenants.value.find(t => t.user_id === tenantId)
-  return tenant ? `${tenant.first_name} ${tenant.last_name}` : 'Unknown'
+  if (!tenantId) return 'Unknown'
+  const tenant = tenantCache.value[tenantId] || tenants.value.find(t => t.userId === tenantId)
+  return tenant ? `${tenant.firstName} ${tenant.lastName}` : 'Unknown'
 }
 
 const getPropertyName = (propertyId) => {
-  const property = properties.value.find(p => p.property_id === propertyId)
+  if (!propertyId) return 'Unknown'
+  const property = propertyCache.value[propertyId] || properties.value.find(p => p.propertyId === propertyId)
   return property ? property.name : 'Unknown'
+}
+
+const getLeaseForPayment = (payment) => {
+  return leases.value.find(l => l.lease_id === payment.lease_id)
 }
 
 const formatDate = (dateString) => {
@@ -139,22 +114,37 @@ const formatCurrency = (amount) => {
 }
 
 // Actions
-const recordManualPayment = () => {
-  payments.value.push({
-    payment_id: Math.max(...payments.value.map(p => p.payment_id)) + 1,
-    ...newPayment.value,
-    status: 'completed'
-  })
-  showManualPaymentModal.value = false
-  resetNewPayment()
-}
+const recordManualPayment = async () => {
+  try {
+    const paymentData = {
+      amount: newPayment.value.amount,
+      paymentDate: newPayment.value.paymentDate,
+      paymentMethod: newPayment.value.paymentMethod,
+      status: 'PENDING'
+    };
 
+    console.log(paymentData)
+
+    const createdPayment = await createPayment(newPayment.value.leaseId, paymentData);
+
+    payments.value.push({
+      ...createdPayment,
+    });
+
+    showManualPaymentModal.value = false;
+    resetNewPayment();
+
+  } catch (error) {
+    error.value = error.message || 'Failed to record payment';
+    console.error('Error recording payment:', error);
+  }
+}
 const resetNewPayment = () => {
   newPayment.value = {
-    lease_id: null,
+    leaseId: null,
     amount: 0,
-    payment_date: new Date().toISOString().split('T')[0],
-    payment_method: 'bank_transfer'
+    paymentDate: new Date().toISOString().split('T')[0],
+    paymentMethod: 'BANK_TRANSFER'
   }
 }
 
@@ -163,7 +153,9 @@ const sendReminders = () => {
 }
 
 // Initialize
-onMounted(initializeData)
+onMounted(() => {
+  fetchPayments()
+})
 </script>
 
 <template>
@@ -183,7 +175,7 @@ onMounted(initializeData)
             :key="lease.lease_id"
             :value="lease.lease_id"
         >
-          {{ getPropertyName(lease.property_id) }} - {{ getTenantName(lease.tenant_id) }}
+          {{ getPropertyName(lease.propertyId) }} - {{ getTenantName(lease.tenantId) }}
         </option>
       </select>
     </div>
@@ -238,22 +230,22 @@ onMounted(initializeData)
         <tbody class="bg-white divide-y divide-gray-200">
         <tr
             v-for="payment in filteredPayments"
-            :key="payment.payment_id"
+            :key="payment.paymentId"
             :class="{
               'text-green-600': payment.status === 'completed',
               'text-amber-600': payment.status === 'pending'
             }"
         >
-          <td class="px-6 py-4 whitespace-nowrap text-sm">{{ payment.payment_id }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">{{ payment.paymentId }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm">
-            {{ getPropertyName(leases.find(l => l.lease_id === payment.lease_id)?.property_id) }}
+            {{ getPropertyName(getLeaseForPayment(payment)?.propertyId) }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm">
-            {{ getTenantName(leases.find(l => l.lease_id === payment.lease_id)?.tenant_id) }}
+            {{ getTenantName(getLeaseForPayment(payment)?.tenantId) }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm">{{ formatCurrency(payment.amount) }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm">{{ formatDate(payment.payment_date) }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm capitalize">{{ payment.payment_method.replace('_', ' ') }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">{{ formatDate(payment.paymentDate) }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm capitalize">{{ payment.paymentMethod.replace('_', ' ') }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm">
               <span
                   class="px-2.5 py-0.5 rounded-full text-xs font-medium capitalize"
@@ -279,16 +271,16 @@ onMounted(initializeData)
             <div class="mb-4">
               <label class="block text-sm font-medium text-gray-700 mb-1">Lease:</label>
               <select
-                  v-model="newPayment.lease_id"
+                  v-model="newPayment.leaseId"
                   required
                   class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
               >
                 <option
                     v-for="lease in leases"
-                    :key="lease.lease_id"
-                    :value="lease.lease_id"
+                    :key="lease.leaseId"
+                    :value="lease.leaseId"
                 >
-                  {{ getPropertyName(lease.property_id) }} ({{ getTenantName(lease.tenant_id) }})
+                  {{ getPropertyName(lease.propertyId) }} ({{ getTenantName(lease.tenantId) }})
                 </option>
               </select>
             </div>
@@ -308,7 +300,7 @@ onMounted(initializeData)
             <div class="mb-4">
               <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date:</label>
               <input
-                  v-model="newPayment.payment_date"
+                  v-model="newPayment.paymentDate"
                   type="date"
                   required
                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
@@ -318,13 +310,13 @@ onMounted(initializeData)
             <div class="mb-6">
               <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method:</label>
               <select
-                  v-model="newPayment.payment_method"
+                  v-model="newPayment.paymentMethod"
                   required
                   class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
               >
-                <option value="bank_transfer">Bank Transfer</option>
-                <option value="credit_card">Credit Card</option>
-                <option value="cash">Cash</option>
+                <option value="BANK_TRANSFER">Bank Transfer</option>
+                <option value="CREDIT_CARD">Credit Card</option>
+                <option value="CASH">Cash</option>
               </select>
             </div>
 

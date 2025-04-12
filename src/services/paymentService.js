@@ -51,6 +51,19 @@ export const getPaymentsByLeaseId = async (leaseId) => {
     }
 };
 
+export const getPaymentsByOwnerId = async (userId) => {
+    try {
+        const response = await fetch(`${PAYMENT_API}/owner/${userId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(`Error fetching payments for lease ${userId}:`, error);
+        throw error;
+    }
+};
+
 export const getPaymentById = async (paymentId) => {
     try {
         const response = await fetch(`${PAYMENT_API}/${paymentId}`);
