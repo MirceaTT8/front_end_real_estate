@@ -15,6 +15,20 @@ export const fetchPropertiesByUserId = async (userId) => {
     }
 };
 
+export const fetchPropertyById = async (propertyId) => {
+    try {
+        const response = await fetch(`${API}/${propertyId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching properties:', error);
+        throw error;
+    }
+};
+
+
 export const addProperty = async (propertyDTO) => {
     try{
         const response = await fetch(`${API}`, {

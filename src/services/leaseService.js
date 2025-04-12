@@ -14,3 +14,16 @@ export const fetchActiveLeasesByOwnerId = async (userId) => {
         throw error;
     }
 };
+
+export const fetchLeaseId = async (leaseId) => {
+    try {
+        const response = await fetch(`${API}/${leaseId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching maintenance requests:', error);
+        throw error;
+    }
+};
