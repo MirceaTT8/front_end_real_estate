@@ -1,69 +1,45 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import {getPaymentsByLeaseId, createPayment} from "@/services/paymentService.js";
 
 const payments = ref([])
 const loading = ref(true)
 const error = ref(null)
+const showPaymentModal = ref(false)
+const paymentForm = ref({
+  amount: 1800.00,
+  paymentMethod: 'CREDIT_CARD'
+})
 
-// Mock data - static display only
-const loadPaymentData = async () => {
+const loadPaymentData = async (leaseId) => {
+  loading.value = true
+  error.value = null
   try {
-    // Simulate API call
-    payments.value = [
-      {
-        payment_id: 1,
-        lease_id: 1,
-        amount: 1800.00,
-        payment_date: '2024-05-01 10:30:00',
-        payment_method: 'bank_transfer',
-        status: 'completed',
-        invoice_id: 'INV-2024-05-001'
-      },
-      {
-        payment_id: 2,
-        lease_id: 1,
-        amount: 1800.00,
-        payment_date: '2024-04-01 09:15:00',
-        payment_method: 'credit_card',
-        status: 'completed',
-        invoice_id: 'INV-2024-04-001'
-      },
-      {
-        payment_id: 3,
-        lease_id: 1,
-        amount: 1800.00,
-        payment_date: '2024-03-01 14:45:00',
-        payment_method: 'bank_transfer',
-        status: 'completed',
-        invoice_id: 'INV-2024-03-001'
-      }
-    ]
+    payments.value = await getPaymentsByLeaseId(leaseId)
   } catch (err) {
-    error.value = err.message || 'Failed to load payment history'
+    error.value = 'Failed to load payments. Please try again later.'
+    console.error('Payment load failed:', err.message)
   } finally {
     loading.value = false
   }
 }
 
-// Current balance calculation
 const currentBalance = computed(() => {
   const currentMonth = new Date().getMonth() + 1
   const currentYear = new Date().getFullYear()
 
-  // Check if current month's payment exists
   const hasPaidCurrentMonth = payments.value.some(payment => {
-    const paymentDate = new Date(payment.payment_date)
+    const paymentDate = new Date(payment.paymentDate)
     return (
         paymentDate.getMonth() + 1 === currentMonth &&
         paymentDate.getFullYear() === currentYear &&
-        payment.status === 'completed'
+        payment.status === 'COMPLETED'
     )
   })
 
   return hasPaidCurrentMonth ? 0 : 1800.00
 })
 
-// Format date for display
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -80,280 +56,160 @@ const formatCurrency = (amount) => {
   }).format(amount)
 }
 
-// Empty function for the pay rent button
 const handlePayRent = () => {
-  // This button has no functionality
-  console.log('Pay rent button clicked (no functionality)')
+  showPaymentModal.value = true
+}
+
+const submitPayment = async () => {
+  try {
+    loading.value = true
+    const newPayment = await createPayment(1, paymentForm.value) // Using leaseId 1
+
+    payments.value.unshift(newPayment)
+
+    showPaymentModal.value = false
+    paymentForm.value = { amount: 1800.00, paymentMethod: 'CREDIT_CARD' }
+
+  } catch (err) {
+    error.value = err.message || 'Payment failed. Please try again.'
+  } finally {
+    loading.value = false
+  }
 }
 
 onMounted(() => {
-  loadPaymentData()
+  loadPaymentData(1)
 })
 </script>
 
 <template>
-  <div class="payment-tenant-view">
-    <header class="page-header">
-      <h1>Rent Payment Information</h1>
+  <div class="max-w-5xl mx-auto p-6">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-semibold text-gray-800">Rent Payment Information</h1>
       <button
           v-if="currentBalance > 0"
           @click="handlePayRent"
-          class="btn btn-primary"
+          class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
       >
         Pay Rent
       </button>
-    </header>
-
-    <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Loading your payment history...</p>
     </div>
 
-    <!-- Error State -->
-    <div v-else-if="error" class="error-state">
+    <div v-if="loading" class="flex flex-col items-center justify-center text-center py-16">
+      <div class="w-12 h-12 border-4 border-t-green-500 border-gray-200 rounded-full animate-spin mb-4"></div>
+      <p class="text-gray-600">Loading your payment history...</p>
+    </div>
+
+    <div v-else-if="error" class="text-center text-red-600 py-16">
       <p>⚠️ {{ error }}</p>
-      <button @click="loadPaymentData" class="btn btn-retry">
+      <button
+          @click="loadPaymentData"
+          class="mt-4 bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
+      >
         Try Again
       </button>
     </div>
 
-    <!-- Payment Status -->
-    <div v-else class="payment-status">
-      <div class="balance-card" :class="{ 'paid': currentBalance === 0 }">
-        <h3>Rent Due</h3>
-        <p class="balance-amount">
+    <div v-else>
+      <div
+          class="mb-8 bg-white rounded-lg p-6 shadow-md border-l-4"
+          :class="currentBalance === 0 ? 'border-green-500' : 'border-orange-400'"
+      >
+        <h3 class="text-gray-500 text-sm font-medium">Rent Due</h3>
+        <p class="text-3xl font-bold text-gray-800 my-2">
           {{ formatCurrency(currentBalance) }}
         </p>
-        <p class="balance-status">
+        <p class="text-gray-600 font-medium">
           {{ currentBalance === 0 ? 'Rent paid for this month' : 'Due by the 5th of each month' }}
         </p>
       </div>
-    </div>
 
-    <!-- Payment History -->
-    <div class="payment-history">
-      <h2>Payment History</h2>
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-800 border-b pb-4 mb-4">Payment History</h2>
 
-      <!-- Empty State -->
-      <div v-if="payments.length === 0" class="empty-state">
-        <p>No payment history found</p>
-      </div>
-
-      <!-- Payment Table -->
-      <div v-else class="payment-table">
-        <div class="table-header">
-          <span>Date</span>
-          <span>Amount</span>
-          <span>Method</span>
-          <span>Status</span>
-          <span>Invoice</span>
+        <div v-if="payments.length === 0" class="bg-gray-50 text-gray-500 py-12 text-center rounded-md">
+          <p>No payment history found</p>
         </div>
 
-        <div
-            v-for="payment in payments"
-            :key="payment.payment_id"
-            class="table-row"
-        >
-          <span>{{ formatDate(payment.payment_date) }}</span>
-          <span>{{ formatCurrency(payment.amount) }}</span>
-          <span>{{ payment.payment_method.replace('_', ' ') }}</span>
-          <span :class="payment.status">{{ payment.status }}</span>
-          <span class="invoice-link">
-            <a href="#" @click.prevent="console.log('Download invoice', payment.invoice_id)">
-              View
-            </a>
-          </span>
+        <div v-else>
+          <div class="grid grid-cols-5 font-medium text-gray-700 bg-gray-100 px-4 py-2 rounded-t-md">
+            <span>Date</span>
+            <span>Amount</span>
+            <span>Method</span>
+            <span>Status</span>
+            <span>Invoice</span>
+          </div>
+
+          <div
+              v-for="payment in payments"
+              :key="payment.payment_id"
+              class="grid grid-cols-5 px-4 py-3 border-t items-center text-sm"
+          >
+            <span>{{ formatDate(payment.paymentDate) }}</span>
+            <span>{{ formatCurrency(payment.amount) }}</span>
+            <span class="capitalize">{{ payment.paymentMethod.replace('_', ' ') }}</span>
+            <span
+                :class="{
+                'text-green-600 font-semibold': payment.status === 'completed',
+                'text-orange-500 font-semibold': payment.status === 'pending',
+                'text-red-600 font-semibold': payment.status === 'failed'
+              }"
+            >
+              {{ payment.status }}
+            </span>
+<!--            <span>
+              <a
+                  href="#"
+                  @click.prevent="console.log('Download invoice', payment.invoiceId)"
+                  class="text-blue-600 hover:underline"
+              >
+                View
+              </a>
+            </span>-->
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="showPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <h2 class="text-xl font-semibold mb-4">Make a Payment</h2>
+
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-2">Amount</label>
+          <input
+              v-model="paymentForm.amount"
+              type="number"
+              class="w-full p-2 border rounded"
+              disabled
+          >
+        </div>
+
+        <div class="mb-6">
+          <label class="block text-gray-700 mb-2">Payment Method</label>
+          <select v-model="paymentForm.paymentMethod" class="w-full p-2 border rounded">
+            <option value="CREDIT_CARD">Credit Card</option>
+            <option value="BANK_TRANSFER">Bank Transfer</option>
+            <option value="PAYPAL">PayPal</option>
+          </select>
+        </div>
+
+        <div class="flex justify-end gap-4">
+          <button
+              @click="showPaymentModal = false"
+              class="px-4 py-2 text-gray-600 hover:text-gray-800"
+          >
+            Cancel
+          </button>
+          <button
+              @click="submitPayment"
+              class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              :disabled="loading"
+          >
+            <span v-if="loading">Processing...</span>
+            <span v-else>Submit Payment</span>
+          </button>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.payment-tenant-view {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 1.5rem;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.page-header h1 {
-  margin: 0;
-  font-size: 1.8rem;
-  color: #333;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  border: none;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #3d8b40;
-}
-
-.btn-retry {
-  background-color: #ff9800;
-  color: white;
-}
-
-.btn-retry:hover {
-  background-color: #e68a00;
-}
-
-/* Payment Status */
-.payment-status {
-  margin-bottom: 2rem;
-}
-
-.balance-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  text-align: center;
-  border-left: 4px solid #ff9800;
-}
-
-.balance-card.paid {
-  border-left-color: #4CAF50;
-}
-
-.balance-card h3 {
-  margin-top: 0;
-  color: #666;
-  font-size: 1.1rem;
-}
-
-.balance-amount {
-  font-size: 2rem;
-  font-weight: bold;
-  margin: 0.5rem 0;
-  color: #333;
-}
-
-.balance-status {
-  margin: 0;
-  color: #666;
-  font-weight: 500;
-}
-
-/* Payment History */
-.payment-history {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.payment-history h2 {
-  margin-top: 0;
-  color: #333;
-  font-size: 1.4rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
-}
-
-/* Payment Table */
-.payment-table {
-  display: grid;
-  grid-template-columns: 1fr;
-}
-
-.table-header, .table-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-  padding: 1rem;
-  align-items: center;
-}
-
-.table-header {
-  background: #f5f5f5;
-  font-weight: 500;
-  border-bottom: 1px solid #eee;
-}
-
-.table-row {
-  border-bottom: 1px solid #f5f5f5;
-}
-
-.table-row:last-child {
-  border-bottom: none;
-}
-
-.table-row .completed {
-  color: #4CAF50;
-  font-weight: 500;
-}
-
-.table-row .pending {
-  color: #ff9800;
-  font-weight: 500;
-}
-
-.table-row .failed {
-  color: #f44336;
-  font-weight: 500;
-}
-
-.invoice-link a {
-  color: #2196F3;
-  text-decoration: none;
-}
-
-.invoice-link a:hover {
-  text-decoration: underline;
-}
-
-/* States */
-.loading-state, .error-state, .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  text-align: center;
-}
-
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #4CAF50;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-state {
-  color: #f44336;
-}
-
-.empty-state {
-  background: #fafafa;
-  border-radius: 8px;
-  padding: 2rem;
-  margin: 1rem 0;
-}
-</style>
