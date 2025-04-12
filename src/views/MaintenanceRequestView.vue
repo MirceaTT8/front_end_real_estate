@@ -38,6 +38,9 @@ const updateRequestStatus = async (requestId, newStatus) => {
       requests.value[index].status = newStatus;
       requests.value[index].updated_at = new Date().toISOString(); // or updatedRequest.updated_at if returned
     }
+
+    selectedStatus.value = "all";
+
   } catch (err) {
     console.error('Error updating request status:', err);
     error.value = err.message || 'Failed to update request status';
@@ -75,24 +78,23 @@ const formatDate = (dateString) => {
         <label class="font-medium">Filter by status:</label>
         <select v-model="selectedStatus" class="py-2 px-4 border border-gray-300 rounded-md min-w-48">
           <option value="all">All Requests</option>
-          <option value="pending">Pending</option>
-          <option value="in_progress">In Progress</option>
-          <option value="resolved">Resolved</option>
+          <option value="PENDING">Pending</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="CANCELLED">Cancelled</option>
         </select>
       </div>
 
-      <!-- Request List -->
       <div v-if="filteredRequests.length > 0" class="grid gap-6">
-        <div v-for="request in filteredRequests" :key="request.request_id" class="bg-white rounded-lg p-6 shadow">
+        <div v-for="request in filteredRequests" :key="request.requestId" class="bg-white rounded-lg p-6 shadow">
           <div class="flex justify-between items-center pb-4 mb-4 border-b border-gray-100">
-            <h3 class="text-lg font-medium m-0">Request #{{ request.request_id }}</h3>
+            <h3 class="text-lg font-medium m-0">Request #{{ request.requestId }}</h3>
             <span
                 class="inline-block px-3 py-1 rounded-full text-sm font-medium capitalize"
                 :class="{
-                'bg-amber-50 text-amber-600': request.status === 'pending',
-                'bg-blue-50 text-blue-600': request.status === 'in_progress',
-                'bg-green-50 text-green-600': request.status === 'resolved',
-                'bg-red-50 text-red-500': request.status === 'cancelled'
+                'bg-amber-50 text-amber-600': request.status === 'PENDING',
+                'bg-blue-50 text-blue-600': request.status === 'IN_PROGRESS',
+                'bg-green-50 text-green-600': request.status === 'COMPLETED',
+                'bg-red-50 text-red-500': request.status === 'CANCELLED'
               }"
             >
               {{ request.status.replace('_', ' ') }}
@@ -100,10 +102,6 @@ const formatDate = (dateString) => {
           </div>
 
           <div class="grid gap-3 mb-6">
-            <div class="flex">
-              <span class="font-medium w-32 text-gray-600">Property:</span>
-              <span class="flex-1">{{ request.property_address }}</span>
-            </div>
             <div class="flex">
               <span class="font-medium w-32 text-gray-600">Lease:</span>
               <span class="flex-1">{{ request.leaseId }}</span>
@@ -122,7 +120,6 @@ const formatDate = (dateString) => {
             </div>
           </div>
 
-          <!-- Status Actions -->
           <div class="flex items-center gap-3">
             <label class="text-sm font-medium text-gray-700">Change status:</label>
             <select
