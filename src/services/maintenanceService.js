@@ -27,6 +27,23 @@ export const fetchMaintenanceRequestsByOwner = async (userId) => {
     }
 };
 
+export const setStatus = async (requestId, status) => {
+    try {
+        const response = await fetch(`${API}/${requestId}/status?status=${status}`, {
+            method: 'PATCH',
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to update status. HTTP status: ${response.status}`);
+        }
+
+        return await response.json(); // return updated request if your backend returns it
+    } catch (error) {
+        console.error('Error setting status:', error);
+        throw error;
+    }
+};
+
 export const addMaintenanceRequest = async (leaseId, requestDTO) => {
     try {
         const response = await fetch(`${API}/${leaseId}`, {

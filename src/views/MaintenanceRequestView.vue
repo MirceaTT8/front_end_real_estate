@@ -2,7 +2,7 @@
 import {computed, onMounted, ref} from 'vue'
 import {useRouter} from "vue-router";
 
-import {fetchMaintenanceRequestsByOwner} from "@/services/maintenanceService.js";
+import {fetchMaintenanceRequestsByOwner, setStatus} from "@/services/maintenanceService.js";
 
 const requests = ref([])
 const loading = ref(true)
@@ -16,6 +16,7 @@ onMounted(async () => {
     const ownerId = 1;
 
     requests.value = await fetchMaintenanceRequestsByOwner(ownerId);
+    console.log(requests.value)
   } catch (err) {
     error.value = err.message || 'Failed to load maintenance requests';
     console.error('Error:', err);
@@ -31,30 +32,17 @@ const filteredRequests = computed(() => {
 
 const updateRequestStatus = async (requestId, newStatus) => {
   try {
-    const request = requests.value.find(req => req.request_id === requestId)
-    if (request) {
-      const response = await fetch(`${API}/${requestId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      // Update local state if API call succeeds
-      request.status = newStatus
-      request.updated_at = new Date().toISOString()
+    const updatedRequest = await setStatus(requestId, newStatus);
+    const index = requests.value.findIndex(req => req.requestId === requestId);
+    if (index !== -1) {
+      requests.value[index].status = newStatus;
+      requests.value[index].updated_at = new Date().toISOString(); // or updatedRequest.updated_at if returned
     }
   } catch (err) {
-    console.error('Error updating request status:', err)
-    error.value = err.message || 'Failed to update request status'
+    console.error('Error updating request status:', err);
+    error.value = err.message || 'Failed to update request status';
   }
-}
-
+};
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleString()
 }
@@ -117,8 +105,8 @@ const formatDate = (dateString) => {
               <span class="flex-1">{{ request.property_address }}</span>
             </div>
             <div class="flex">
-              <span class="font-medium w-32 text-gray-600">Tenant:</span>
-              <span class="flex-1">{{ request.tenant_name }}</span>
+              <span class="font-medium w-32 text-gray-600">Lease:</span>
+              <span class="flex-1">{{ request.leaseId }}</span>
             </div>
             <div class="flex">
               <span class="font-medium w-32 text-gray-600">Description:</span>
@@ -126,63 +114,27 @@ const formatDate = (dateString) => {
             </div>
             <div class="flex">
               <span class="font-medium w-32 text-gray-600">Submitted:</span>
-              <span class="flex-1">{{ formatDate(request.created_at) }}</span>
+              <span class="flex-1">{{ formatDate(request.createdAt) }}</span>
             </div>
             <div class="flex">
               <span class="font-medium w-32 text-gray-600">Last Updated:</span>
-              <span class="flex-1">{{ formatDate(request.updated_at) }}</span>
+              <span class="flex-1">{{ formatDate(request.updatedAt) }}</span>
             </div>
           </div>
 
           <!-- Status Actions -->
-          <div class="flex flex-wrap gap-3">
-            <template v-if="request.status === 'pending'">
-              <button
-                  @click="updateRequestStatus(request.request_id, 'in_progress')"
-                  class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded font-medium text-sm transition-all duration-200"
-              >
-                Mark In Progress
-              </button>
-              <button
-                  @click="updateRequestStatus(request.request_id, 'cancelled')"
-                  class="bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded font-medium text-sm transition-all duration-200"
-              >
-                Cancel Request
-              </button>
-            </template>
-
-            <template v-else-if="request.status === 'in_progress'">
-              <button
-                  @click="updateRequestStatus(request.request_id, 'resolved')"
-                  class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded font-medium text-sm transition-all duration-200"
-              >
-                Mark Resolved
-              </button>
-              <button
-                  @click="updateRequestStatus(request.request_id, 'pending')"
-                  class="bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded font-medium text-sm transition-all duration-200"
-              >
-                Revert to Pending
-              </button>
-            </template>
-
-            <template v-else-if="request.status === 'resolved'">
-              <button
-                  @click="updateRequestStatus(request.request_id, 'in_progress')"
-                  class="bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded font-medium text-sm transition-all duration-200"
-              >
-                Reopen
-              </button>
-            </template>
-
-            <template v-else-if="request.status === 'cancelled'">
-              <button
-                  @click="updateRequestStatus(request.request_id, 'pending')"
-                  class="bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded font-medium text-sm transition-all duration-200"
-              >
-                Reactivate
-              </button>
-            </template>
+          <div class="flex items-center gap-3">
+            <label class="text-sm font-medium text-gray-700">Change status:</label>
+            <select
+                :value="request.status"
+                @change="updateRequestStatus(request.requestId, $event.target.value)"
+                class="py-2 px-3 border border-gray-300 rounded-md bg-white shadow-sm text-sm"
+            >
+              <option value="PENDING">Pending</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
           </div>
         </div>
       </div>

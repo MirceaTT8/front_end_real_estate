@@ -15,7 +15,6 @@ const newPayment = ref({
   payment_method: 'bank_transfer'
 })
 
-// Mock data initialization matching your schema
 const initializeData = () => {
   leases.value = [
     {
@@ -168,13 +167,16 @@ onMounted(initializeData)
 </script>
 
 <template>
-  <div class="payment-view">
-    <h1 class="page-title">Payment Management</h1>
+  <div class="p-6 max-w-6xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Payment Management</h1>
 
     <!-- Lease Filter -->
-    <div class="lease-filter">
-      <label>Filter by Lease:</label>
-      <select v-model="selectedLease" class="lease-select">
+    <div class="flex items-center gap-4 mb-6">
+      <label class="font-medium text-gray-700">Filter by Lease:</label>
+      <select
+          v-model="selectedLease"
+          class="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 min-w-[300px]"
+      >
         <option :value="null">All Leases</option>
         <option
             v-for="lease in leases"
@@ -187,350 +189,163 @@ onMounted(initializeData)
     </div>
 
     <!-- Summary Cards -->
-    <div class="summary-cards">
-      <div class="summary-card">
-        <h3>Total Collected</h3>
-        <p>{{ formatCurrency(summary.totalCollected) }}</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <h3 class="text-sm font-medium text-gray-500 mb-2">Total Collected</h3>
+        <p class="text-2xl font-bold text-gray-800">{{ formatCurrency(summary.totalCollected) }}</p>
       </div>
-      <div class="summary-card">
-        <h3>Expected Monthly</h3>
-        <p>{{ formatCurrency(summary.expectedMonthly) }}</p>
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <h3 class="text-sm font-medium text-gray-500 mb-2">Expected Monthly</h3>
+        <p class="text-2xl font-bold text-gray-800">{{ formatCurrency(summary.expectedMonthly) }}</p>
       </div>
-      <div class="summary-card">
-        <h3>Overdue Payments</h3>
-        <p>{{ summary.overdueCount }}</p>
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <h3 class="text-sm font-medium text-gray-500 mb-2">Overdue Payments</h3>
+        <p class="text-2xl font-bold text-gray-800">{{ summary.overdueCount }}</p>
       </div>
     </div>
 
     <!-- Action Buttons -->
-    <div class="action-buttons">
+    <div class="flex flex-wrap gap-4 mb-8">
       <button
           @click="sendReminders"
-          class="btn btn-warning"
+          class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md shadow-sm disabled:bg-amber-200 disabled:cursor-not-allowed transition-colors"
           :disabled="summary.overdueCount === 0"
       >
         Send Reminders ({{ summary.overdueCount }})
       </button>
       <button
           @click="showManualPaymentModal = true"
-          class="btn btn-primary"
+          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md shadow-sm transition-colors"
       >
         Record Manual Payment
       </button>
     </div>
 
     <!-- Payment Table -->
-    <table class="payment-table">
-      <thead>
-      <tr>
-        <th>Payment ID</th>
-        <th>Property</th>
-        <th>Tenant</th>
-        <th>Amount</th>
-        <th>Date</th>
-        <th>Method</th>
-        <th>Status</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr
-          v-for="payment in filteredPayments"
-          :key="payment.payment_id"
-          :class="`status-${payment.status}`"
-      >
-        <td>{{ payment.payment_id }}</td>
-        <td>
-          {{ getPropertyName(leases.find(l => l.lease_id === payment.lease_id)?.property_id) }}
-        </td>
-        <td>
-          {{ getTenantName(leases.find(l => l.lease_id === payment.lease_id)?.tenant_id) }}
-        </td>
-        <td>{{ formatCurrency(payment.amount) }}</td>
-        <td>{{ formatDate(payment.payment_date) }}</td>
-        <td>{{ payment.payment_method.replace('_', ' ') }}</td>
-        <td>
-            <span class="status-badge">
-              {{ payment.status }}
-            </span>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+    <div class="overflow-x-auto bg-white rounded-lg shadow-sm border border-gray-100">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment ID</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Property</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tenant</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+        </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+        <tr
+            v-for="payment in filteredPayments"
+            :key="payment.payment_id"
+            :class="{
+              'text-green-600': payment.status === 'completed',
+              'text-amber-600': payment.status === 'pending'
+            }"
+        >
+          <td class="px-6 py-4 whitespace-nowrap text-sm">{{ payment.payment_id }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">
+            {{ getPropertyName(leases.find(l => l.lease_id === payment.lease_id)?.property_id) }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">
+            {{ getTenantName(leases.find(l => l.lease_id === payment.lease_id)?.tenant_id) }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">{{ formatCurrency(payment.amount) }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">{{ formatDate(payment.payment_date) }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm capitalize">{{ payment.payment_method.replace('_', ' ') }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">
+              <span
+                  class="px-2.5 py-0.5 rounded-full text-xs font-medium capitalize"
+                  :class="{
+                  'bg-green-100 text-green-800': payment.status === 'completed',
+                  'bg-amber-100 text-amber-800': payment.status === 'pending'
+                }"
+              >
+                {{ payment.status }}
+              </span>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
 
     <!-- Manual Payment Modal -->
-    <div v-if="showManualPaymentModal" class="modal-overlay">
-      <div class="modal">
-        <h2>Record Manual Payment</h2>
-        <form @submit.prevent="recordManualPayment">
-          <div class="form-group">
-            <label>Lease:</label>
-            <select
-                v-model="newPayment.lease_id"
-                required
-                class="form-control"
-            >
-              <option
-                  v-for="lease in leases"
-                  :key="lease.lease_id"
-                  :value="lease.lease_id"
+    <div v-if="showManualPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div class="p-6">
+          <h2 class="text-lg font-medium text-gray-900 mb-4">Record Manual Payment</h2>
+          <form @submit.prevent="recordManualPayment">
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Lease:</label>
+              <select
+                  v-model="newPayment.lease_id"
+                  required
+                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
               >
-                {{ getPropertyName(lease.property_id) }} ({{ getTenantName(lease.tenant_id) }})
-              </option>
-            </select>
-          </div>
+                <option
+                    v-for="lease in leases"
+                    :key="lease.lease_id"
+                    :value="lease.lease_id"
+                >
+                  {{ getPropertyName(lease.property_id) }} ({{ getTenantName(lease.tenant_id) }})
+                </option>
+              </select>
+            </div>
 
-          <div class="form-group">
-            <label>Amount:</label>
-            <input
-                v-model.number="newPayment.amount"
-                type="number"
-                step="0.01"
-                min="0"
-                required
-                class="form-control"
-            >
-          </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Amount:</label>
+              <input
+                  v-model.number="newPayment.amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              >
+            </div>
 
-          <div class="form-group">
-            <label>Payment Date:</label>
-            <input
-                v-model="newPayment.payment_date"
-                type="date"
-                required
-                class="form-control"
-            >
-          </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date:</label>
+              <input
+                  v-model="newPayment.payment_date"
+                  type="date"
+                  required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              >
+            </div>
 
-          <div class="form-group">
-            <label>Payment Method:</label>
-            <select
-                v-model="newPayment.payment_method"
-                required
-                class="form-control"
-            >
-              <option value="bank_transfer">Bank Transfer</option>
-              <option value="credit_card">Credit Card</option>
-              <option value="cash">Cash</option>
-            </select>
-          </div>
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method:</label>
+              <select
+                  v-model="newPayment.payment_method"
+                  required
+                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+              >
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="credit_card">Credit Card</option>
+                <option value="cash">Cash</option>
+              </select>
+            </div>
 
-          <div class="modal-actions">
-            <button
-                type="button"
-                @click="showManualPaymentModal = false"
-                class="btn btn-secondary"
-            >
-              Cancel
-            </button>
-            <button
-                type="submit"
-                class="btn btn-primary"
-            >
-              Record Payment
-            </button>
-          </div>
-        </form>
+            <div class="flex justify-end gap-3">
+              <button
+                  type="button"
+                  @click="showManualPaymentModal = false"
+                  class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-md shadow-sm transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                  type="submit"
+                  class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md shadow-sm transition-colors"
+              >
+                Record Payment
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.payment-view {
-  padding: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.page-title {
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
-  color: #333;
-}
-
-.lease-filter {
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.lease-filter label {
-  font-weight: 500;
-}
-
-.lease-select {
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  min-width: 300px;
-}
-
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin: 1.5rem 0;
-}
-
-.summary-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.summary-card h3 {
-  margin: 0 0 0.5rem 0;
-  color: #666;
-  font-size: 1rem;
-}
-
-.summary-card p {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 1rem;
-  margin: 1.5rem 0;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  border: none;
-  font-weight: 500;
-}
-
-.btn-primary {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #45a049;
-}
-
-.btn-warning {
-  background-color: #ff9800;
-  color: white;
-}
-
-.btn-warning:hover {
-  background-color: #e68a00;
-}
-
-.btn-warning:disabled {
-  background-color: #ffd699;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background-color: #f0f0f0;
-  color: #333;
-}
-
-.btn-secondary:hover {
-  background-color: #e0e0e0;
-}
-
-.payment-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
-
-.payment-table th,
-.payment-table td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-.payment-table th {
-  background-color: #f5f5f5;
-  font-weight: 500;
-}
-
-.status-completed {
-  color: #4caf50;
-}
-
-.status-pending {
-  color: #ff9800;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.status-completed .status-badge {
-  background-color: #e8f5e9;
-}
-
-.status-pending .status-badge {
-  background-color: #fff3e0;
-}
-
-/* Modal Styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal {
-  background-color: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  width: 500px;
-  max-width: 90%;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.modal h2 {
-  margin-top: 0;
-  color: #333;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.form-control {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-</style>
