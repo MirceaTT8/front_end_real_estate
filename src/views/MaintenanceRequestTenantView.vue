@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import {onMounted, ref} from 'vue'
+import {fetchMaintenanceRequestsByLease, addMaintenanceRequest} from "@/services/maintenanceService.js";
 
 const requests = ref([])
 const loading = ref(true)
@@ -13,53 +14,17 @@ const newRequest = ref({
 
 // Status options that tenant can see
 const statusDisplay = {
-  pending: { label: 'Pending', color: 'orange' },
-  in_progress: { label: 'In Progress', color: 'blue' },
-  completed: { label: 'Completed', color: 'green' }
+  PENDING: { label: 'Pending', color: 'orange' },
+  IN_PROGRESS: { label: 'In Progress', color: 'blue' },
+  COMPLETED: { label: 'Completed', color: 'green' }
 }
 
 // Load tenant's maintenance requests
 const loadRequests = async () => {
   try {
     loading.value = true
-    // Mock data with attachments
-    requests.value = [
-      {
-        request_id: 1,
-        description: 'Kitchen sink is leaking',
-        status: 'pending',
-        created_at: '2024-05-15 09:30:00',
-        updated_at: '2024-05-15 09:30:00',
-        attachments: [
-          'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=200',
-          'https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=200'
-        ]
-      },
-      {
-        request_id: 2,
-        description: 'AC not cooling properly',
-        status: 'in_progress',
-        created_at: '2024-05-10 14:15:00',
-        updated_at: '2024-05-11 10:00:00',
-        attachments: [
-          'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=200'
-        ]
-      },
-      {
-        request_id: 3,
-        description: 'Broken bedroom window',
-        status: 'completed',
-        created_at: '2024-04-20 16:45:00',
-        updated_at: '2024-04-22 11:30:00',
-        attachments: [
-          'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=200',
-          'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=200',
-          'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=200'
-        ],
-        is_fixed: true,
-        resolution_time: 2
-      }
-    ]
+    requests.value = await fetchMaintenanceRequestsByLease(1)
+    console.log(requests)
   } catch (err) {
     error.value = err.message || 'Failed to load maintenance requests'
   } finally {
@@ -82,24 +47,27 @@ const handleFileUpload = (event) => {
 // Submit new maintenance request
 const submitRequest = async () => {
   try {
-    const newId = Math.max(...requests.value.map(r => r.request_id), 0) + 1
+    loading.value = true;
+    error.value = null;
 
-    requests.value.unshift({
-      request_id: newId,
+    const requestDTO = {
       description: newRequest.value.description,
-      status: 'pending',
       urgency: newRequest.value.urgency,
       attachments: newRequest.value.attachments,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    })
+    };
 
-    showCreateForm.value = false
-    newRequest.value = { description: '', urgency: 'medium', attachments: [] }
+    const createdRequest = await addMaintenanceRequest(1, requestDTO);
+
+    requests.value.unshift(createdRequest);
+
+    showCreateForm.value = false;
+    newRequest.value = { description: '', urgency: 'medium', attachments: [] };
   } catch (err) {
-    error.value = err.message || 'Failed to submit request'
+    error.value = err.message || 'Failed to submit request';
+  } finally {
+    loading.value = false;
   }
-}
+};
 
 // Format date for display
 const formatDate = (dateString) => {
@@ -112,12 +80,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="maintenance-tenant-view">
-    <header class="page-header">
-      <h1>Maintenance Requests</h1>
+  <div class="max-w-4xl mx-auto p-6">
+    <header class="flex justify-between items-center mb-8">
+      <h1 class="text-2xl font-bold text-gray-800">Maintenance Requests</h1>
       <button
           @click="showCreateForm = true"
-          class="btn btn-primary"
+          class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded"
           v-if="!showCreateForm"
       >
         + New Request
@@ -125,81 +93,76 @@ onMounted(() => {
     </header>
 
     <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Loading your requests...</p>
+    <div v-if="loading" class="flex flex-col items-center justify-center space-y-4">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800"></div>
+      <p class="text-gray-600">Loading your requests...</p>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="error-state">
+    <div v-else-if="error" class="text-center text-red-600">
       <p>⚠️ {{ error }}</p>
-      <button @click="loadRequests" class="btn btn-retry">
+      <button
+          @click="loadRequests"
+          class="mt-4 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded"
+      >
         Try Again
       </button>
     </div>
 
     <!-- Create New Request Form -->
-    <div v-else-if="showCreateForm" class="create-form">
-      <h2>Create Maintenance Request</h2>
-      <form @submit.prevent="submitRequest">
-        <div class="form-group">
-          <label for="description">Description *</label>
+    <div v-else-if="showCreateForm" class="bg-white rounded-lg shadow p-6 space-y-6">
+      <h2 class="text-xl font-semibold text-gray-700">Create Maintenance Request</h2>
+      <form @submit.prevent="submitRequest" class="space-y-4">
+        <div>
+          <label for="description" class="block font-medium text-gray-700 mb-1">Description *</label>
           <textarea
               id="description"
               v-model="newRequest.description"
               required
               rows="5"
               placeholder="Describe the issue in detail..."
+              class="w-full p-3 border border-gray-300 rounded resize-none focus:outline-none focus:ring focus:ring-green-400"
           ></textarea>
         </div>
 
-        <div class="form-group">
-          <label>Urgency Level</label>
-          <div class="urgency-options">
-            <label>
-              <input
-                  type="radio"
-                  v-model="newRequest.urgency"
-                  value="low"
-              >
-              <span class="urgency-tag low">Low</span>
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">Urgency Level</label>
+          <div class="flex gap-4">
+            <label class="flex items-center space-x-2">
+              <input type="radio" v-model="newRequest.urgency" value="low" />
+              <span class="text-sm px-2 py-1 bg-blue-100 text-blue-700 rounded">Low</span>
             </label>
-            <label>
-              <input
-                  type="radio"
-                  v-model="newRequest.urgency"
-                  value="medium"
-                  checked
-              >
-              <span class="urgency-tag medium">Medium</span>
+            <label class="flex items-center space-x-2">
+              <input type="radio" v-model="newRequest.urgency" value="medium" />
+              <span class="text-sm px-2 py-1 bg-yellow-100 text-yellow-700 rounded">Medium</span>
             </label>
-            <label>
-              <input
-                  type="radio"
-                  v-model="newRequest.urgency"
-                  value="high"
-              >
-              <span class="urgency-tag high">High</span>
+            <label class="flex items-center space-x-2">
+              <input type="radio" v-model="newRequest.urgency" value="high" />
+              <span class="text-sm px-2 py-1 bg-red-100 text-red-700 rounded">High</span>
             </label>
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Attach Photos (Max 5)</label>
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">Attach Photos (Max 5)</label>
           <input
               type="file"
               multiple
               accept="image/*"
               @change="handleFileUpload"
-              class="file-input"
-          >
-          <div class="attachment-preview" v-if="newRequest.attachments.length > 0">
-            <div v-for="(attachment, index) in newRequest.attachments" :key="index" class="preview-item">
-              <img :src="attachment" alt="Attachment preview" class="preview-image">
+              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+          />
+          <div class="mt-4 flex flex-wrap gap-4" v-if="newRequest.attachments.length > 0">
+            <div
+                v-for="(attachment, index) in newRequest.attachments"
+                :key="index"
+                class="relative w-24 h-24 border rounded overflow-hidden"
+            >
+              <img :src="attachment" alt="Attachment preview" class="object-cover w-full h-full" />
               <button
                   type="button"
                   @click="newRequest.attachments.splice(index, 1)"
-                  class="remove-attachment"
+                  class="absolute top-0 right-0 bg-red-500 text-white rounded-bl px-2 py-0.5 text-sm"
               >
                 ×
               </button>
@@ -207,15 +170,15 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="form-actions">
+        <div class="flex justify-end gap-4">
           <button
               type="button"
               @click="showCreateForm = false"
-              class="btn btn-secondary"
+              class="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded"
           >
             Cancel
           </button>
-          <button type="submit" class="btn btn-primary">
+          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">
             Submit Request
           </button>
         </div>
@@ -225,66 +188,68 @@ onMounted(() => {
     <!-- Request List -->
     <div v-else>
       <!-- Empty State -->
-      <div v-if="requests.length === 0" class="empty-state">
+      <div v-if="requests.length === 0" class="text-center text-gray-600">
         <p>You haven't submitted any maintenance requests yet.</p>
         <button
             @click="showCreateForm = true"
-            class="btn btn-primary"
+            class="mt-4 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
         >
           Create Your First Request
         </button>
       </div>
 
       <!-- Request Cards -->
-      <div v-else class="request-list">
+      <div v-else class="space-y-6">
         <div
             v-for="request in requests"
             :key="request.request_id"
-            class="request-card"
+            class="bg-white shadow rounded-lg p-6"
         >
-          <div class="request-header">
-            <h3>Request #{{ request.request_id }}</h3>
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Request #{{ request.request_id }}</h3>
             <span
-                class="status-badge"
-                :style="{
-                backgroundColor: `var(--color-${statusDisplay[request.status].color}-light)`,
-                color: `var(--color-${statusDisplay[request.status].color}-dark)`
+                class="text-sm font-medium px-3 py-1 rounded-full"
+                :class="{
+                'bg-orange-100 text-orange-700': request.status === 'PENDING',
+                'bg-blue-100 text-blue-700': request.status === 'IN_PROGRESS',
+                'bg-green-100 text-green-700': request.status === 'COMPLETED'
               }"
             >
               {{ statusDisplay[request.status].label }}
             </span>
           </div>
 
-          <div class="request-details">
-            <p class="description">{{ request.description }}</p>
+          <p class="text-gray-700 mb-4">{{ request.description }}</p>
 
-            <!-- Attachments Gallery -->
-            <div v-if="request.attachments && request.attachments.length > 0" class="attachments-gallery">
-              <h4>Attached Photos ({{ request.attachments.length }})</h4>
-              <div class="gallery-grid">
-                <div v-for="(attachment, index) in request.attachments" :key="index" class="gallery-item">
-                  <img :src="attachment" :alt="`Attachment ${index + 1}`" class="gallery-image">
-                </div>
-              </div>
+          <!-- Attachments -->
+<!--          <div v-if="request.attachments.length" class="mb-4">-->
+<!--            <h4 class="font-medium text-gray-700 mb-2">-->
+<!--              Attached Photos ({{ request.attachments.length }})-->
+<!--            </h4>-->
+<!--            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">-->
+<!--              <div-->
+<!--                  v-for="(attachment, index) in request.attachments"-->
+<!--                  :key="index"-->
+<!--                  class="w-full aspect-square border rounded overflow-hidden"-->
+<!--              >-->
+<!--                <img-->
+<!--                    :src="attachment"-->
+<!--                    :alt="`Attachment ${index + 1}`"-->
+<!--                    class="w-full h-full object-cover"-->
+<!--                />-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+
+          <!-- Metadata -->
+          <div class="text-sm text-gray-600 space-y-1">
+            <div><span class="font-medium">Submitted:</span> {{ formatDate(request.createdAt) }}</div>
+            <div><span class="font-medium">Last Updated:</span> {{ formatDate(request.updatedAt) }}</div>
+            <div v-if="request.status === 'completed'">
+              <span class="font-medium">Resolution Time:</span> {{ request.resolution_time }} days
             </div>
-
-            <div class="meta-details">
-              <div class="meta-item">
-                <span class="meta-label">Submitted:</span>
-                <span>{{ formatDate(request.created_at) }}</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-label">Last Updated:</span>
-                <span>{{ formatDate(request.updated_at) }}</span>
-              </div>
-              <div v-if="request.status === 'completed'" class="meta-item">
-                <span class="meta-label">Resolution Time:</span>
-                <span>{{ request.resolution_time }} days</span>
-              </div>
-              <div v-if="request.status === 'completed'" class="meta-item">
-                <span class="meta-label">Fixed?:</span>
-                <span>{{ request.is_fixed ? 'Yes' : 'No' }}</span>
-              </div>
+            <div v-if="request.status === 'completed'">
+              <span class="font-medium">Fixed?:</span> {{ request.is_fixed ? 'Yes' : 'No' }}
             </div>
           </div>
         </div>
@@ -292,330 +257,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.maintenance-tenant-view {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 1.5rem;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.page-header h1 {
-  margin: 0;
-  font-size: 1.8rem;
-  color: #333;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  border: none;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #3d8b40;
-}
-
-.btn-secondary {
-  background-color: #f0f0f0;
-  color: #333;
-}
-
-.btn-secondary:hover {
-  background-color: #e0e0e0;
-}
-
-.btn-retry {
-  background-color: #ff9800;
-  color: white;
-}
-
-.btn-retry:hover {
-  background-color: #e68a00;
-}
-
-/* Form Styles */
-.create-form {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-bottom: 2rem;
-}
-
-.create-form h2 {
-  margin-top: 0;
-  color: #333;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.form-group textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-family: inherit;
-}
-
-.urgency-options {
-  display: flex;
-  gap: 1rem;
-  margin-top: 0.5rem;
-}
-
-.urgency-options label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.urgency-tag {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.urgency-tag.low {
-  background-color: #e8f5e9;
-  color: #4CAF50;
-}
-
-.urgency-tag.medium {
-  background-color: #fff3e0;
-  color: #ff9800;
-}
-
-.urgency-tag.high {
-  background-color: #ffebee;
-  color: #f44336;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
-
-/* Request List */
-.request-list {
-  display: grid;
-  gap: 1.5rem;
-}
-
-.request-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.request-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f5f5f5;
-}
-
-.request-header h3 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.request-details {
-  display: grid;
-  gap: 1rem;
-}
-
-.description {
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* Attachment Styles */
-.file-input {
-  display: block;
-  width: 100%;
-  margin-top: 0.5rem;
-}
-
-.attachment-preview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.preview-item {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.preview-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.remove-attachment {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: rgba(0,0,0,0.7);
-  color: white;
-  border: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 0 0 0 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.attachments-gallery {
-  margin: 1.5rem 0;
-}
-
-.attachments-gallery h4 {
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
-  color: #555;
-}
-
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 0.75rem;
-}
-
-.gallery-item {
-  aspect-ratio: 1;
-  border-radius: 4px;
-  overflow: hidden;
-  border: 1px solid #eee;
-}
-
-.gallery-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.gallery-image:hover {
-  transform: scale(1.05);
-}
-
-.meta-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.meta-item {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.meta-label {
-  font-weight: 500;
-}
-
-/* States */
-.loading-state, .error-state, .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  text-align: center;
-}
-
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #4CAF50;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-state {
-  color: #f44336;
-}
-
-.empty-state {
-  background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.empty-state p {
-  margin-bottom: 1.5rem;
-}
-
-/* Responsive adjustments */
-@media (max-width: 600px) {
-  .gallery-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .meta-details {
-    grid-template-columns: 1fr;
-  }
-
-  .urgency-options {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-</style>
