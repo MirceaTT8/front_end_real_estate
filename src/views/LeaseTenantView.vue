@@ -2,9 +2,11 @@
 import { ref, onMounted, computed } from 'vue'
 import {fetchLeaseId} from "@/services/leaseService.js";
 import {fetchPropertyById} from "@/services/propertyService.js";
+import {getPaymentsByLeaseId} from "@/services/paymentService.js";
 
 const lease = ref(null)
 const property = ref(null)
+const payments = ref([])
 const loading = ref(true)
 const error = ref(null)
 const currentDate = new Date()
@@ -18,6 +20,7 @@ const loadLeaseData = async (leaseId) => {
 
     if (lease.value && lease.value.propertyId) {
       property.value = await fetchPropertyById(lease.value.propertyId)
+      payments.value = await getPaymentsByLeaseId(leaseId)
     }
 
     console.log(property)
@@ -82,8 +85,8 @@ onMounted(() => {
         <h1 class="text-2xl font-bold text-gray-800">Your Lease Agreement</h1>
         <span
             :class="{
-            'bg-green-100 text-green-700': lease.status === 'active',
-            'bg-red-100 text-red-600': lease.status === 'expired'
+            'bg-green-100 text-green-700': lease.status === 'ACTIVE',
+            'bg-red-100 text-red-600': lease.status === 'TERMINATED'
           }"
             class="px-4 py-1 rounded-full text-sm font-medium capitalize"
         >
@@ -110,13 +113,13 @@ onMounted(() => {
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="bg-white shadow rounded p-5">
             <h3 class="font-semibold text-gray-800 mb-2">Duration</h3>
-            <p class="text-gray-700">{{ formatDate(lease.startDate) }} - {{ formatDate(lease.endDate) }}</p>
-            <p class="text-blue-600 font-medium mt-2">{{ daysRemaining(lease.endDate) }} days remaining</p>
+            <p class="text-gray-700">{{ formatDate(lease.startDate) }} - Undetermined</p>
+<!--            <p class="text-blue-600 font-medium mt-2">{{ daysRemaining(lease.endDate) }} days remaining</p>-->
           </div>
           <div class="bg-white shadow rounded p-5">
             <h3 class="font-semibold text-gray-800 mb-2">Rent Information</h3>
             <p><strong>$</strong>{{ lease.monthlyRent.toFixed(2) }} per month</p>
-            <p>Due on the {{ lease.paymentDueDay }}th</p>
+            <p>Due on the 5th</p>
             <p :class="rentStatus.class">Status: {{ rentStatus.status }}</p>
           </div>
 <!--          <div class="bg-white shadow rounded p-5">
@@ -145,14 +148,14 @@ onMounted(() => {
             <span>Status</span>
           </div>
           <div
-              v-for="payment in lease.paymentHistory"
-              :key="payment.month"
+              v-for="payment in payments"
+              :key="payment.paymentId"
               class="grid grid-cols-4 p-4 border-t text-gray-700"
           >
-            <span>{{ payment.month }}</span>
+            <span>{{ payment.paymentDate }}</span>
             <span>${{ payment.amount.toFixed(2) }}</span>
-            <span>{{ formatDate(payment.date) }}</span>
-            <span class="capitalize" :class="payment.status === 'paid' ? 'text-green-600' : 'text-red-500'">
+            <span>{{ formatDate(payment.paymentDate) }}</span>
+            <span class="capitalize" :class="payment.status === 'COMPLETED' ? 'text-green-600' : 'text-red-500'">
               {{ payment.status }}
             </span>
           </div>

@@ -157,7 +157,7 @@ onMounted(() => {
             >
               {{ payment.status }}
             </span>
-<!--            <span>
+            <span>
               <a
                   href="#"
                   @click.prevent="console.log('Download invoice', payment.invoiceId)"
@@ -165,7 +165,7 @@ onMounted(() => {
               >
                 View
               </a>
-            </span>-->
+            </span>
           </div>
         </div>
       </div>

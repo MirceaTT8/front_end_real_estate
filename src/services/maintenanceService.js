@@ -3,7 +3,7 @@ const API = `${BASE_URL}/maintenance`;
 
 export const fetchMaintenanceRequestsByLease = async (leaseId) => {
     try {
-        const response = await fetch(`${API}/${leaseId}`);
+        const response = await fetch(`${API}/lease/${leaseId}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -46,7 +46,7 @@ export const setStatus = async (requestId, status) => {
 
 export const addMaintenanceRequest = async (leaseId, requestDTO) => {
     try {
-        const response = await fetch(`${API}/${leaseId}`, {
+        const response = await fetch(`${API}/lease/${leaseId}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'

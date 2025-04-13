@@ -10,6 +10,7 @@ const error = ref(null)
 const map = ref(null)
 const mapContainer = ref(null)
 const showMapView = ref(false)
+const markers = ref([])
 
 // Filter states
 const filters = ref({
@@ -35,7 +36,7 @@ const initMap = async () => {
     const loader = new Loader({
       apiKey: GOOGLE_API_KEY, 
       version: 'weekly',
-      libraries: ['places']
+      libraries: ['places', 'geometry']
     })
 
     await loader.load()
@@ -47,13 +48,13 @@ const initMap = async () => {
       zoomControl: true,
       gestureHandling: 'cooperative'
     })
+    addMarkers()
   } catch (err) {
     console.error('Map initialization error:', err)
     error.value = new Error('Failed to load map. Please try again later.')
   }
 }
 
-// Computed property for filtered properties
 const filteredProperties = computed(() => {
   return properties.value.filter(property => {
     const matchesLocation = !filters.value.location ||
@@ -81,6 +82,19 @@ onMounted(async () => {
   try {
     properties.value = await fetchPropertiesByUserId(1)
     // Initialize map only if map view is active
+
+    if (properties.value.length > 0) {
+      properties.value[0].latitude = 45.7489
+      properties.value[0].longitude = 21.2087
+    }
+    if (properties.value.length > 1) {
+      properties.value[1].latitude = 45.7589
+      properties.value[1].longitude = 21.2187
+    }
+
+    console.log(properties.value)
+
+
     if (showMapView.value) {
       await initMap()
     }
@@ -91,12 +105,95 @@ onMounted(async () => {
   }
 })
 
-// Watch for map view toggle
+const addMarkers = () => {
+  // Clear existing markers first
+  clearMarkers()
+
+  if (!map.value || !properties.value.length) return
+
+  // Create bounds to auto-zoom to show all markers
+  const bounds = new google.maps.LatLngBounds()
+
+  properties.value.forEach((property, index) => {
+
+    const position = {
+      lat: parseFloat(property.latitude),
+      lng: parseFloat(property.longitude)
+    }
+
+
+    const marker = new google.maps.Marker({
+      position,
+      map: map.value,
+      title: property.name,
+      icon: getMarkerIcon(property.status) // Customize marker based on status
+    })
+
+    // Add info window
+    const infoWindow = new google.maps.InfoWindow({
+      content: `
+        <div class="p-2">
+          <h3 class="font-bold">${property.name}</h3>
+          <p>${property.address}</p>
+          <p class="text-green-600 font-semibold">$${property.monthlyRent}/month</p>
+          <a href="/properties/${property.id}" class="text-blue-500 hover:underline">View details</a>
+        </div>
+      `
+    })
+
+    marker.addListener('click', () => {
+      infoWindow.open(map.value, marker)
+    })
+
+    markers.value.push(marker)
+    bounds.extend(position)
+  })
+
+  // Auto-zoom to fit all markers
+  if (markers.value.length > 0) {
+    map.value.fitBounds(bounds)
+    // Don't zoom too far out if only one marker
+    if (markers.value.length === 1) {
+      map.value.setZoom(14)
+    }
+  }
+}
+
 watch(showMapView, async (newVal) => {
   if (newVal && !map.value) {
     await initMap()
+  } else {
+    addMarkers()
   }
 })
+
+const clearMarkers = () => {
+  markers.value.forEach(marker => {
+    marker.setMap(null)
+  })
+  markers.value = []
+}
+
+const getMarkerIcon = (status) => {
+  // Return different colored markers based on status
+  const colorMap = {
+    'AVAILABLE': '#34D399', // green
+    'RENTED': '#FBBF24',  // amber
+    'DISABLED': '#EF4444' // red
+  }
+
+  const color = colorMap[status.toLowerCase()] || '#3B82F6' // default blue
+
+  return {
+    path: google.maps.SymbolPath.CIRCLE,
+    fillColor: color,
+    fillOpacity: 1,
+    strokeColor: '#FFF',
+    strokeWeight: 2,
+    scale: 8
+  }
+}
+
 </script>
 
 <template>

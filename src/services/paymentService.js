@@ -20,8 +20,7 @@ export const createPayment = async (leaseId, paymentRequest) => {
         const response = await fetch(`${PAYMENT_API}/${leaseId}`, {
             method: "POST",
             headers: {
-                'Content-Type': 'application/json',
-                // Add authorization if needed: 'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(paymentRequest)
         });
@@ -77,10 +76,8 @@ export const getPaymentById = async (paymentId) => {
     }
 };
 
-// Optional: Add payment status constants if needed
 export const PaymentStatus = {
     PENDING: 'PENDING',
     COMPLETED: 'COMPLETED',
-    FAILED: 'FAILED',
-    REFUNDED: 'REFUNDED'
+    CANCELED: 'CANCELED',
 };
