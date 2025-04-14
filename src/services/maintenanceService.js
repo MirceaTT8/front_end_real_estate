@@ -44,20 +44,28 @@ export const setStatus = async (requestId, status) => {
     }
 };
 
-export const addMaintenanceRequest = async (leaseId, requestDTO) => {
+export const addMaintenanceRequest = async (leaseId, requestData) => {
     try {
-        const response = await fetch(`${API}/lease/${leaseId}`, {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestDTO)
-        });
+        const formData = new FormData();
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const jsonBlob = new Blob(
+            [JSON.stringify({ description: requestData.description })],
+            { type: 'application/json' }
+        );
+
+        formData.append('requestDTO', jsonBlob);
+        if (requestData.attachments?.length) {
+            requestData.attachments.forEach(attachment => {
+                formData.append('images', attachment.file); // Send the File object
+            });
         }
 
+        const response = await fetch(`${API}/lease/${leaseId}`, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return await response.json();
     } catch (error) {
         console.error('Error adding maintenance request:', error);

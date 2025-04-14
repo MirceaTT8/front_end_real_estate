@@ -8,7 +8,6 @@ const error = ref(null)
 const showCreateForm = ref(false)
 const newRequest = ref({
   description: '',
-  urgency: 'medium', // low, medium, high
   attachments: []
 })
 
@@ -32,17 +31,17 @@ const loadRequests = async () => {
   }
 }
 
-// Handle file upload (mock implementation)
+const fileInput = ref(null);
+
 const handleFileUpload = (event) => {
-  const files = event.target.files
+  const files = Array.from(event.target.files);
   if (files.length > 0) {
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]
-      const mockUrl = URL.createObjectURL(file)
-      newRequest.value.attachments.push(mockUrl)
-    }
+    newRequest.value.attachments = files.map(file => ({
+      file,
+      preview: URL.createObjectURL(file)
+    }));
   }
-}
+};
 
 // Submit new maintenance request
 const submitRequest = async () => {
@@ -52,7 +51,6 @@ const submitRequest = async () => {
 
     const requestDTO = {
       description: newRequest.value.description,
-      urgency: newRequest.value.urgency,
       attachments: newRequest.value.attachments,
     };
 
@@ -61,7 +59,7 @@ const submitRequest = async () => {
     requests.value.unshift(createdRequest);
 
     showCreateForm.value = false;
-    newRequest.value = { description: '', urgency: 'medium', attachments: [] };
+    newRequest.value = { description: '', attachments: [] };
   } catch (err) {
     error.value = err.message || 'Failed to submit request';
   } finally {
@@ -126,24 +124,6 @@ onMounted(() => {
         </div>
 
         <div>
-          <label class="block font-medium text-gray-700 mb-1">Urgency Level</label>
-          <div class="flex gap-4">
-            <label class="flex items-center space-x-2">
-              <input type="radio" v-model="newRequest.urgency" value="low" />
-              <span class="text-sm px-2 py-1 bg-blue-100 text-blue-700 rounded">Low</span>
-            </label>
-            <label class="flex items-center space-x-2">
-              <input type="radio" v-model="newRequest.urgency" value="medium" />
-              <span class="text-sm px-2 py-1 bg-yellow-100 text-yellow-700 rounded">Medium</span>
-            </label>
-            <label class="flex items-center space-x-2">
-              <input type="radio" v-model="newRequest.urgency" value="high" />
-              <span class="text-sm px-2 py-1 bg-red-100 text-red-700 rounded">High</span>
-            </label>
-          </div>
-        </div>
-
-        <div>
           <label class="block font-medium text-gray-700 mb-1">Attach Photos (Max 5)</label>
           <input
               type="file"
@@ -158,7 +138,7 @@ onMounted(() => {
                 :key="index"
                 class="relative w-24 h-24 border rounded overflow-hidden"
             >
-              <img :src="attachment" alt="Attachment preview" class="object-cover w-full h-full" />
+              <img :src="attachment.preview" alt="Preview" class="object-cover w-full h-full" />
               <button
                   type="button"
                   @click="newRequest.attachments.splice(index, 1)"
@@ -202,11 +182,11 @@ onMounted(() => {
       <div v-else class="space-y-6">
         <div
             v-for="request in requests"
-            :key="request.request_id"
+            :key="request.requestId"
             class="bg-white shadow rounded-lg p-6"
         >
           <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-800">Request #{{ request.request_id }}</h3>
+            <h3 class="text-lg font-semibold text-gray-800">Request #{{ request.requestId }}</h3>
             <span
                 class="text-sm font-medium px-3 py-1 rounded-full"
                 :class="{
@@ -222,25 +202,24 @@ onMounted(() => {
           <p class="text-gray-700 mb-4">{{ request.description }}</p>
 
           <!-- Attachments -->
-<!--          <div v-if="request.attachments.length" class="mb-4">-->
-<!--            <h4 class="font-medium text-gray-700 mb-2">-->
-<!--              Attached Photos ({{ request.attachments.length }})-->
-<!--            </h4>-->
-<!--            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">-->
-<!--              <div-->
-<!--                  v-for="(attachment, index) in request.attachments"-->
-<!--                  :key="index"-->
-<!--                  class="w-full aspect-square border rounded overflow-hidden"-->
-<!--              >-->
-<!--                <img-->
-<!--                    :src="attachment"-->
-<!--                    :alt="`Attachment ${index + 1}`"-->
-<!--                    class="w-full h-full object-cover"-->
-<!--                />-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-
+          <div v-if="request.imageUrls?.length" class="mb-4">
+            <h4 class="font-medium text-gray-700 mb-2">
+              Attached Photos ({{ request.imageUrls.length }})
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div
+                  v-for="(imageId, index) in request.imageUrls"
+                  :key="index"
+                  class="w-full aspect-square border rounded overflow-hidden"
+              >
+                <img
+                    :src="`http://localhost:8080/image/${imageId}`"
+                    :alt="`Attachment ${index + 1}`"
+                    class="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
           <!-- Metadata -->
           <div class="text-sm text-gray-600 space-y-1">
             <div><span class="font-medium">Submitted:</span> {{ formatDate(request.createdAt) }}</div>
