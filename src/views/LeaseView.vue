@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import {fetchActiveLeasesByOwnerId} from "@/services/leaseService.js";
+import LeaseList from "@/components/lease/LeaseList.vue";
+import LeaseSummaryCards from "@/components/lease/LeaseSummaryCards.vue";
+import LeaseTabs from "@/components/lease/LeaseTabs.vue";
 const leases = ref([])
 const loading = ref(true)
 const error = ref(null)
@@ -17,6 +20,13 @@ onMounted(async () => {
   }
 })
 
+const STATUS_COLORS = {
+  ACTIVE: { bg: 'bg-green-50', text: 'text-green-600' },
+  TERMINATED: { bg: 'bg-red-50', text: 'text-red-600' },
+  PENDING: { bg: 'bg-orange-50', text: 'text-orange-600' }
+}
+
+
 const filteredLeases = computed(() => {
   return activeTab.value === 'all'
       ? leases.value
@@ -26,6 +36,10 @@ const totalMonthlyRent = computed(() => {
   return leases.value
       .filter(l => l.status === 'ACTIVE')
       .reduce((sum, lease) => sum + lease.monthlyRent, 0)
+})
+
+const activeLeasesCount = computed(() => {
+  return leases.value.filter(l => l.status.toUpperCase() === 'ACTIVE').length
 })
 
 const statusColors = {
@@ -71,111 +85,28 @@ const handleTerminate = (leaseId) => {
     <!-- Content -->
     <div v-else>
       <!-- Summary Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-lg shadow-sm">
-          <h3 class="text-gray-600 text-sm font-medium mb-1">Total Leases</h3>
-          <p class="text-2xl font-bold text-gray-800">{{ leases.length }}</p>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow-sm">
-          <h3 class="text-gray-600 text-sm font-medium mb-1">Active Leases</h3>
-          <p class="text-2xl font-bold text-gray-800">{{ leases.filter(l => l.status === 'ACTIVE').length }}</p>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-green-500">
-          <h3 class="text-gray-600 text-sm font-medium mb-1">Monthly Revenue</h3>
-          <p class="text-2xl font-bold text-gray-800">${{ totalMonthlyRent.toLocaleString() }}</p>
-        </div>
-      </div>
+      <LeaseSummaryCards
+          :total-leases="leases.length"
+          :active-leases="activeLeasesCount"
+          :monthly-revenue="totalMonthlyRent"
+      />
 
-      <div class="flex border-b border-gray-200 mb-6">
-        <button
-            @click="activeTab = 'ACTIVE'"
-            :class="{ 'text-green-600 border-b-2 border-green-600': activeTab === 'ACTIVE' }"
-            class="px-4 py-2 font-medium text-gray-500 hover:text-gray-700 focus:outline-none"
-        >
-          Active
-        </button>
-        <button
-            @click="activeTab = 'TERMINATED'"
-            :class="{ 'text-red-600 border-b-2 border-red-600': activeTab === 'TERMINATED' }"
-            class="px-4 py-2 font-medium text-gray-500 hover:text-gray-700 focus:outline-none"
-        >
-          Terminated
-        </button>
-        <button
-            @click="activeTab = 'all'"
-            :class="{ 'text-blue-600 border-b-2 border-blue-600': activeTab === 'all' }"
-            class="px-4 py-2 font-medium text-gray-500 hover:text-gray-700 focus:outline-none"
-        >
-          All Leases
-        </button>
-      </div>
+      <LeaseTabs
+          v-model:active-tab="activeTab"
+          :tabs="[
+          { value: 'ACTIVE', label: 'Active' },
+          { value: 'TERMINATED', label: 'Terminated' },
+          { value: 'all', label: 'All Leases' }
+        ]"
+      />
 
-      <div v-if="filteredLeases.length > 0" class="space-y-6">
-        <div
-            v-for="lease in filteredLeases"
-            :key="lease.leaseId"
-            class="bg-white p-6 rounded-lg shadow-sm"
-        >
-          <div class="flex justify-between items-center pb-4 mb-4 border-b border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-              Lease #{{ lease.leaseId }}
-              <span
-                  :class="[statusColors[lease.status].bg, statusColors[lease.status].text]"
-                  class="px-3 py-1 rounded-full text-xs font-medium capitalize"
-              >
-                {{ lease.status.toLowerCase() }}
-              </span>
-            </h3>
-            <span class="text-lg font-bold text-gray-800">${{ lease.monthlyRent }}/month</span>
-          </div>
+      <LeaseList
+          v-if="filteredLeases.length > 0"
+          :leases="filteredLeases"
+          :status-colors="STATUS_COLORS"
+          @terminate="handleTerminate"
+      />
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div>
-              <span class="block text-sm text-gray-500 mb-1">Property:</span>
-              <router-link
-                  :to="`/properties/${lease.propertyId}`"
-                  class="text-blue-600 hover:text-blue-800 hover:underline font-medium"
-              >
-                {{ lease.propertyName || `Property #${lease.propertyId}` }}
-              </router-link>
-            </div>
-
-            <div>
-              <span class="block text-sm text-gray-500 mb-1">Tenant:</span>
-              <router-link
-                  :to="`/tenants/${lease.tenantId}`"
-                  class="text-blue-600 hover:text-blue-800 hover:underline font-medium"
-              >
-                {{ lease.tenantName || `Tenant #${lease.tenantId}` }}
-              </router-link>
-            </div>
-
-            <div>
-              <span class="block text-sm text-gray-500 mb-1">Duration:</span>
-              <span class="font-medium">
-                {{ new Date(lease.startDate).toLocaleDateString() }} -
-                {{ new Date(lease.endDate).toLocaleDateString() }}
-              </span>
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-3">
-            <router-link
-                :to="`/leases/${lease.leaseId}`"
-                class="border border-green-600 text-green-600 hover:bg-green-50 px-4 py-2 rounded-md transition-colors"
-            >
-              View Details
-            </router-link>
-            <button
-                v-if="lease.status === 'ACTIVE'"
-                @click="handleTerminate(lease.leaseId)"
-                class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors"
-            >
-              Terminate
-            </button>
-          </div>
-        </div>
-      </div>
 
       <!-- Empty State -->
       <div v-else class="bg-white p-12 rounded-lg shadow-sm text-center">
