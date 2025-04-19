@@ -53,6 +53,8 @@ export const addMaintenanceRequest = async (leaseId, requestData) => {
             { type: 'application/json' }
         );
 
+        console.log(requestData)
+
         formData.append('requestDTO', jsonBlob);
         if (requestData.attachments?.length) {
             requestData.attachments.forEach(attachment => {
@@ -64,6 +66,7 @@ export const addMaintenanceRequest = async (leaseId, requestData) => {
             method: 'POST',
             body: formData
         });
+
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return await response.json();
