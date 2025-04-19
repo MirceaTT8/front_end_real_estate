@@ -1,6 +1,5 @@
 <script setup>
 import { ref, watch } from 'vue'
-import {isEqual} from "lodash/lang.js";
 
 const props = defineProps(['filters', 'filterOptions'])
 const emit = defineEmits(['update:filters', 'reset'])
@@ -8,17 +7,14 @@ const emit = defineEmits(['update:filters', 'reset'])
 const internalFilters = ref({ ...props.filters })
 
 watch(() => props.filters, (newFilters) => {
-  // Only update if different
   if (JSON.stringify(internalFilters.value) !== JSON.stringify(newFilters)) {
     internalFilters.value = { ...newFilters }
   }
 }, { deep: true })
 
-// Watch internalFilters for changes
 watch(
-    () => ({ ...internalFilters.value }), // Create new object to watch
+    () => ({ ...internalFilters.value }),
     (newVal, oldVal) => {
-      // Emit only when actually changed
       if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
         emit('update:filters', { ...newVal })
       }
