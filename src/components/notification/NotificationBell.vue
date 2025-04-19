@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { useNotificationStore } from '@/stores/notificationStore.js';
 import { storeToRefs } from 'pinia';
+import { markNotificationAsRead } from '@/services/notificationService';
 
 const notificationStore = useNotificationStore();
 const { unreadCount, notifications } = storeToRefs(notificationStore);
@@ -10,6 +11,20 @@ const showDropdown = ref(false);
 onMounted(() => {
   notificationStore.fetchNotification();
 });
+
+const handleNotificationClick = async (notification) => {
+  try {
+    if (!notification.isRead) {
+      await markNotificationAsRead(notification.notificationId);
+      notification.isRead = true;
+      notification.status = 'READ';
+      unreadCount.value--;
+    }
+
+  } catch (error) {
+    console.error('Failed to mark notification as read:', error);
+  }
+};
 </script>
 
 <template>
@@ -30,10 +45,15 @@ onMounted(() => {
         </div>
         <div v-for="notification in notifications"
              :key="notification.notificationId"
-             class="px-4 py-3 text-sm hover:bg-gray-100 cursor-pointer border-b">
+             @click="handleNotificationClick(notification)"
+             class="px-4 py-3 text-sm hover:bg-gray-100 cursor-pointer border-b"
+             :class="{ 'bg-gray-50': notification.isRead }">
           <div class="font-medium">{{ notification.title }}</div>
           <div class="text-gray-500">{{ notification.message }}</div>
-          <div class="text-xs text-gray-400 mt-1">{{ notification.createdAt }}</div>
+          <div class="flex justify-between items-center mt-1">
+            <span class="text-xs text-gray-400">{{ notification.createdAt }}</span>
+            <span v-if="!notification.isRead" class="w-2 h-2 bg-blue-500 rounded-full"></span>
+          </div>
         </div>
       </div>
       <div class="px-4 py-2 text-sm text-center bg-gray-50">

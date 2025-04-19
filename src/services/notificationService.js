@@ -2,9 +2,9 @@ import { BASE_URL } from "@/configs/config.js";
 
 const API = `${BASE_URL}/notification`;
 
-export const fetchNotifications = async () => {
+export const fetchNotifications = async (userId) => {
     try {
-        const response = await fetch(`${API}`);
+        const response = await fetch(`${API}/user/${userId}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
