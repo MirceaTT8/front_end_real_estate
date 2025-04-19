@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { fetchPropertiesByUserId } from '@/services/propertyService.js'
 import PropertyFilters from '@/components/property/PropertyFilters.vue'
 import PropertyList from "@/components/property/PropertyList.vue";
@@ -52,15 +52,7 @@ const onFiltersUpdate = (newFilters) => {
 onMounted(async () => {
   try {
     properties.value = await fetchPropertiesByUserId(1)
-
-    if (properties.value.length > 0) {
-      properties.value[0].latitude = 45.7489
-      properties.value[0].longitude = 21.2087
-    }
-    if (properties.value.length > 1) {
-      properties.value[1].latitude = 45.7589
-      properties.value[1].longitude = 21.2187
-    }
+    console.log(properties.value)
   } catch (err) {
     error.value = err
   } finally {

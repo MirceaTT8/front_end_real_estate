@@ -5,31 +5,46 @@ defineProps({
     required: true
   }
 })
+
+const statusColors = {
+  AVAILABLE: { bg: 'bg-green-100', text: 'text-green-800' },
+  RENTED: { bg: 'bg-amber-100', text: 'text-amber-800' },
+  MAINTENANCE: { bg: 'bg-red-100', text: 'text-red-800' }
+}
 </script>
 
 <template>
   <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
-    <div class="h-48 overflow-hidden">
+    <!-- Property Images -->
+    <div v-if="property.imageUrls?.length" class="h-48 overflow-hidden relative">
       <img
-          :src="property.image || '@/assets/property-placeholder.jpg'"
+          :src="`http://localhost:8080/image/${property.imageUrls[0]}`"
           alt="Property image"
           class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
       >
+      <div v-if="property.imageUrls.length > 1" class="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+        +{{ property.imageUrls.length - 1 }} more
+      </div>
     </div>
+    <div v-else class="h-48 overflow-hidden bg-gray-100 flex items-center justify-center">
+      <img
+          src="@/assets/logo.svg"
+          alt="Property placeholder"
+          class="w-full h-full object-cover"
+      >
+    </div>
+
     <div class="p-6">
       <div class="flex justify-between items-start mb-4">
         <h3 class="text-lg font-medium text-gray-900">{{ property.name }}</h3>
         <span
-            :class="{
-            'bg-green-50 text-green-800': property.status === 'AVAILABLE',
-            'bg-amber-50 text-amber-800': property.status === 'RENTED',
-            'bg-red-50 text-red-800': property.status === 'maintenance'
-          }"
+            :class="[statusColors[property.status].bg, statusColors[property.status].text]"
             class="px-3 py-1 rounded-full text-xs font-semibold capitalize"
         >
-          {{ property.status }}
+          {{ property.status.toLowerCase() }}
         </span>
       </div>
+
       <div class="flex justify-between mb-4">
         <p class="flex items-center text-gray-600 text-sm">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -42,10 +57,36 @@ defineProps({
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          ${{ property.monthlyRent }} <span class="text-gray-500 font-normal">/month</span>
+          ${{ property.rentAmount }} <span class="text-gray-500 font-normal">/month</span>
         </p>
       </div>
-      <p class="text-gray-600 text-sm line-clamp-3 mb-6">{{ property.description }}</p>
+
+      <!-- Image Gallery Section -->
+      <div v-if="property.imageUrls?.length > 1" class="mb-4">
+        <h4 class="font-medium text-gray-700 mb-2 text-sm">
+          Property Photos ({{ property.imageUrls.length }})
+        </h4>
+        <div class="grid grid-cols-3 gap-2">
+          <div
+              v-for="(imageId, index) in property.imageUrls.slice(0, 3)"
+              :key="index"
+              class="aspect-square border rounded overflow-hidden"
+          >
+            <img
+                :src="`http://localhost:8080/image/${imageId}`"
+                :alt="`Property photo ${index + 1}`"
+                class="w-full h-full object-cover"
+            >
+          </div>
+          <div
+              v-if="property.imageUrls.length > 3"
+              class="aspect-square border rounded bg-gray-100 flex items-center justify-center text-gray-500 text-sm"
+          >
+            +{{ property.imageUrls.length - 3 }} more
+          </div>
+        </div>
+      </div>
+
       <div class="flex justify-end">
         <button class="flex items-center gap-1 px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
