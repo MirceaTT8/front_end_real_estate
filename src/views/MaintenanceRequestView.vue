@@ -136,7 +136,6 @@ const formatDate = (dateString) => {
         </div>
       </div>
 
-      <!-- Empty State -->
       <div v-else class="bg-white rounded-lg shadow p-8 text-center">
         <div class="text-5xl mb-4 opacity-50">🔧</div>
         <h3 class="text-lg font-medium text-gray-800 mb-2">No maintenance requests found</h3>

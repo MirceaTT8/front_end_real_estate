@@ -4,6 +4,7 @@ import Menubar from "primevue/menubar";
 import { PrimeIcons } from '@primevue/core/api';
 import router from "@/router/index.js";
 import UserDropdown from "@/components/UserDropdown.vue";
+import NotificationBell from "@/components/notification/NotificationBell.vue";
 
 
 const menuItems = ref({
@@ -114,7 +115,10 @@ const selectedMember = ref(null);
         </div>
       </template>
       <template #end>
-        <UserDropdown/>
+        <div class="flex items-center gap-4">
+          <NotificationBell />
+          <UserDropdown />
+        </div>
       </template>
     </Menubar>
   </div>
