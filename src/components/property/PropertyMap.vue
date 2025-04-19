@@ -50,13 +50,25 @@ const addMarkers = () => {
   if (!map.value || !props.properties.length) return
 
   const bounds = new google.maps.LatLngBounds()
+  let hasValidMarkers = false
 
   props.properties.forEach(property => {
-    const position = {
-      lat: parseFloat(property.latitude),
-      lng: parseFloat(property.longitude)
+    // Validate coordinates
+    const lat = parseFloat(property.latitude)
+    const lng = parseFloat(property.longitude)
+
+    if (isNaN(lat)) {
+      console.warn(`Invalid latitude for property ${property.id}: ${property.latitude}`)
+      return
+    }
+    if (isNaN(lng)) {
+      console.warn(`Invalid longitude for property ${property.id}: ${property.longitude}`)
+      return
     }
 
+    const position = { lat, lng }
+
+    // Create marker
     const marker = new google.maps.Marker({
       position,
       map: map.value,
@@ -64,13 +76,14 @@ const addMarkers = () => {
       icon: getMarkerIcon(property.status)
     })
 
+    // Info window and event listeners
     const infoWindow = new google.maps.InfoWindow({
       content: `
         <div class="p-2">
           <h3 class="font-bold">${property.name}</h3>
           <p>${property.address}</p>
-          <p class="text-green-600 font-semibold">$${property.monthlyRent}/month</p>
-          <a href="/properties/${property.id}" class="text-blue-500 hover:underline">View details</a>
+          <p class="text-green-600 font-semibold">$${property.rentAmount}/month</p>
+          <a href="/properties/${property.propertyId}" class="text-blue-500 hover:underline">View details</a>
         </div>
       `
     })
@@ -78,12 +91,21 @@ const addMarkers = () => {
     marker.addListener('click', () => infoWindow.open(map.value, marker))
     markers.value.push(marker)
     bounds.extend(position)
+    hasValidMarkers = true
   })
 
-  if (markers.value.length > 0) {
-    map.value.fitBounds(bounds)
-    if (markers.value.length === 1) {
-      map.value.setZoom(14)
+  // Only adjust view if we have valid markers
+  if (hasValidMarkers) {
+    try {
+      map.value.fitBounds(bounds)
+      // Add a small timeout to prevent uint32 error
+      setTimeout(() => {
+        if (markers.value.length === 1) {
+          map.value.setZoom(14)
+        }
+      }, 100)
+    } catch (err) {
+      console.error('Error adjusting map view:', err)
     }
   }
 }
@@ -122,7 +144,16 @@ watch(() => props.showMap, async (show) => {
   }
 }, { immediate: true })
 
-watch(() => props.properties, () => {
+watch(() => props.properties, (newProps) => {
+  if (!newProps || !newProps.length) {
+    // Reset to default view if no properties
+    if (map.value) {
+      map.value.setCenter({ lat: 45.7489, lng: 21.2087 })
+      map.value.setZoom(12)
+    }
+    return
+  }
+
   if (map.value) {
     addMarkers()
   }
