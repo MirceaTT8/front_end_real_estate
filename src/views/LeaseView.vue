@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import {fetchActiveLeasesByOwnerId} from "@/services/leaseService.js";
+import {fetchActiveLeasesByOwnerId, createLease} from "@/services/leaseService.js";
 import LeaseList from "@/components/lease/LeaseList.vue";
 import LeaseSummaryCards from "@/components/lease/LeaseSummaryCards.vue";
 import LeaseTabs from "@/components/lease/LeaseTabs.vue";
@@ -8,17 +8,56 @@ const leases = ref([])
 const loading = ref(true)
 const error = ref(null)
 const activeTab = ref('ACTIVE')
+const showCreateModal = ref(false)
 
+const newLease = ref({
+  propertyId: null,
+  tenantId: null,
+  startDate: '',
+  endDate: '',
+  monthlyRent: 0,
+  status: 'ACTIVE'
+})
+
+// Fetch leases on mount
 onMounted(async () => {
+  await loadLeases()
+})
+
+const loadLeases = async () => {
+  loading.value = true
   try {
     leases.value = await fetchActiveLeasesByOwnerId(1)
-    console.log(leases.value)
   } catch (err) {
     error.value = err.message || 'Failed to load leases'
   } finally {
     loading.value = false
   }
-})
+}
+
+const handleCreateLease = async () => {
+  try {
+    loading.value = true
+    const createdLease = await createLease(newLease.value)
+    leases.value.push(createdLease)
+    showCreateModal.value = false
+    // Reset form
+    newLease.value = {
+      propertyId: null,
+      tenantId: null,
+      startDate: '',
+      endDate: '',
+      monthlyRent: 0,
+      status: 'ACTIVE'
+    }
+  } catch (err) {
+    error.value = err.message || 'Failed to create lease'
+  } finally {
+    loading.value = false
+  }
+}
+
+
 
 const STATUS_COLORS = {
   ACTIVE: { bg: 'bg-green-50', text: 'text-green-600' },
@@ -57,13 +96,103 @@ const handleTerminate = (leaseId) => {
     <!-- Header -->
     <header class="flex justify-between items-center mb-8">
       <h1 class="text-2xl font-bold text-gray-800">Lease Management</h1>
-      <router-link
-          to="/leases/new"
+      <button
+          @click="showCreateModal = true"
           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
       >
         + Add New Lease
-      </router-link>
+      </button>
     </header>
+
+    <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <div class="p-6">
+          <h2 class="text-xl font-bold mb-4">Create New Lease</h2>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Property ID</label>
+              <input
+                  v-model.number="newLease.propertyId"
+                  type="number"
+                  class="w-full p-2 border rounded"
+                  placeholder="Enter property ID"
+              >
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Tenant ID</label>
+              <input
+                  v-model.number="newLease.tenantId"
+                  type="number"
+                  class="w-full p-2 border rounded"
+                  placeholder="Enter tenant ID"
+              >
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                <input
+                    v-model="newLease.startDate"
+                    type="date"
+                    class="w-full p-2 border rounded"
+                >
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                <input
+                    v-model="newLease.endDate"
+                    type="date"
+                    class="w-full p-2 border rounded"
+                >
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Rent</label>
+                <input
+                    v-model.number="newLease.monthlyRent"
+                    type="number"
+                    class="w-full p-2 border rounded"
+                    placeholder="0.00"
+                >
+              </div>
+
+<!--              <div>-->
+<!--                <label class="block text-sm font-medium text-gray-700 mb-1">Deposit Amount</label>-->
+<!--                <input-->
+<!--                    v-model.number="newLease.depositAmount"-->
+<!--                    type="number"-->
+<!--                    class="w-full p-2 border rounded"-->
+<!--                    placeholder="0.00"-->
+<!--                >-->
+<!--              </div>-->
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 mt-6">
+            <button
+                @click="showCreateModal = false"
+                class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+                @click="handleCreateLease"
+                :disabled="loading"
+                class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-300"
+            >
+              {{ loading ? 'Creating...' : 'Create Lease' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
 
     <!-- Loading State -->
     <div v-if="loading" class="flex flex-col items-center justify-center py-12">
