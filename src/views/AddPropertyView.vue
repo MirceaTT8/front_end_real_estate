@@ -1,8 +1,9 @@
+<!-- AddPropertyForm.vue -->
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { addProperty } from '@/services/propertyService' // Import the method
-
+import { addProperty } from '@/services/propertyService'
+import AddPropertyMap from "@/components/property/AddPropertyMap.vue";
 const router = useRouter()
 const form = ref({
   owner_id: 1,
@@ -10,7 +11,9 @@ const form = ref({
   address: '',
   type: 'APARTMENT',
   rentAmount: '',
-  status: 'AVAILABLE'
+  status: 'AVAILABLE',
+  longitude: null,
+  latitude: null
 })
 
 const propertyTypes = [
@@ -23,14 +26,27 @@ const propertyTypes = [
 const isLoading = ref(false)
 const errorMessage = ref('')
 
+const handleMapClick = (location) => {
+  form.value.longitude = location.lng
+  form.value.latitude = location.lat
+}
+
 const submitForm = async () => {
   try {
     isLoading.value = true
     errorMessage.value = ''
 
+    // Validate required fields including location
+    if (!form.value.longitude || !form.value.latitude) {
+      errorMessage.value = 'Please select a location on the map'
+      return
+    }
+
     const payload = {
       ...form.value,
-      rent_amount: parseFloat(form.value.rent_amount)
+      rent_amount: parseFloat(form.value.rentAmount),
+      longitude: parseFloat(form.value.longitude),
+      latitude: parseFloat(form.value.latitude)
     }
 
     await addProperty(payload)
@@ -45,7 +61,7 @@ const submitForm = async () => {
 </script>
 
 <template>
-  <div class="max-w-md mx-auto p-4">
+  <div class="max-w-3xl mx-auto p-4">
     <h1 class="text-xl font-bold mb-6">Add New Property</h1>
 
     <div v-if="errorMessage" class="mb-4 p-3 bg-red-100 text-red-700 rounded">
@@ -53,53 +69,75 @@ const submitForm = async () => {
     </div>
 
     <form @submit.prevent="submitForm" class="space-y-4">
-      <div>
-        <label class="block mb-1">Property Name *</label>
-        <input
-            v-model="form.name"
-            type="text"
-            required
-            class="w-full p-2 border rounded"
-            :disabled="isLoading"
-        >
-      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-4">
+          <!-- Your form fields here (same as before) -->
+          <div>
+            <label class="block mb-1">Property Name *</label>
+            <input
+                v-model="form.name"
+                type="text"
+                required
+                class="w-full p-2 border rounded"
+                :disabled="isLoading"
+            >
+          </div>
 
-      <div>
-        <label class="block mb-1">Address *</label>
-        <textarea
-            v-model="form.address"
-            required
-            class="w-full p-2 border rounded"
-            rows="3"
-            :disabled="isLoading"
-        ></textarea>
-      </div>
+          <div>
+            <label class="block mb-1">Address *</label>
+            <textarea
+                v-model="form.address"
+                required
+                class="w-full p-2 border rounded"
+                rows="3"
+                :disabled="isLoading"
+            ></textarea>
+          </div>
 
-      <div>
-        <label class="block mb-1">Property Type *</label>
-        <select
-            v-model="form.type"
-            class="w-full p-2 border rounded"
-            :disabled="isLoading"
-            required
-        >
-          <option v-for="type in propertyTypes" :key="type.value" :value="type.value">
-            {{ type.label }}
-          </option>
-        </select>
-      </div>
+          <div>
+            <label class="block mb-1">Property Type *</label>
+            <select
+                v-model="form.type"
+                class="w-full p-2 border rounded"
+                :disabled="isLoading"
+                required
+            >
+              <option v-for="type in propertyTypes" :key="type.value" :value="type.value">
+                {{ type.label }}
+              </option>
+            </select>
+          </div>
 
-      <div>
-        <label class="block mb-1">Monthly Rent ($) *</label>
-        <input
-            v-model.number="form.rentAmount"
-            type="number"
-            min="0"
-            step="0.01"
-            required
-            class="w-full p-2 border rounded"
-            :disabled="isLoading"
-        >
+          <div>
+            <label class="block mb-1">Monthly Rent ($) *</label>
+            <input
+                v-model.number="form.rentAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                class="w-full p-2 border rounded"
+                :disabled="isLoading"
+            >
+          </div>
+        </div>
+
+        <div>
+          <label class="block mb-1">Select Location *</label>
+          <div class="h-64 border rounded overflow-hidden">
+            <AddPropertyMap
+                :clickable="true"
+                :initial-markers="form.longitude && form.latitude ? [{ lat: form.latitude, lng: form.longitude }] : []"
+                @map-click="handleMapClick"
+            />
+          </div>
+          <div v-if="form.longitude && form.latitude" class="mt-2 text-sm text-gray-600">
+            Selected location: {{ form.latitude.toFixed(4) }}, {{ form.longitude.toFixed(4) }}
+          </div>
+          <div v-else class="mt-2 text-sm text-gray-600">
+            Click on the map to select a location
+          </div>
+        </div>
       </div>
 
       <div class="flex justify-end gap-2 pt-4">

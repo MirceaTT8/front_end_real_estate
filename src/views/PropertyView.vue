@@ -76,7 +76,6 @@ onMounted(async () => {
 
     <PropertyViewToggle v-model:showMap="showMapView" />
 
-    <!-- Filters Section -->
     <PropertyFilters
         :filters="filters"
         :filterOptions="filterOptions"

@@ -34,7 +34,6 @@ const reset = () => {
 <template>
   <div class="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-100">
     <div class="flex flex-col md:flex-row md:items-end gap-4">
-      <!-- Location Filter -->
       <div class="flex-1">
         <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
         <input
@@ -45,7 +44,6 @@ const reset = () => {
         >
       </div>
 
-      <!-- Type Filter -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
         <select
@@ -59,7 +57,6 @@ const reset = () => {
         </select>
       </div>
 
-      <!-- Status Filter -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
         <select
@@ -73,7 +70,6 @@ const reset = () => {
         </select>
       </div>
 
-      <!-- Reset Button -->
       <button
           @click="reset"
           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm"

@@ -77,7 +77,7 @@ const menuItems = ref({
 ]);
 
 const items = computed(() => {
-  return menuItems.value.tenant;
+  return menuItems.value.landlord;
 });
 
 const navigateToProfile = () => {
