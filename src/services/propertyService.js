@@ -29,21 +29,35 @@ export const fetchPropertyById = async (propertyId) => {
 };
 
 
-export const addProperty = async (propertyDTO) => {
-    try{
+export const addProperty = async (propertyDTO, attachments) => {
+    try {
+        const formData = new FormData();
+
+        // Convert propertyDTO to JSON blob
+        const jsonBlob = new Blob(
+            [JSON.stringify(propertyDTO)],
+            { type: 'application/json' }
+        );
+
+        formData.append('propertyDTO', jsonBlob);
+
+        if (attachments?.length) {
+            attachments.forEach(attachment => {
+                formData.append('images', attachment.file);
+            });
+        }
+
         const response = await fetch(`${API}`, {
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            method: "POST",
-            body: JSON.stringify(propertyDTO),
+            method: 'POST',
+            body: formData  // Note: Don't set Content-Type header - the browser will set it with the correct boundary
         });
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return await response.json();
-    }
-    catch(error){
-        console.log('Adding property failed: ', error);
+    } catch(error) {
+        console.error('Adding property failed:', error);
+        throw error;
     }
 }
