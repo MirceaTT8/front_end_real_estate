@@ -1,6 +1,6 @@
 <script setup>
-import {onMounted, ref} from 'vue'
-import {fetchMaintenanceRequestsByLease, addMaintenanceRequest} from "@/services/maintenanceService.js";
+import { computed, onMounted, ref } from 'vue'
+import { fetchMaintenanceRequestsByLease, addMaintenanceRequest } from "@/services/maintenanceService.js";
 
 const requests = ref([])
 const loading = ref(true)
@@ -10,8 +10,24 @@ const newRequest = ref({
   description: '',
   attachments: []
 })
+const fileInput = ref(null)
 
-// Status options that tenant can see
+// Status filter
+const statusFilter = ref('PENDING')
+const statusOptions = [
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'IN_PROGRESS', label: 'In Progress' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'ALL', label: 'All Requests' }
+]
+
+// Filtered requests
+const filteredRequests = computed(() => {
+  if (statusFilter.value === 'ALL') return requests.value
+  return requests.value.filter(request => request.status === statusFilter.value)
+})
+
+// Status display options
 const statusDisplay = {
   PENDING: { label: 'Pending', color: 'orange' },
   IN_PROGRESS: { label: 'In Progress', color: 'blue' },
@@ -23,7 +39,6 @@ const loadRequests = async () => {
   try {
     loading.value = true
     requests.value = await fetchMaintenanceRequestsByLease(1)
-    console.log(requests)
   } catch (err) {
     error.value = err.message || 'Failed to load maintenance requests'
   } finally {
@@ -31,41 +46,38 @@ const loadRequests = async () => {
   }
 }
 
-const fileInput = ref(null);
-
+// Handle file upload
 const handleFileUpload = (event) => {
-  const files = Array.from(event.target.files);
+  const files = Array.from(event.target.files)
   if (files.length > 0) {
     newRequest.value.attachments = files.map(file => ({
       file,
       preview: URL.createObjectURL(file)
-    }));
+    }))
   }
-};
+}
 
 // Submit new maintenance request
 const submitRequest = async () => {
   try {
-    loading.value = true;
-    error.value = null;
+    loading.value = true
+    error.value = null
 
     const requestDTO = {
       description: newRequest.value.description,
       attachments: newRequest.value.attachments,
-    };
+    }
 
-    const createdRequest = await addMaintenanceRequest(1, requestDTO);
-
-    requests.value.unshift(createdRequest);
-
-    showCreateForm.value = false;
-    newRequest.value = { description: '', attachments: [] };
+    const createdRequest = await addMaintenanceRequest(1, requestDTO)
+    requests.value.unshift(createdRequest)
+    showCreateForm.value = false
+    newRequest.value = { description: '', attachments: [] }
   } catch (err) {
-    error.value = err.message || 'Failed to submit request';
+    error.value = err.message || 'Failed to submit request'
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
 // Format date for display
 const formatDate = (dateString) => {
@@ -81,13 +93,27 @@ onMounted(() => {
   <div class="max-w-4xl mx-auto p-6">
     <header class="flex justify-between items-center mb-8">
       <h1 class="text-2xl font-bold text-gray-800">Maintenance Requests</h1>
-      <button
-          @click="showCreateForm = true"
-          class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded"
-          v-if="!showCreateForm"
-      >
-        + New Request
-      </button>
+      <div class="flex gap-4">
+        <select
+            v-model="statusFilter"
+            class="border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring focus:ring-green-400"
+        >
+          <option
+              v-for="option in statusOptions"
+              :key="option.value"
+              :value="option.value"
+          >
+            {{ option.label }}
+          </option>
+        </select>
+        <button
+            @click="showCreateForm = true"
+            class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded"
+            v-if="!showCreateForm"
+        >
+          + New Request
+        </button>
+      </div>
     </header>
 
     <!-- Loading State -->
@@ -168,20 +194,21 @@ onMounted(() => {
     <!-- Request List -->
     <div v-else>
       <!-- Empty State -->
-      <div v-if="requests.length === 0" class="text-center text-gray-600">
-        <p>You haven't submitted any maintenance requests yet.</p>
+      <div v-if="filteredRequests.length === 0" class="text-center text-gray-600">
+        <p v-if="statusFilter === 'ALL'">You haven't submitted any maintenance requests yet.</p>
+        <p v-else>No {{ statusFilter.toLowerCase() }} requests found.</p>
         <button
             @click="showCreateForm = true"
             class="mt-4 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
         >
-          Create Your First Request
+          Create New Request
         </button>
       </div>
 
       <!-- Request Cards -->
       <div v-else class="space-y-6">
         <div
-            v-for="request in requests"
+            v-for="request in filteredRequests"
             :key="request.requestId"
             class="bg-white shadow rounded-lg p-6"
         >
@@ -220,6 +247,7 @@ onMounted(() => {
               </div>
             </div>
           </div>
+
           <!-- Metadata -->
           <div class="text-sm text-gray-600 space-y-1">
             <div><span class="font-medium">Submitted:</span> {{ formatDate(request.createdAt) }}</div>
