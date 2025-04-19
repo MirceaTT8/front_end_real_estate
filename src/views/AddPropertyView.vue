@@ -5,11 +5,11 @@ import { addProperty } from '@/services/propertyService' // Import the method
 
 const router = useRouter()
 const form = ref({
-  owner_id: 1, // Default owner ID
+  owner_id: 1,
   name: '',
   address: '',
   type: 'APARTMENT',
-  rent_amount: '',
+  rentAmount: '',
   status: 'AVAILABLE'
 })
 
@@ -28,15 +28,13 @@ const submitForm = async () => {
     isLoading.value = true
     errorMessage.value = ''
 
-    // Prepare payload with numeric rent amount
     const payload = {
       ...form.value,
       rent_amount: parseFloat(form.value.rent_amount)
     }
 
-    // Use the imported addProperty method
     await addProperty(payload)
-    router.push('/properties')
+    await router.push('/properties')
   } catch (error) {
     errorMessage.value = 'Failed to add property. Please try again.'
     console.error('Error adding property:', error)
@@ -94,7 +92,7 @@ const submitForm = async () => {
       <div>
         <label class="block mb-1">Monthly Rent ($) *</label>
         <input
-            v-model.number="form.rent_amount"
+            v-model.number="form.rentAmount"
             type="number"
             min="0"
             step="0.01"

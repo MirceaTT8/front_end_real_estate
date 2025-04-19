@@ -56,7 +56,7 @@ export const addMaintenanceRequest = async (leaseId, requestData) => {
         formData.append('requestDTO', jsonBlob);
         if (requestData.attachments?.length) {
             requestData.attachments.forEach(attachment => {
-                formData.append('images', attachment.file); // Send the File object
+                formData.append('images', attachment.file);
             });
         }
 

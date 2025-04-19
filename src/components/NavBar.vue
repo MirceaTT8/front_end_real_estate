@@ -5,11 +5,6 @@ import { PrimeIcons } from '@primevue/core/api';
 import router from "@/router/index.js";
 import UserDropdown from "@/components/UserDropdown.vue";
 
-/*const props = defineProps({
-  userId: {
-    type: Number
-  },
-});*/
 
 const menuItems = ref({
   landlord: [
@@ -81,7 +76,7 @@ const menuItems = ref({
 ]);
 
 const items = computed(() => {
-  return menuItems.value.tenant;
+  return menuItems.value.landlord;
 });
 
 const navigateToProfile = () => {

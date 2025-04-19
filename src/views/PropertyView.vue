@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { Loader } from '@googlemaps/js-api-loader'
 import { fetchPropertiesByUserId } from '@/services/propertyService.js'
 import {GOOGLE_API_KEY} from "@/configs/config.js";
+import PropertyFilters from '@/components/PropertyFilters.vue'
 
 const properties = ref([])
 const loading = ref(true)
@@ -78,6 +79,11 @@ const resetFilters = () => {
   }
 }
 
+const onFiltersUpdate = (newFilters) => {
+  filters.value = { ...newFilters }
+}
+
+
 onMounted(async () => {
   try {
     properties.value = await fetchPropertiesByUserId(1)
@@ -110,6 +116,8 @@ const addMarkers = () => {
   clearMarkers()
 
   if (!map.value || !properties.value.length) return
+
+  const propsToMark = [...properties.value]
 
   // Create bounds to auto-zoom to show all markers
   const bounds = new google.maps.LatLngBounds()
@@ -162,10 +170,10 @@ const addMarkers = () => {
 watch(showMapView, async (newVal) => {
   if (newVal && !map.value) {
     await initMap()
-  } else {
+  } else if (newVal && map.value) {
     addMarkers()
   }
-})
+}, { flush: 'post' })
 
 const clearMarkers = () => {
   markers.value.forEach(marker => {
@@ -221,57 +229,11 @@ const getMarkerIcon = (status) => {
     </div>
 
     <!-- Filters Section -->
-    <div class="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-100">
-      <div class="flex flex-col md:flex-row md:items-end gap-4">
-        <!-- Location Filter -->
-        <div class="flex-1">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-          <input
-              v-model="filters.location"
-              type="text"
-              placeholder="Search by address"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-          >
-        </div>
-
-        <!-- Type Filter -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-          <select
-              v-model="filters.type"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">All Types</option>
-            <option v-for="type in filterOptions.types" :key="type" :value="type">
-              {{ type }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Status Filter -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <select
-              v-model="filters.status"
-              class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">All Statuses</option>
-            <option v-for="status in filterOptions.statuses" :key="status" :value="status">
-              {{ status }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Reset Button -->
-        <button
-            @click="resetFilters"
-            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm"
-        >
-          Reset Filters
-        </button>
-      </div>
-    </div>
-
+    <PropertyFilters
+        :filters="filters"
+        :filterOptions="filterOptions"
+        @update:filters="onFiltersUpdate"
+    />
     <!-- Results Count -->
     <div class="flex justify-between items-center mb-4">
       <p class="text-sm text-gray-600">
@@ -342,8 +304,8 @@ const getMarkerIcon = (status) => {
               <h3 class="text-lg font-medium text-gray-900">{{ property.name }}</h3>
               <span
                   :class="{
-                  'bg-green-50 text-green-800': property.status === 'available',
-                  'bg-amber-50 text-amber-800': property.status === 'occupied',
+                  'bg-green-50 text-green-800': property.status === 'AVAILABLE',
+                  'bg-amber-50 text-amber-800': property.status === 'RENTED',
                   'bg-red-50 text-red-800': property.status === 'maintenance'
                 }"
                   class="px-3 py-1 rounded-full text-xs font-semibold capitalize"

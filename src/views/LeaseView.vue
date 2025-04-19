@@ -86,7 +86,6 @@ const handleTerminate = (leaseId) => {
         </div>
       </div>
 
-      <!-- Lease Tabs -->
       <div class="flex border-b border-gray-200 mb-6">
         <button
             @click="activeTab = 'ACTIVE'"
@@ -111,7 +110,6 @@ const handleTerminate = (leaseId) => {
         </button>
       </div>
 
-      <!-- Lease List -->
       <div v-if="filteredLeases.length > 0" class="space-y-6">
         <div
             v-for="lease in filteredLeases"

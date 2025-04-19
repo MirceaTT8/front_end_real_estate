@@ -70,7 +70,6 @@ onMounted(() => {
       <p class="text-gray-600">Loading your lease information...</p>
     </div>
 
-    <!-- Error -->
     <div v-else-if="error" class="text-center text-red-600">
       <p class="mb-4">⚠️ {{ error }}</p>
       <button @click="loadLeaseData" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
