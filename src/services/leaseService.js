@@ -23,7 +23,7 @@ export const fetchLeaseId = async (leaseId) => {
         }
         return await response.json();
     } catch (error) {
-        console.error('Error fetching maintenance requests:', error);
+        console.error('Error fetching maintenance-tenant requests:', error);
         throw error;
     }
 };

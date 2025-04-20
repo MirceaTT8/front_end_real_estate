@@ -3,6 +3,8 @@ import {computed, onMounted, ref} from 'vue'
 import {useRouter} from "vue-router";
 
 import {fetchMaintenanceRequestsByOwner, setStatus} from "@/services/maintenanceService.js";
+import MaintenanceStatusFilter from "@/components/maintenance-landlord/MaintenanceStatusFilter.vue";
+import MaintenanceListLandlord from "@/components/maintenance-landlord/MaintenanceListLandlord.vue";
 
 const requests = ref([])
 const loading = ref(true)
@@ -18,7 +20,7 @@ onMounted(async () => {
     requests.value = await fetchMaintenanceRequestsByOwner(ownerId);
     console.log(requests.value)
   } catch (err) {
-    error.value = err.message || 'Failed to load maintenance requests';
+    error.value = err.message || 'Failed to load maintenance-tenant requests';
     console.error('Error:', err);
   } finally {
     loading.value = false;
@@ -73,74 +75,14 @@ const formatDate = (dateString) => {
 
     <!-- Content -->
     <div v-else>
-      <!-- Status Filter -->
-      <div class="flex items-center gap-4 mb-6">
-        <label class="font-medium">Filter by status:</label>
-        <select v-model="selectedStatus" class="py-2 px-4 border border-gray-300 rounded-md min-w-48">
-          <option value="all">All Requests</option>
-          <option value="PENDING">Pending</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="CANCELLED">Cancelled</option>
-        </select>
-      </div>
-
-      <div v-if="filteredRequests.length > 0" class="grid gap-6">
-        <div v-for="request in filteredRequests" :key="request.requestId" class="bg-white rounded-lg p-6 shadow">
-          <div class="flex justify-between items-center pb-4 mb-4 border-b border-gray-100">
-            <h3 class="text-lg font-medium m-0">Request #{{ request.requestId }}</h3>
-            <span
-                class="inline-block px-3 py-1 rounded-full text-sm font-medium capitalize"
-                :class="{
-                'bg-amber-50 text-amber-600': request.status === 'PENDING',
-                'bg-blue-50 text-blue-600': request.status === 'IN_PROGRESS',
-                'bg-green-50 text-green-600': request.status === 'COMPLETED',
-                'bg-red-50 text-red-500': request.status === 'CANCELLED'
-              }"
-            >
-              {{ request.status.replace('_', ' ') }}
-            </span>
-          </div>
-
-          <div class="grid gap-3 mb-6">
-            <div class="flex">
-              <span class="font-medium w-32 text-gray-600">Lease:</span>
-              <span class="flex-1">{{ request.leaseId }}</span>
-            </div>
-            <div class="flex">
-              <span class="font-medium w-32 text-gray-600">Description:</span>
-              <span class="flex-1">{{ request.description }}</span>
-            </div>
-            <div class="flex">
-              <span class="font-medium w-32 text-gray-600">Submitted:</span>
-              <span class="flex-1">{{ formatDate(request.createdAt) }}</span>
-            </div>
-            <div class="flex">
-              <span class="font-medium w-32 text-gray-600">Last Updated:</span>
-              <span class="flex-1">{{ formatDate(request.updatedAt) }}</span>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-3">
-            <label class="text-sm font-medium text-gray-700">Change status:</label>
-            <select
-                :value="request.status"
-                @change="updateRequestStatus(request.requestId, $event.target.value)"
-                class="py-2 px-3 border border-gray-300 rounded-md bg-white shadow-sm text-sm"
-            >
-              <option value="PENDING">Pending</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div v-else class="bg-white rounded-lg shadow p-8 text-center">
-        <div class="text-5xl mb-4 opacity-50">🔧</div>
-        <h3 class="text-lg font-medium text-gray-800 mb-2">No maintenance requests found</h3>
-        <p class="text-gray-600">There are no {{ selectedStatus === 'all' ? '' : selectedStatus.replace('_', ' ') + ' ' }}requests at this time.</p>
-      </div>
+      <MaintenanceStatusFilter
+          v-model:selectedStatus="selectedStatus"
+      />
+      <MaintenanceListLandlord
+          :requests="requests"
+          :selected-status="selectedStatus"
+          @update-status="updateRequestStatus"
+      />
     </div>
   </div>
 </template>

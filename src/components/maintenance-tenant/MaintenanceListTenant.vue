@@ -1,5 +1,5 @@
 <script setup>
-import MaintenanceCard from './MaintenanceCard.vue'
+import MaintenanceCardTenant from './MaintenanceCardTenant.vue'
 
 defineProps({
   requests: {
@@ -55,7 +55,7 @@ defineEmits(['create-new', 'retry'])
 
   <!-- Request Cards -->
   <div v-else class="space-y-6">
-    <MaintenanceCard
+    <MaintenanceCardTenant
         v-for="request in requests"
         :key="request.requestId"
         :request="request"

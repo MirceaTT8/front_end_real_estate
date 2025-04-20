@@ -4,7 +4,7 @@ import Chart from 'primevue/chart'
 
 const activities = ref([
   { type: 'payment', description: 'Jane Smith paid rent for Downtown Loft', time: '2 hours ago' },
-  { type: 'maintenance', description: 'New maintenance request for Sunset Apartments', time: '1 day ago' },
+  { type: 'maintenance-tenant', description: 'New maintenance-tenant request for Sunset Apartments', time: '1 day ago' },
   { type: 'lease', description: 'Mike Johnson signed lease renewal', time: '3 days ago' },
   { type: 'message', description: 'New message from Sarah Williams', time: '5 days ago' }
 ])
@@ -12,7 +12,7 @@ const activities = ref([
 const quickActions = [
   { icon: '📝', label: 'Create Lease', action: () => navigateTo('/leases/new') },
   { icon: '💰', label: 'Record Payment', action: () => navigateTo('/payments/new') },
-  { icon: '🔧', label: 'Manage Requests', action: () => navigateTo('/maintenance') },
+  { icon: '🔧', label: 'Manage Requests', action: () => navigateTo('/maintenance-tenant') },
   { icon: '✉️', label: 'Send Notice', action: () => navigateTo('/messages/new') }
 ]
 
@@ -95,7 +95,7 @@ onMounted(() => {
         >
           <div class="text-2xl">
             <span v-if="activity.type === 'payment'">💰</span>
-            <span v-else-if="activity.type === 'maintenance'">🔧</span>
+            <span v-else-if="activity.type === 'maintenance-tenant'">🔧</span>
             <span v-else-if="activity.type === 'lease'">📝</span>
             <span v-else>✉️</span>
           </div>

@@ -9,7 +9,7 @@ export const fetchMaintenanceRequestsByLease = async (leaseId) => {
         }
         return await response.json();
     } catch (error) {
-        console.error('Error fetching maintenance requests:', error);
+        console.error('Error fetching maintenance-tenant requests:', error);
         throw error;
     }
 };
@@ -22,7 +22,7 @@ export const fetchMaintenanceRequestsByOwner = async (userId) => {
         }
         return await response.json();
     } catch (error) {
-        console.error('Error fetching maintenance requests:', error);
+        console.error('Error fetching maintenance-tenant requests:', error);
         throw error;
     }
 };
@@ -71,7 +71,7 @@ export const addMaintenanceRequest = async (leaseId, requestData) => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return await response.json();
     } catch (error) {
-        console.error('Error adding maintenance request:', error);
+        console.error('Error adding maintenance-tenant request:', error);
         throw error;
     }
 };
