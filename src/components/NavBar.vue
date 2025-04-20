@@ -74,9 +74,9 @@ const menuItems = ref({
       route: "/admin/users"
     },
     {
-      label: "System Settings",
+      label: "System Logs",
       icon: "pi pi-cog",
-      route: "/admin/settings"
+      route: "/admin/logs"
     },
     /*
 {

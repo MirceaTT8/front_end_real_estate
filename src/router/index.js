@@ -20,7 +20,7 @@ const MaintenanceRequestTenantView = () => import('@/views/MaintenanceRequestTen
 // Admin views
 import AdminDashboardView from "@/views/admin/AdminDashboardView.vue";
 import UserManagementView from "@/views/admin/UserManagementView.vue";
-import SystemSettingsView from "@/views/admin/SystemSettingsView.vue";
+import LogsView from "@/views/admin/LogsView.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -110,9 +110,9 @@ const router = createRouter({
                     component: UserManagementView
                 },
                 {
-                    path: 'settings',
-                    name: 'SystemSettings',
-                    component: SystemSettingsView
+                    path: 'logs',
+                    name: 'SystemLogs',
+                    component: LogsView
                 }
             ]
         }
