@@ -2,7 +2,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { addProperty } from '@/services/propertyService'
+import { addProperty } from '@/services/propertyService.js'
 import AddPropertyMap from "@/components/property/AddPropertyMap.vue";
 
 const router = useRouter()
