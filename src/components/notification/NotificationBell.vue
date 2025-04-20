@@ -47,12 +47,12 @@ const handleNotificationClick = async (notification) => {
              :key="notification.notificationId"
              @click="handleNotificationClick(notification)"
              class="px-4 py-3 text-sm hover:bg-gray-100 cursor-pointer border-b"
-             :class="{ 'bg-gray-50': notification.isRead }">
+             :class="{ 'bg-gray-50': notification.read }">
           <div class="font-medium">{{ notification.title }}</div>
           <div class="text-gray-500">{{ notification.message }}</div>
           <div class="flex justify-between items-center mt-1">
             <span class="text-xs text-gray-400">{{ notification.createdAt }}</span>
-            <span v-if="!notification.isRead" class="w-2 h-2 bg-blue-500 rounded-full"></span>
+            <span v-if="!notification.read" class="w-2 h-2 bg-blue-500 rounded-full"></span>
           </div>
         </div>
       </div>

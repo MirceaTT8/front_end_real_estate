@@ -9,7 +9,7 @@ const unreadCount = ref(0);
 
 const fetchNotification = async () => {
     try {
-        const response = await fetchNotifications(1);
+        const response = await fetchNotifications(2);
         notifications.value = response;
 
         console.log(response);
