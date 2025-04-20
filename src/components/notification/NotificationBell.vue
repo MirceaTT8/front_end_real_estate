@@ -14,9 +14,9 @@ onMounted(() => {
 
 const handleNotificationClick = async (notification) => {
   try {
-    if (!notification.isRead) {
+    if (!notification.read) {
       await markNotificationAsRead(notification.notificationId);
-      notification.isRead = true;
+      notification.read = true;
       notification.status = 'READ';
       unreadCount.value--;
     }

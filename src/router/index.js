@@ -1,77 +1,174 @@
-import {createRouter, createWebHistory} from 'vue-router'
-import DashboardView from "@/views/DashboardView.vue";
-import PropertyView from "@/views/PropertyView.vue";
-import TenantView from "@/views/TenantView.vue";
-import LeaseView from "@/views/LeaseView.vue";
-import MaintenanceRequestView from "@/views/MaintenanceRequestView.vue";
-import PaymentView from "@/views/PaymentView.vue";
+// import {createRouter, createWebHistory} from 'vue-router'
+// import DashboardView from "@/views/DashboardView.vue";
+// import PropertyView from "@/views/PropertyView.vue";
+// import TenantView from "@/views/TenantView.vue";
+// import LeaseView from "@/views/LeaseView.vue";
+// import MaintenanceRequestView from "@/views/MaintenanceRequestView.vue";
+// import PaymentView from "@/views/PaymentView.vue";
+// import ProfileView from "@/views/ProfileView.vue";
+// import AddPropertyView from "@/views/AddPropertyView.vue";
+// import LeaseTenantView from "@/views/LeaseTenantView.vue";
+// import PaymentTenantView from "@/views/PaymentTenantView.vue";
+// import MaintenanceRequestTenantView from "@/views/MaintenanceRequestTenantView.vue";
+//
+// const router = createRouter({
+//     history: createWebHistory(import.meta.env.BASE_URL),
+//     routes: [
+//         {
+//             path: '/',
+//             name: 'Dashboard',
+//             component: DashboardView
+//         },
+//         {
+//             path: '/properties',
+//             name: 'Property',
+//             component: PropertyView
+//         },
+//         {
+//             path: '/tenants',
+//             name: 'Tenant',
+//             component: TenantView
+//         },
+//         {
+//             path: '/leases',
+//             name: 'Lease',
+//             component: LeaseView
+//         },
+//         {
+//             path: '/payments',
+//             name: 'Payment',
+//             component: PaymentView
+//         },
+//         {
+//             path: '/maintenance',
+//             name: 'Maintenance',
+//             component: MaintenanceRequestView
+//         },
+//         {
+//             path: '/profile',
+//             name: 'Profile',
+//             component: ProfileView
+//         },
+//         {
+//             path: '/add-property',
+//             name: 'AddProperty',
+//             component: AddPropertyView
+//         },
+//         {
+//             path: '/leases-tenant',
+//             name: 'LeaseTenant',
+//             component: LeaseTenantView
+//         },
+//         {
+//             path: '/payments-tenant',
+//             name: 'Payments',
+//             component: PaymentTenantView
+//         },
+//         {
+//             path: '/maintenance-tenant',
+//             name: 'MaintenanceTenant',
+//             component: MaintenanceRequestTenantView
+//         }
+//
+//
+//     ]
+// })
+//
+// export default router;
+
+import { createRouter, createWebHistory } from 'vue-router'
+
+// Shared views
 import ProfileView from "@/views/ProfileView.vue";
-import AddPropertyView from "@/views/AddPropertyView.vue";
-import LeaseTenantView from "@/views/LeaseTenantView.vue";
-import PaymentTenantView from "@/views/PaymentTenantView.vue";
-import MaintenanceRequestTenantView from "@/views/MaintenanceRequestTenantView.vue";
+import DashboardView from "@/views/DashboardView.vue";
+
+// Landlord views
+const PropertyView = () => import('@/views/PropertyView.vue');
+const TenantView = () => import('@/views/TenantView.vue');
+const LeaseView = () => import('@/views/LeaseView.vue');
+const MaintenanceRequestView = () => import('@/views/MaintenanceRequestView.vue');
+const PaymentView = () => import('@/views/PaymentView.vue');
+const AddPropertyView = () => import('@/views/AddPropertyView.vue');
+
+// Tenant views
+const LeaseTenantView = () => import('@/views/LeaseTenantView.vue');
+const PaymentTenantView = () => import('@/views/PaymentTenantView.vue');
+const MaintenanceRequestTenantView = () => import('@/views/MaintenanceRequestTenantView.vue');
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
-        {
-            path: '/',
-            name: 'Dashboard',
-            component: DashboardView
-        },
-        {
-            path: '/properties',
-            name: 'Property',
-            component: PropertyView
-        },
-        {
-            path: '/tenants',
-            name: 'Tenant',
-            component: TenantView
-        },
-        {
-            path: '/leases',
-            name: 'Lease',
-            component: LeaseView
-        },
-        {
-            path: '/payments',
-            name: 'Payment',
-            component: PaymentView
-        },
-        {
-            path: '/maintenance',
-            name: 'Maintenance',
-            component: MaintenanceRequestView
-        },
+        // Shared routes
+
         {
             path: '/profile',
             name: 'Profile',
             component: ProfileView
         },
         {
-            path: '/add-property',
-            name: 'AddProperty',
-            component: AddPropertyView
+            path: '/',
+            name: 'Dashboard',
+            component: DashboardView
         },
         {
-            path: '/leases-tenant',
-            name: 'LeaseTenant',
-            component: LeaseTenantView
+            path: '/landlord',
+            children: [
+
+                {
+                    path: 'properties',
+                    name: 'Property',
+                    component: PropertyView
+                },
+                {
+                    path: 'tenants',
+                    name: 'Tenant',
+                    component: TenantView
+                },
+                {
+                    path: 'leases',
+                    name: 'Lease',
+                    component: LeaseView
+                },
+                {
+                    path: 'payments',
+                    name: 'Payment',
+                    component: PaymentView
+                },
+                {
+                    path: 'maintenance',
+                    name: 'Maintenance',
+                    component: MaintenanceRequestView
+                },
+                {
+                    path: 'add-property',
+                    name: 'AddProperty',
+                    component: AddPropertyView
+                }
+            ]
         },
+
+        // Tenant routes
         {
-            path: '/payments-tenant',
-            name: 'Payments',
-            component: PaymentTenantView
-        },
-        {
-            path: '/maintenance-tenant',
-            name: 'MaintenanceTenant',
-            component: MaintenanceRequestTenantView
+            path: '/tenant',
+            children: [
+                {
+                    path: 'leases',
+                    name: 'LeaseTenant',
+                    component: LeaseTenantView
+                },
+                {
+                    path: 'payments',
+                    name: 'PaymentTenant',
+                    component: PaymentTenantView
+                },
+                {
+                    path: 'maintenance',
+                    name: 'MaintenanceTenant',
+                    component: MaintenanceRequestTenantView
+                }
+            ]
         }
-
-
     ]
 })
 
-export default router;
+export default router
