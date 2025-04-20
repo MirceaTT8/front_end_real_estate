@@ -68,38 +68,38 @@ const menuItems = ref({
       icon: PrimeIcons.CHART_BAR,
       route: "/admin/dashboard"
     },
-  /*
-{
-  label: "User Management",
-  icon: "pi pi-users",
-  route: "/admin/users"
-},
-{
-  label: "System Settings",
-  icon: "pi pi-cog",
-  route: "/admin/settings"
-},
-{
-  label: "Reports",
-  icon: "pi pi-chart-bar",
-  items: [
     {
-      label: "Financial",
-      route: "/admin/reports/financial"
+      label: "User Management",
+      icon: "pi pi-users",
+      route: "/admin/users"
     },
     {
-      label: "Activity",
-      route: "/admin/reports/activity"
-    }
-  ]
+      label: "System Settings",
+      icon: "pi pi-cog",
+      route: "/admin/settings"
+    },
+    /*
+{
+label: "Reports",
+icon: "pi pi-chart-bar",
+items: [
+  {
+    label: "Financial",
+    route: "/admin/reports/financial"
+  },
+  {
+    label: "Activity",
+    route: "/admin/reports/activity"
+  }
+]
 }
 
-   */
+ */
 ]
 
 });
 
-const currentMenu = ref(menuItems.value.landlord);
+const currentMenu = ref(menuItems.value.admin);
 </script>
 
 <template>
