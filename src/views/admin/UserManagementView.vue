@@ -7,6 +7,8 @@ import {
   approveUsers,
   suspendUsers,
   updateUserRole,
+  activateUser as apiActivateUser,
+  deactivateUser as apiDeactivateUser
 } from '@/services/userService'
 
 // Data
@@ -37,7 +39,7 @@ const filteredUsers = computed(() => {
       user.email.toLowerCase().includes(query)
   ))
 })
-// Methods
+
 const loadUsers = async () => {
   loading.value = true
   try {
@@ -116,6 +118,49 @@ const onRoleChange = async (userId, newRole) => {
   } catch (error) {
     alert('Failed to update role: ' + error.message)
     loadUsers()
+  }
+}
+
+const toggleUserStatus = async (user) => {
+  const action = user.isActive ? 'deactivate' : 'activate'
+  const confirmMessage = `Are you sure you want to ${action} user ${user.firstName} ${user.lastName}?`
+
+  if (confirm(confirmMessage)) {
+    try {
+      if (user.isActive) {
+        await apiDeactivateUser(user.userId)
+      } else {
+        await apiActivateUser(user.userId)
+      }
+      alert(`User ${action}d successfully`)
+      loadUsers()
+    } catch (error) {
+      alert(`Failed to ${action} user: ${error.message}`)
+    }
+  }
+}
+
+const bulkToggleStatus = async (activate) => {
+  if (selectedUsers.value.size === 0) {
+    alert('Please select at least one user')
+    return
+  }
+
+  const action = activate ? 'activate' : 'deactivate'
+  const confirmMessage = `Are you sure you want to ${action} ${selectedUsers.value.size} selected user(s)?`
+
+  if (confirm(confirmMessage)) {
+    try {
+      const promises = [...selectedUsers.value].map(userId =>
+          activate ? apiActivateUser(userId) : apiDeactivateUser(userId)
+      )
+      await Promise.all(promises)
+      alert(`Successfully ${action}d ${promises.length} user(s)`)
+      loadUsers()
+      selectedUsers.value.clear()
+    } catch (error) {
+      alert(`Failed to ${action} users: ${error.message}`)
+    }
   }
 }
 
@@ -205,9 +250,6 @@ onMounted(() => {
               Email
             </th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Role
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Status
             </th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -237,22 +279,26 @@ onMounted(() => {
             <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 hover:text-blue-800">
               <a :href="`mailto:${user.email}`">{{ user.email }}</a>
             </td>
-<!--            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-->
-<!--              <select-->
-<!--                  :value="user.roles[0]?.name"-->
-<!--                  @change="onRoleChange(user.userId, $event.target.value)"-->
-<!--                  class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"-->
-<!--              >-->
-<!--                <option v-for="role in roles" :key="role" :value="role">{{ role }}</option>-->
-<!--              </select>-->
-<!--            </td>-->
             <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <span :class="['px-2 inline-flex text-xs leading-5 font-semibold rounded-full', getStatusClass(user.status || 'ACTIVE')]">
-                  {{ user.status || 'ACTIVE' }}
-                </span>
+              <span
+                  :class="[
+                  'px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer',
+                  user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                ]"
+                  @click="toggleUserStatus(user)"
+                  :title="user.isActive ? 'Click to deactivate' : 'Click to activate'"
+              >
+                {{ user.isActive ? 'ACTIVE' : 'INACTIVE' }}
+              </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               <div class="flex space-x-2">
+                <button
+                    @click="toggleUserStatus(user)"
+                    :class="user.isActive ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'"
+                >
+                  {{ user.isActive ? 'Deactivate' : 'Activate' }}
+                </button>
                 <button
                     @click="confirmDelete(user.userId)"
                     class="text-red-600 hover:text-red-900"
@@ -269,14 +315,26 @@ onMounted(() => {
       <!-- Bulk Actions -->
       <div v-if="selectedUsers.size > 0" class="bg-gray-50 px-6 py-3 flex flex-wrap gap-3">
         <button
-            @click="approveSelectedUsers"
+            @click="bulkToggleStatus(true)"
             class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+        >
+          Activate Selected
+        </button>
+        <button
+            @click="bulkToggleStatus(false)"
+            class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors"
+        >
+          Deactivate Selected
+        </button>
+        <button
+            @click="approveSelectedUsers"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
         >
           Approve Selected
         </button>
         <button
             @click="suspendSelectedUsers"
-            class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors"
+            class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
         >
           Suspend Selected
         </button>
@@ -330,17 +388,6 @@ onMounted(() => {
                         v-model="newUser.email"
                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     >
-                  </div>
-                  <div>
-                    <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
-                    <select
-                        id="role"
-                        v-model="newUser.role"
-                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                    >
-                      <option value="">Select Role</option>
-                      <option v-for="role in roles" :key="role" :value="role">{{ role }}</option>
-                    </select>
                   </div>
                 </div>
               </div>

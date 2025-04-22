@@ -141,3 +141,54 @@ export const updateUserRole = async (userId, role) => {
         throw error;
     }
 };
+export const activateUser = async (userId) => {
+    try {
+        const response = await fetch(`${API}/${userId}/activate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+
+        if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.message || 'User activation failed')
+        }
+
+        // Only parse JSON if there's content
+        const contentLength = response.headers.get('Content-Length')
+        if (contentLength && parseInt(contentLength) > 0) {
+            return await response.json()
+        }
+        return { success: true } // Default success response
+    } catch (error) {
+        console.error('Error activating user:', error)
+        throw error
+    }
+}
+
+export const deactivateUser = async (userId) => {
+    try {
+        const response = await fetch(`${API}/${userId}/deactivate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+
+        if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.message || 'User deactivation failed')
+        }
+
+        // Only parse JSON if there's content
+        const contentLength = response.headers.get('Content-Length')
+        if (contentLength && parseInt(contentLength) > 0) {
+            return await response.json()
+        }
+        return { success: true } // Default success response
+    } catch (error) {
+        console.error('Error deactivating user:', error)
+        throw error
+    }
+}
