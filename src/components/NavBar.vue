@@ -99,7 +99,7 @@ items: [
 
 });
 
-const currentMenu = ref(menuItems.value.admin);
+const currentMenu = ref(menuItems.value.landlord);
 </script>
 
 <template>

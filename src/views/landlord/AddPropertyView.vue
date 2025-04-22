@@ -74,7 +74,7 @@ const submitForm = async () => {
     }
 
     await addProperty(payload, attachments.value)
-    await router.push('/properties')
+    await router.push('/landlord/properties')
   } catch (error) {
     errorMessage.value = 'Failed to add property. Please try again.'
     console.error('Error adding property:', error)
