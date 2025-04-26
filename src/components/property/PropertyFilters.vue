@@ -1,26 +1,29 @@
 <script setup>
 import { ref, watch } from 'vue'
 
-const props = defineProps(['filters', 'filterOptions'])
+const props = defineProps({
+  filters: Object,
+  filterOptions: Object
+})
+
 const emit = defineEmits(['update:filters', 'reset'])
 
 const internalFilters = ref({ ...props.filters })
 
+// Sync props.filters with internalFilters
 watch(() => props.filters, (newFilters) => {
-  if (JSON.stringify(internalFilters.value) !== JSON.stringify(newFilters)) {
-    internalFilters.value = { ...newFilters }
-  }
+  internalFilters.value = { ...newFilters }
 }, { deep: true })
 
+// Emit changes to parent
 watch(
-    () => ({ ...internalFilters.value }),
-    (newVal, oldVal) => {
-      if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
-        emit('update:filters', { ...newVal })
-      }
+    internalFilters,
+    (newVal) => {
+      emit('update:filters', { ...newVal })
     },
     { deep: true }
 )
+
 const reset = () => {
   internalFilters.value = {
     location: '',
@@ -51,7 +54,13 @@ const reset = () => {
             class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
         >
           <option value="">All Types</option>
-          <option v-for="type in filterOptions.types" :key="type" :value="type">
+          <option
+              v-for="type in filterOptions.types"
+              :key="type"
+              :value="type"
+              :disabled="!filterOptions.availableTypes?.includes(type)"
+              class="disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             {{ type }}
           </option>
         </select>
@@ -64,7 +73,13 @@ const reset = () => {
             class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
         >
           <option value="">All Statuses</option>
-          <option v-for="status in filterOptions.statuses" :key="status" :value="status">
+          <option
+              v-for="status in filterOptions.statuses"
+              :key="status"
+              :value="status"
+              :disabled="!filterOptions.availableStatuses?.includes(status)"
+              class="disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             {{ status }}
           </option>
         </select>
@@ -79,3 +94,9 @@ const reset = () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+option:disabled {
+  @apply text-gray-400 bg-gray-50;
+}
+</style>
