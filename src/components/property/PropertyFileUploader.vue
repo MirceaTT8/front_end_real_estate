@@ -1,5 +1,5 @@
 <script setup>
-import { ref,computed } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -21,6 +21,7 @@ const attachments = computed({
 })
 
 const fileInput = ref(null)
+const currentSlide = ref(0)
 
 const handleFileUpload = (event) => {
   const files = event.target.files
@@ -46,6 +47,21 @@ const removeAttachment = (index) => {
   const newAttachments = [...attachments.value]
   newAttachments.splice(index, 1)
   attachments.value = newAttachments
+  if (currentSlide.value >= newAttachments.length) {
+    currentSlide.value = Math.max(0, newAttachments.length - 1)
+  }
+}
+
+const nextSlide = () => {
+  if (currentSlide.value < attachments.value.length - 1) {
+    currentSlide.value++
+  }
+}
+
+const prevSlide = () => {
+  if (currentSlide.value > 0) {
+    currentSlide.value--
+  }
 }
 </script>
 
@@ -74,19 +90,69 @@ const removeAttachment = (index) => {
       </p>
     </div>
 
-    <!-- Preview of selected files -->
-    <div v-if="attachments.length > 0" class="mt-4 space-y-2">
-      <div v-for="(attachment, index) in attachments" :key="attachment.id" class="flex items-center p-2 border rounded">
-        <div v-if="attachment.preview" class="w-12 h-12 mr-3">
-          <img :src="attachment.preview" class="w-full h-full object-cover rounded" alt="Preview">
+    <!-- Image Slider -->
+    <div v-if="attachments.length > 0" class="mt-4">
+      <div class="relative">
+        <!-- Current Image -->
+        <div class="w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+          <img
+              v-if="attachments[currentSlide]?.preview"
+              :src="attachments[currentSlide].preview"
+              class="w-full h-full object-contain"
+              alt="Property image"
+          >
+          <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
+            No preview available
+          </div>
         </div>
+
+        <!-- Navigation Arrows -->
+        <button
+            v-if="attachments.length > 1"
+            @click="prevSlide"
+            class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow"
+            :disabled="currentSlide === 0"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+        </button>
+        <button
+            v-if="attachments.length > 1"
+            @click="nextSlide"
+            class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow"
+            :disabled="currentSlide === attachments.length - 1"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Thumbnail Indicators -->
+      <div v-if="attachments.length > 1" class="flex justify-center mt-2 space-x-2">
+        <button
+            v-for="(attachment, index) in attachments"
+            :key="attachment.id"
+            @click="currentSlide = index"
+            class="w-2 h-2 rounded-full transition"
+            :class="{
+            'bg-blue-500': currentSlide === index,
+            'bg-gray-300': currentSlide !== index
+          }"
+            aria-label="Go to slide"
+        ></button>
+      </div>
+
+      <!-- File Info and Delete Button -->
+      <div class="mt-2 flex items-center justify-between p-2 border rounded">
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium truncate">{{ attachment.name }}</p>
-          <p class="text-xs text-gray-500">{{ (attachment.size / 1024).toFixed(2) }} KB</p>
+          <p class="text-sm font-medium truncate">{{ attachments[currentSlide].name }}</p>
+          <p class="text-xs text-gray-500">{{ (attachments[currentSlide].size / 1024).toFixed(2) }} KB</p>
         </div>
         <button
             type="button"
-            @click="removeAttachment(index)"
+            @click="removeAttachment(currentSlide)"
             class="ml-2 p-1 text-red-500 hover:text-red-700"
             :disabled="isLoading"
         >
