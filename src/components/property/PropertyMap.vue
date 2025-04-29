@@ -10,7 +10,7 @@ const props = defineProps({
   },
   showMap: {
     type: Boolean,
-    default: false
+    default: true
   }
 })
 

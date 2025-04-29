@@ -13,9 +13,9 @@ const PaymentView = () => import('@/views/landlord/PaymentView.vue');
 const AddPropertyView = () => import('@/views/landlord/AddPropertyView.vue');
 
 // Tenant views
-const LeaseTenantView = () => import('@/views/LeaseTenantView.vue');
-const PaymentTenantView = () => import('@/views/PaymentTenantView.vue');
-const MaintenanceRequestTenantView = () => import('@/views/MaintenanceRequestTenantView.vue');
+const LeaseTenantView = () => import('@/views/tenant/LeaseTenantView.vue');
+const PaymentTenantView = () => import('@/views/tenant/PaymentTenantView.vue');
+const MaintenanceRequestTenantView = () => import('@/views/tenant/MaintenanceRequestTenantView.vue');
 
 // Admin views
 import AdminDashboardView from "@/views/admin/AdminDashboardView.vue";
