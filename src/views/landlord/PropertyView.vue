@@ -71,7 +71,6 @@ const availableStatuses = computed(() => {
       backendStatuses.has(frontendStatus.toUpperCase()))
 })
 
-// Reset status when type changes
 watch(() => filters.value.type, (newType, oldType) => {
   if (newType !== oldType) {
     isInternalUpdate.value = true
@@ -84,7 +83,9 @@ watch(() => filters.value.type, (newType, oldType) => {
 
 onMounted(async () => {
   try {
+
     properties.value = await fetchPropertiesByUserId(1)
+    console.log('Fetched properties:', properties.value)
   } catch (err) {
     error.value = err
   } finally {

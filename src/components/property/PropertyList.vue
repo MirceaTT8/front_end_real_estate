@@ -1,5 +1,6 @@
 <script setup>
 import PropertyCard from './PropertyCard.vue'
+import {onMounted} from "vue";
 
 const props = defineProps({
   properties: {
@@ -14,6 +15,10 @@ const props = defineProps({
     type: [Error, null],
     default: null
   }
+})
+
+onMounted(async () => {
+    console.log(props.properties)
 })
 
 const emit = defineEmits(['reset-filters'])
@@ -49,7 +54,7 @@ const emit = defineEmits(['reset-filters'])
   <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     <PropertyCard
         v-for="property in properties"
-        :key="property.id"
+        :key="property.propertyId"
         :property="property"
     />
   </div>

@@ -21,12 +21,16 @@ const MaintenanceRequestTenantView = () => import('@/views/tenant/MaintenanceReq
 import AdminDashboardView from "@/views/admin/AdminDashboardView.vue";
 import UserManagementView from "@/views/admin/UserManagementView.vue";
 import LogsView from "@/views/admin/LogsView.vue";
+const PropertyDetailsView = () => import('@/views/landlord/PropertyDetailsView.vue');
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
         // Shared routes
-
+        {
+            path: '/',
+            redirect: '/landlord'
+        },
         {
             path: '/profile',
             name: 'Profile',
@@ -40,11 +44,15 @@ const router = createRouter({
         {
             path: '/landlord',
             children: [
-
                 {
                     path: 'properties',
                     name: 'Property',
                     component: PropertyView
+                },
+                {
+                    path: 'property/:id',
+                    name: 'PropertyDetails',
+                    component: PropertyDetailsView,
                 },
                 {
                     path: 'tenants',
