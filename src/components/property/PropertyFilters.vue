@@ -10,19 +10,25 @@ const emit = defineEmits(['update:filters', 'reset'])
 
 const internalFilters = ref({ ...props.filters })
 
-// Sync props.filters with internalFilters
 watch(() => props.filters, (newFilters) => {
-  internalFilters.value = { ...newFilters }
+  if (JSON.stringify(internalFilters.value) !== JSON.stringify(newFilters)) {
+    internalFilters.value = { ...newFilters }
+  }
 }, { deep: true })
 
-// Emit changes to parent
-watch(
-    internalFilters,
-    (newVal) => {
-      emit('update:filters', { ...newVal })
-    },
-    { deep: true }
-)
+let updateTimeout = null
+watch(internalFilters, (newVal) => {
+  clearTimeout(updateTimeout)
+  updateTimeout = setTimeout(() => {
+    emit('update:filters', { ...newVal })
+  }, 100)
+}, { deep: true })
+
+watch(() => props.filterOptions.availableStatuses, (newStatuses) => {
+  if (internalFilters.value.status && !newStatuses.includes(internalFilters.value.status)) {
+    internalFilters.value.status = ''
+  }
+}, { deep: true })
 
 const reset = () => {
   internalFilters.value = {

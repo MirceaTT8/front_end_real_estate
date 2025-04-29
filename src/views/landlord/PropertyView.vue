@@ -1,10 +1,11 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import {ref, onMounted, computed, watch, nextTick} from 'vue'
 import { fetchPropertiesByUserId } from '@/services/propertyService.js'
 import PropertyFilters from '@/components/property/PropertyFilters.vue'
 import PropertyList from "@/components/property/PropertyList.vue"
 import PropertyMap from "@/components/property/PropertyMap.vue"
 import PropertyViewToggle from "@/components/property/PropertyViewToggle.vue"
+
 const properties = ref([])
 const loading = ref(true)
 const error = ref(null)
@@ -26,41 +27,60 @@ const filteredProperties = computed(() => {
     const matchesLocation = !filters.value.location ||
         property.address.toLowerCase().includes(filters.value.location.toLowerCase())
 
-    // Convert filter value to uppercase for comparison
-    const filterType = filters.value.type?.toUpperCase() || ''
     const matchesType = !filters.value.type ||
-        property.type === filterType
+        property.type === filters.value.type.toUpperCase()
 
-    // Convert filter value to uppercase for comparison
-    const filterStatus = filters.value.status?.toUpperCase() || ''
     const matchesStatus = !filters.value.status ||
-        property.status === filterStatus
+        property.status === filters.value.status.toUpperCase()
 
     return matchesLocation && matchesType && matchesStatus
   })
 })
 
+const resetFilters = () => {
+  filters.value = {
+    location: '',
+    type: '',
+    status: ''
+  }
+}
+
+const isInternalUpdate = ref(false)
+
 const onFiltersUpdate = (newFilters) => {
-  filters.value = { ...newFilters }
+  if (!isInternalUpdate.value) {
+    filters.value = { ...newFilters }
+  }
 }
 
 const availableTypes = computed(() => {
-  // Get all unique property types from backend (UPPERCASE)
   const backendTypes = new Set(properties.value.map(p => p.type))
-
-  // Return filter options that exist in backend data
   return filterOptions.types.filter(frontendType =>
-      backendTypes.has(frontendType.toUpperCase())
-  )
+      backendTypes.has(frontendType.toUpperCase()))
 })
 
 const availableStatuses = computed(() => {
-  const backendStatuses = new Set(properties.value.map(p => p.status))
+  // Filter properties first by type if one is selected
+  const filteredByType = properties.value.filter(property => {
+    if (!filters.value.type) return true
+    return property.type === filters.value.type.toUpperCase()
+  })
+
+  const backendStatuses = new Set(filteredByType.map(p => p.status))
   return filterOptions.statuses.filter(frontendStatus =>
-      backendStatuses.has(frontendStatus.toUpperCase())
-  )
+      backendStatuses.has(frontendStatus.toUpperCase()))
 })
 
+// Reset status when type changes
+watch(() => filters.value.type, (newType, oldType) => {
+  if (newType !== oldType) {
+    isInternalUpdate.value = true
+    filters.value.status = ''
+    nextTick(() => {
+      isInternalUpdate.value = false
+    })
+  }
+})
 
 onMounted(async () => {
   try {
@@ -82,11 +102,12 @@ onMounted(async () => {
     <PropertyFilters
         :filters="filters"
         :filterOptions="{
-          ...filterOptions,
-          availableTypes: availableTypes,
-          availableStatuses: availableStatuses,
-        }"
+        ...filterOptions,
+        availableTypes: availableTypes,
+        availableStatuses: availableStatuses
+      }"
         @update:filters="onFiltersUpdate"
+        @reset="resetFilters"
     />
 
     <PropertyMap
@@ -99,7 +120,6 @@ onMounted(async () => {
         :properties="filteredProperties"
         :loading="loading"
         :error="error"
-        @reset-filters="resetFilters"
     />
   </div>
 </template>
