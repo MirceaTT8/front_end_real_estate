@@ -1,19 +1,15 @@
 <script setup>
-import { ref } from 'vue'
+import {ref, computed, onMounted, watch, onUnmounted} from 'vue'
 import FileUploader from '@/components/property/PropertyFileUploader.vue'
-import {computed} from "vue";
+
 const propertyTypes = [
   { value: 'APARTMENT', label: 'Apartment' },
   { value: 'HOUSE', label: 'House' },
   { value: 'COMMERCIAL', label: 'Commercial' },
   { value: 'LAND', label: 'Land' }
 ]
-//
-// defineProps({
-//   isLoading: Boolean
-// })
 
-const emit = defineEmits(['update:modelValue', 'update:attachments'])
+const emit = defineEmits(['update:modelValue', 'update:attachments', 'location-selected'])
 
 const props = defineProps({
   isLoading: Boolean,
@@ -44,6 +40,58 @@ const attachments = computed({
     emit('update:attachments', value)
   }
 })
+
+const autocompleteInput = ref(null)
+const autocomplete = ref(null)
+
+// Watch for Google Maps API to be available
+const initAutocomplete = () => {
+  if (!window.google || !window.google.maps || !window.google.maps.places) {
+    console.log('Google Maps API not ready yet')
+    return false
+  }
+
+  autocomplete.value = new google.maps.places.Autocomplete(
+      autocompleteInput.value,
+      {
+        types: ['address'],
+        fields: ['address_components', 'geometry', 'formatted_address'],
+        componentRestrictions: { country: 'ro' }
+      }
+  )
+
+  autocomplete.value.addListener('place_changed', () => {
+    const place = autocomplete.value.getPlace()
+    if (!place.geometry) {
+      console.log('No details available for input: ' + place.name)
+      return
+    }
+
+    form.value.address = place.formatted_address
+    emit('location-selected', {
+      lat: place.geometry.location.lat(),
+      lng: place.geometry.location.lng()
+    })
+  })
+
+  return true
+}
+
+onMounted(() => {
+  if (initAutocomplete()) return
+
+  const checkInterval = setInterval(() => {
+    if (initAutocomplete()) {
+      clearInterval(checkInterval)
+    }
+  }, 200)
+})
+
+onUnmounted(() => {
+  if (autocomplete.value) {
+    google.maps.event.clearInstanceListeners(autocomplete.value)
+  }
+})
 </script>
 
 <template>
@@ -61,13 +109,16 @@ const attachments = computed({
 
     <div>
       <label class="block mb-1">Address *</label>
-      <textarea
+      <input
+          ref="autocompleteInput"
           v-model="form.address"
+          type="text"
           required
           class="w-full p-2 border rounded"
-          rows="3"
           :disabled="isLoading"
-      ></textarea>
+          placeholder="Start typing an address..."
+          id="autocomplete"
+      >
     </div>
 
     <div>

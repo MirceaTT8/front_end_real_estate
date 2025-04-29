@@ -7,9 +7,11 @@ import router from "@/router/index.js";
 import PrimeVue from 'primevue/config'
 import "./assets/main.css";
 import {ConfirmDialog, ToastService} from "primevue";
+import {GOOGLE_API_KEY} from "@/configs/config.js";
 const app = createApp(App)
 
 const store = createPinia()
+
 
 app.use(router)
 app.use(PrimeVue)

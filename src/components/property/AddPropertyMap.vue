@@ -1,128 +1,80 @@
-<!-- PropertyMap.vue -->
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { Loader } from '@googlemaps/js-api-loader'
 import { GOOGLE_API_KEY } from '@/configs/config.js'
 
 const props = defineProps({
-  properties: {
-    type: Array,
-    default: () => []
-  },
-  clickable: {
-    type: Boolean,
-    default: false
-  },
-  initialMarkers: {
-    type: Array,
-    default: () => []
-  }
+  clickable: Boolean,
+  draggable: Boolean,
+  initialMarkers: Array
 })
 
-const emit = defineEmits(['map-loaded', 'map-error', 'map-click'])
+const emit = defineEmits(['map-click', 'marker-dragged'])
 
 const map = ref(null)
 const mapContainer = ref(null)
-const markers = ref([])
+const currentMarker = ref(null)
+const clickListener = ref(null)
 
-const getMarkerIcon = (status) => {
-  const colorMap = {
-    'AVAILABLE': '#34D399',
-    'RENTED': '#FBBF24',
-    'DISABLED': '#EF4444'
-  }
+const getMarkerIcon = () => ({
+  path: google.maps.SymbolPath.CIRCLE,
+  fillColor: '#34D399',
+  fillOpacity: 1,
+  strokeColor: '#FFF',
+  strokeWeight: 2,
+  scale: 8
+})
 
-  const color = colorMap[status] || '#3B82F6'
-
-  return {
-    path: google.maps.SymbolPath.CIRCLE,
-    fillColor: color,
-    fillOpacity: 1,
-    strokeColor: '#FFF',
-    strokeWeight: 2,
-    scale: 8
+const clearAllMarkers = () => {
+  if (currentMarker.value) {
+    google.maps.event.clearInstanceListeners(currentMarker.value)
+    currentMarker.value.setMap(null)
+    currentMarker.value = null
   }
 }
 
-const clearMarkers = () => {
-  markers.value.forEach(marker => marker.setMap(null))
-  markers.value = []
-}
-
-const addMarkers = () => {
-  clearMarkers()
+const addSingleMarker = (position) => {
+  clearAllMarkers() // Always clear existing marker first
 
   if (!map.value) return
 
-  const bounds = new google.maps.LatLngBounds()
-
-  // Add initial markers if provided
-  props.initialMarkers.forEach(markerData => {
-    const marker = new google.maps.Marker({
-      position: markerData,
-      map: map.value,
-      icon: getMarkerIcon('AVAILABLE') // Default color for new markers
-    })
-    markers.value.push(marker)
-    bounds.extend(marker.getPosition())
+  currentMarker.value = new google.maps.Marker({
+    position,
+    map: map.value,
+    icon: getMarkerIcon(),
+    draggable: props.draggable
   })
 
-  // Add property markers
-  props.properties.forEach(property => {
-    const position = {
-      lat: parseFloat(property.latitude),
-      lng: parseFloat(property.longitude)
-    }
-
-    const marker = new google.maps.Marker({
-      position,
-      map: map.value,
-      title: property.name,
-      icon: getMarkerIcon(property.status)
+  // Set up dragend listener if draggable
+  if (props.draggable) {
+    google.maps.event.addListener(currentMarker.value, 'dragend', (event) => {
+      const newPosition = {
+        lat: event.latLng.lat(),
+        lng: event.latLng.lng()
+      }
+      emit('marker-dragged', newPosition)
     })
-
-    const infoWindow = new google.maps.InfoWindow({
-      content: `
-        <div class="p-2">
-          <h3 class="font-bold">${property.name}</h3>
-          <p>${property.address}</p>
-          <p class="text-green-600 font-semibold">$${property.monthlyRent}/month</p>
-          <a href="/properties/${property.id}" class="text-blue-500 hover:underline">View details</a>
-        </div>
-      `
-    })
-
-    marker.addListener('click', () => infoWindow.open(map.value, marker))
-    markers.value.push(marker)
-    bounds.extend(position)
-  })
-
-  if (markers.value.length > 0) {
-    map.value.fitBounds(bounds)
-    if (markers.value.length === 1) {
-      map.value.setZoom(14)
-    }
   }
+
+  // Center and zoom map
+  map.value.setCenter(position)
+  map.value.setZoom(14)
 }
 
 const setupMapClickHandler = () => {
   if (!map.value || !props.clickable) return
 
-  map.value.addListener('click', (event) => {
+  // Remove previous click listener if exists
+  if (clickListener.value) {
+    google.maps.event.removeListener(clickListener.value)
+  }
+
+  clickListener.value = map.value.addListener('click', (event) => {
     const clickedLocation = {
       lat: event.latLng.lat(),
       lng: event.latLng.lng()
     }
-
-    // Clear existing markers and add new one
-    clearMarkers()
-    const marker = new google.maps.Marker({
-      position: clickedLocation,
-      map: map.value,
-      icon: getMarkerIcon('AVAILABLE')
-    })
-    markers.value.push(marker)
-
+    addSingleMarker(clickedLocation)
     emit('map-click', clickedLocation)
   })
 }
@@ -137,38 +89,48 @@ const initMap = async () => {
 
     await loader.load()
 
-    map.value = new google.maps.Map(mapContainer.value, {
-      center: { lat: 45.7489, lng: 21.2087 },
-      zoom: 12,
-      disableDefaultUI: true,
-      zoomControl: true,
-      gestureHandling: 'cooperative'
-    })
+    // Initialize map only if not already initialized
+    if (!map.value) {
+      map.value = new google.maps.Map(mapContainer.value, {
+        center: { lat: 45.9432, lng: 24.9668 },
+        zoom: 6,
+        disableDefaultUI: true,
+        zoomControl: true,
+        gestureHandling: 'cooperative'
+      })
+    }
 
-    addMarkers()
+    // Setup initial marker if provided
+    if (props.initialMarkers?.length > 0) {
+      addSingleMarker(props.initialMarkers[0])
+    }
+
     setupMapClickHandler()
-    emit('map-loaded')
   } catch (err) {
     console.error('Map initialization error:', err)
-    emit('map-error', err)
   }
 }
+
+// Clean up all resources when component unmounts
+onUnmounted(() => {
+  if (clickListener.value) {
+    google.maps.event.removeListener(clickListener.value)
+  }
+  clearAllMarkers()
+  if (map.value) {
+    google.maps.event.clearInstanceListeners(map.value)
+  }
+})
 
 onMounted(() => {
   initMap()
 })
 
-watch(() => props.properties, () => {
-  if (map.value) {
-    addMarkers()
+watch(() => props.initialMarkers, (newMarkers) => {
+  if (map.value && newMarkers?.length > 0) {
+    addSingleMarker(newMarkers[0])
   }
-}, { deep: true })
-
-watch(() => props.initialMarkers, () => {
-  if (map.value) {
-    addMarkers()
-  }
-}, { deep: true })
+}, { immediate: true })
 </script>
 
 <template>

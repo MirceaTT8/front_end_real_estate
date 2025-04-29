@@ -20,9 +20,38 @@ const isLoading = ref(false)
 const errorMessage = ref('')
 const attachments = ref([])
 
+
+
 const handleMapClick = (location) => {
   form.value.longitude = location.lng
   form.value.latitude = location.lat
+}
+
+const handleLocationSelected = async (location) => {
+  form.value.longitude = location.lng
+  form.value.latitude = location.lat
+  form.value.address = await reverseGeocode(location)
+}
+
+const handleMarkerDragged = async (location) => {
+  form.value.longitude = location.lng
+  form.value.latitude = location.lat
+  form.value.address = await reverseGeocode(location)
+}
+
+const reverseGeocode = async (location) => {
+  if (!window.google) return form.value.address
+
+  const geocoder = new google.maps.Geocoder()
+  return new Promise((resolve) => {
+    geocoder.geocode({ location }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        resolve(results[0].formatted_address)
+      } else {
+        resolve(form.value.address)
+      }
+    })
+  })
 }
 
 const submitForm = async () => {
@@ -67,6 +96,7 @@ const submitForm = async () => {
             v-model="form"
             v-model:attachments="attachments"
             :is-loading="isLoading"
+            @location-selected="handleLocationSelected"
         />
 
         <PropertyLocationMap
@@ -74,6 +104,7 @@ const submitForm = async () => {
             v-model:latitude="form.latitude"
             :is-loading="isLoading"
             @map-click="handleMapClick"
+            @marker-dragged="handleMarkerDragged"
         />
       </div>
 
