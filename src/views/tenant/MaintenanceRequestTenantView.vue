@@ -1,10 +1,10 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { fetchMaintenanceRequestsByLease, addMaintenanceRequest } from "@/services/maintenanceService.js";
-import MaintenanceListTenant from "@/components/maintenance-tenant/MaintenanceListTenant.vue";
-import MaintenanceCreateForm from "@/components/maintenance-tenant/MaintenanceCreateForm.vue";
-import MaintenanceFilter from "@/components/maintenance-tenant/MaintenanceFilter.vue";
-import MaintenanceHeader from "@/components/maintenance-tenant/MaintenanceHeader.vue";
+import MaintenanceListTenant from "@/components/tenant/maintenance/MaintenanceListTenant.vue";
+import MaintenanceCreateForm from "@/components/tenant/maintenance/MaintenanceCreateForm.vue";
+import MaintenanceFilter from "@/components/tenant/maintenance/MaintenanceFilter.vue";
+import MaintenanceHeader from "@/components/tenant/maintenance/MaintenanceHeader.vue";
 
 const requests = ref([])
 const loading = ref(true)
@@ -22,7 +22,7 @@ const loadRequests = async () => {
     loading.value = true
     requests.value = await fetchMaintenanceRequestsByLease(1)
   } catch (err) {
-    error.value = err.message || 'Failed to load maintenance-tenant requests'
+    error.value = err.message || 'Failed to load maintenance requests'
   } finally {
     loading.value = false
   }

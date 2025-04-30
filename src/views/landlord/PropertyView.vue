@@ -1,10 +1,10 @@
 <script setup>
 import {ref, onMounted, computed, watch, nextTick} from 'vue'
 import { fetchPropertiesByUserId } from '@/services/propertyService.js'
-import PropertyFilters from '@/components/property/PropertyFilters.vue'
-import PropertyList from "@/components/property/PropertyList.vue"
-import PropertyMap from "@/components/property/PropertyMap.vue"
-import PropertyViewToggle from "@/components/property/PropertyViewToggle.vue"
+import PropertyFilters from '@/components/landlord/property/PropertyFilters.vue'
+import PropertyList from "@/components/landlord/property/PropertyList.vue"
+import PropertyMap from "@/components/landlord/property/PropertyMap.vue"
+import PropertyViewToggle from "@/components/landlord/property/PropertyViewToggle.vue"
 
 const properties = ref([])
 const loading = ref(true)

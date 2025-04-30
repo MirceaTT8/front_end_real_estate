@@ -1,5 +1,5 @@
 <script setup>
-import AddPropertyMap from "@/components/property/AddPropertyMap.vue";
+import PropertyAddMap from "@/components/landlord/property/PropertyAddMap.vue";
 
 const props = defineProps({
   longitude: Number,
@@ -26,7 +26,7 @@ const handleMarkerDragged = (location) => {
   <div>
     <label class="block mb-1">Select Location *</label>
     <div class="h-64 border rounded overflow-hidden">
-      <AddPropertyMap
+      <PropertyAddMap
           :key="`map-${longitude}-${latitude}`"
           :clickable="true"
           :draggable="true"

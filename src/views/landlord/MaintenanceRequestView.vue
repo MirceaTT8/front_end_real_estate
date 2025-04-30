@@ -3,8 +3,8 @@ import {computed, onMounted, ref} from 'vue'
 import {useRouter} from "vue-router";
 
 import {fetchMaintenanceRequestsByOwner, setStatus} from "@/services/maintenanceService.js";
-import MaintenanceStatusFilter from "@/components/maintenance-landlord/MaintenanceStatusFilter.vue";
-import MaintenanceListLandlord from "@/components/maintenance-landlord/MaintenanceListLandlord.vue";
+import MaintenanceStatusFilter from "@/components/landlord/maintenance/MaintenanceStatusFilter.vue";
+import MaintenanceListLandlord from "@/components/landlord/maintenance/MaintenanceListLandlord.vue";
 
 const requests = ref([])
 const loading = ref(true)
@@ -20,7 +20,7 @@ onMounted(async () => {
     requests.value = await fetchMaintenanceRequestsByOwner(ownerId);
     console.log(requests.value)
   } catch (err) {
-    error.value = err.message || 'Failed to load maintenance-tenant requests';
+    error.value = err.message || 'Failed to load maintenance requests';
     console.error('Error:', err);
   } finally {
     loading.value = false;

@@ -42,7 +42,7 @@ const navigateToDetails = (id) => {
     </div>
     <div v-else class="h-48 overflow-hidden bg-gray-100 flex items-center justify-center cursor-pointer" @click="navigateToDetails(property.id)">
       <img
-          src="@/assets/logo.svg"
+          src="../../../assets/logo.svg"
           alt="Property placeholder"
           class="w-full h-full object-cover"
       >

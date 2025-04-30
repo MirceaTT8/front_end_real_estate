@@ -1,9 +1,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import {fetchActiveLeasesByOwnerId, createLease} from "@/services/leaseService.js";
-import LeaseList from "@/components/lease/LeaseList.vue";
-import LeaseSummaryCards from "@/components/lease/LeaseSummaryCards.vue";
-import LeaseTabs from "@/components/lease/LeaseTabs.vue";
+import LeaseList from "@/components/landlord/lease/LeaseList.vue";
+import LeaseSummaryCards from "@/components/landlord/lease/LeaseSummaryCards.vue";
+import LeaseTabs from "@/components/landlord/lease/LeaseTabs.vue";
 const leases = ref([])
 const loading = ref(true)
 const error = ref(null)

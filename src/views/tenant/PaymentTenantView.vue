@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import {getPaymentsByLeaseId, createPayment} from "@/services/paymentService.js";
-import PaymentHistory from "@/components/payment-tenant/PaymentHistory.vue";
+import PaymentHistory from "@/components/tenant/payment/PaymentHistory.vue";
 
 const payments = ref([])
 const loading = ref(true)

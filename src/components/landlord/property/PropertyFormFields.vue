@@ -1,6 +1,6 @@
 <script setup>
 import {ref, computed, onMounted, watch, onUnmounted} from 'vue'
-import FileUploader from '@/components/property/PropertyFileUploader.vue'
+import FileUploader from '@/components/landlord/property/PropertyFileUploader.vue'
 
 const propertyTypes = [
   { value: 'APARTMENT', label: 'Apartment' },
