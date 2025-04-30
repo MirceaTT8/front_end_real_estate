@@ -6,7 +6,6 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import SwiperCore from 'swiper';
 import {Navigation, Pagination} from "swiper/modules";
-
 SwiperCore.use([Navigation, Pagination]);
 
 defineProps({
@@ -93,12 +92,12 @@ const openSlider = (index) => {
           Attachments ({{ request.imageUrls.length }})
         </h4>
 
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div class="grid grid-cols-3 gap-2">
           <button
               v-for="(imageId, index) in request.imageUrls"
               :key="index"
               @click="openSlider(index)"
-              class="block w-full aspect-[4/3] rounded-lg overflow-hidden border hover:shadow-lg transition"
+              class="block w-full aspect-square rounded-lg overflow-hidden border hover:shadow-md transition"
           >
             <img
                 :src="`http://localhost:8080/image/${imageId}`"
@@ -130,9 +129,9 @@ const openSlider = (index) => {
 
     <!-- Modal for full image slider -->
     <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center">
-      <div class="bg-white rounded-lg overflow-hidden w-full max-w-2xl shadow-lg relative">
+      <div class="bg-white rounded-lg overflow-hidden w-full max-w-5xl shadow-lg relative">
         <button @click="showModal = false" class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-xl font-bold z-10">&times;</button>
-        <Swiper :initialSlide="activeIndex" :slidesPerView="1" navigation pagination class="h-96">
+        <Swiper :initialSlide="activeIndex" :slidesPerView="1" navigation pagination class="h-[90vh]">
           <SwiperSlide v-for="(imageId, index) in request.imageUrls" :key="index">
             <img :src="`http://localhost:8080/image/${imageId}`" :alt="`Image ${index + 1}`" class="w-full h-full object-contain" />
           </SwiperSlide>
