@@ -1,17 +1,21 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import LeaseFilter from './LeaseFilter.vue'
-import PaymentSummaryCards from './PaymentSummaryCards.vue'
-import PaymentTable from './PaymentTable.vue'
-import ManualPaymentModal from './ManualPaymentModal.vue'
+import PaymentLeaseFilter from "@/components/landlord/payment/PaymentLeaseFilter.vue";
+import PaymentSummaryCard from "@/components/landlord/payment/PaymentSummaryCard.vue";
+import PaymentTable from "@/components/landlord/payment/PaymentTable.vue";
+import PaymentManualModal from "@/components/landlord/payment/PaymentManualModal.vue";
 
 import { getPaymentsByOwnerId, createPayment } from "@/services/paymentService.js";
 import { fetchPropertyById } from "@/services/propertyService.js";
 import { fetchUserById } from "@/services/userService.js";
 import { fetchActiveLeasesByOwnerId } from "@/services/leaseService.js";
 
-// State
+import { watch } from 'vue'
+
+
+
+
 const payments = ref([])
 const leases = ref([])
 const properties = ref([])
@@ -28,7 +32,6 @@ const newPayment = ref({
   paymentMethod: 'BANK_TRANSFER'
 })
 
-// Fetch Data
 const fetchPayments = async () => {
   error.value = null
   try {
@@ -39,6 +42,9 @@ const fetchPayments = async () => {
     ])
     payments.value = paymentsData
     leases.value = leasesData
+
+    console.log(payments.value)
+    console.log(leases.value)
 
     const uniquePropertyIds = [...new Set(leases.value.map(l => l.propertyId))]
     const uniqueTenantIds = [...new Set(leases.value.map(l => l.tenantId))]
@@ -63,20 +69,20 @@ const fetchPayments = async () => {
 
 const filteredPayments = computed(() => {
   return selectedLease.value
-      ? payments.value.filter(p => p.lease_id === selectedLease.value)
+      ? payments.value.filter(p => p.leaseId === selectedLease.value)
       : payments.value
 })
 
 const summary = computed(() => {
-  const completedPayments = payments.value.filter(p => p.status === 'completed')
-  const activeLeases = leases.value.filter(l => l.status === 'active')
+  const completedPayments = payments.value.filter(p => p.status === 'COMPLETED')
+  const activeLeases = leases.value.filter(l => l.status === 'ACTIVE')
   const overduePayments = payments.value.filter(
-      p => p.status === 'pending' && new Date(p.paymentDate) < new Date()
+      p => p.status === 'PENDING' && new Date(p.paymentDate) < new Date()
   )
 
   return {
     totalCollected: completedPayments.reduce((sum, p) => sum + p.amount, 0),
-    expectedMonthly: activeLeases.reduce((sum, l) => sum + l.monthly_rent, 0),
+    expectedMonthly: activeLeases.reduce((sum, l) => sum + l.monthlyRent, 0),
     overdueCount: overduePayments.length
   }
 })
@@ -94,7 +100,7 @@ const getPropertyName = (propertyId) => {
 }
 
 const getLeaseForPayment = (payment) => {
-  return leases.value.find(l => l.lease_id === payment.lease_id)
+  return leases.value.find(l => l.leaseId === payment.leaseId)
 }
 
 const formatDate = (dateString) => new Date(dateString).toLocaleDateString()
@@ -131,23 +137,38 @@ const sendReminders = () => {
   alert(`Reminders sent for ${summary.value.overdueCount} overdue payments!`)
 }
 
+watch(summary, (newSummary) => {
+  console.log('Summary updated:')
+  console.log('Total Collected:', newSummary.totalCollected)
+  console.log('Expected Monthly:', newSummary.expectedMonthly)
+  console.log('Overdue Count:', newSummary.overdueCount)
+})
+
 onMounted(() => {
   fetchPayments()
 })
+
 </script>
 
 <template>
   <div class="p-6 max-w-6xl mx-auto">
     <h1 class="text-2xl font-bold text-gray-800 mb-6">Payment Management</h1>
 
-    <LeaseFilter
+    <PaymentLeaseFilter
+        v-model:selectedLease="selectedLease"
         :leases="leases"
-        :selectedLease="selectedLease"
         :getPropertyName="getPropertyName"
         :getTenantName="getTenantName"
     />
 
-    <PaymentSummaryCards :summary="summary" :formatCurrency="formatCurrency" />
+
+    <PaymentSummaryCard
+        :totalCollected="summary.totalCollected"
+        :expectedMonthly="summary.expectedMonthly"
+        :overdueCount="summary.overdueCount"
+        :formatCurrency="formatCurrency"
+    />
+
 
     <div class="flex flex-wrap gap-4 mb-8">
       <button
@@ -174,7 +195,7 @@ onMounted(() => {
         :formatDate="formatDate"
     />
 
-    <ManualPaymentModal
+    <PaymentManualModal
         v-if="showManualPaymentModal"
         :leases="leases"
         :newPayment="newPayment"

@@ -8,8 +8,8 @@ defineEmits(['submit', 'cancel'])
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
       <div class="p-6">
         <h2 class="text-lg font-medium text-gray-900 mb-4">Record Manual Payment</h2>
-        <form @submit.prevent="recordManualPayment">
-          <div class="mb-4">
+        <form @submit.prevent="$emit('submit')">
+        <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Lease:</label>
             <select
                 v-model="newPayment.leaseId"
