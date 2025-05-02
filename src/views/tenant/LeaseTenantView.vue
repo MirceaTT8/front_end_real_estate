@@ -1,8 +1,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import {fetchLeaseId} from "@/services/leaseService.js";
+import {fetchMyLease} from "@/services/leaseService.js";
 import {fetchPropertyById} from "@/services/propertyService.js";
 import {getPaymentsByLeaseId} from "@/services/paymentService.js";
+import { jwtDecode } from "jwt-decode";
 
 const lease = ref(null)
 const property = ref(null)
@@ -11,27 +12,27 @@ const loading = ref(true)
 const error = ref(null)
 const currentDate = new Date()
 
-const loadLeaseData = async (leaseId) => {
-  loading.value = true
-  error.value = null
-  try {
-    lease.value = await fetchLeaseId(leaseId)
-    console.log(lease)
-
-    if (lease.value && lease.value.propertyId) {
-      property.value = await fetchPropertyById(lease.value.propertyId)
-      payments.value = await getPaymentsByLeaseId(leaseId)
-    }
-
-    console.log(property)
-
-  } catch (err) {
-    error.value = 'Failed to load payments. Please try again later.'
-    console.error('Payment load failed:', err.message)
-  } finally {
-    loading.value = false
-  }
-}
+// const loadLeaseData = async () => {
+//   loading.value = true
+//   error.value = null
+//   try {
+//     lease.value = await fetchMyLease()
+//     console.log(lease)
+//
+//     if (lease.value && lease.value.propertyId) {
+//       property.value = await fetchPropertyById(lease.value.propertyId)
+//       payments.value = await getPaymentsByLeaseId(leaseId)
+//     }
+//
+//     console.log(property)
+//
+//   } catch (err) {
+//     error.value = 'Failed to load payments. Please try again later.'
+//     console.error('Payment load failed:', err.message)
+//   } finally {
+//     loading.value = false
+//   }
+// }
 
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -57,9 +58,34 @@ const rentStatus = computed(() => {
       : { status: 'current', class: 'text-green-600 font-semibold' }
 })
 
-onMounted(() => {
-  loadLeaseData(1)
-})
+onMounted(async () => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const decoded = jwtDecode(token);
+    const email = decoded?.sub;
+
+    if (email) {
+      loading.value = true;
+      lease.value = await fetchMyLease(); // await here
+
+      if (lease.value && lease.value.propertyId) {
+        property.value = await fetchPropertyById(lease.value.propertyId);
+        payments.value = await getPaymentsByLeaseId(lease.value.leaseId);
+      }
+    } else {
+      error.value = 'Invalid user token.';
+    }
+  } catch (e) {
+    console.error('JWT decode error:', e);
+    error.value = 'Could not decode user token.';
+  } finally {
+    loading.value = false; // ensure loading stops
+  }
+});
+
+
 </script>
 
 <template>
@@ -70,12 +96,12 @@ onMounted(() => {
       <p class="text-gray-600">Loading your lease information...</p>
     </div>
 
-    <div v-else-if="error" class="text-center text-red-600">
-      <p class="mb-4">⚠️ {{ error }}</p>
-      <button @click="loadLeaseData" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-        Try Again
-      </button>
-    </div>
+<!--    <div v-else-if="error" class="text-center text-red-600">-->
+<!--      <p class="mb-4">⚠️ {{ error }}</p>-->
+<!--      <button @click="loadLeaseData" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">-->
+<!--        Try Again-->
+<!--      </button>-->
+<!--    </div>-->
 
     <!-- Lease Info -->
     <div v-else-if="lease" class="space-y-12">

@@ -27,11 +27,11 @@ onMounted(() => {
 
     isAuthenticated.value = true
 
-    // if (roles.includes("ROLE_LANDLORD")) {
-    //   router.replace("/landlord")
-    // }
+    if (roles.includes("ROLE_LANDLORD")) {
+      router.replace("/landlord")
+    }
     if (roles.includes("ROLE_TENANT")) {
-      router.replace("/tenant/dashboard")
+      router.replace("/tenant/leases")
     } else {
       router.replace("/login")
     }

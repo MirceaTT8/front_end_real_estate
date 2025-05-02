@@ -36,6 +36,24 @@ export const fetchLeaseId = async (leaseId) => {
     }
 };
 
+export const fetchMyLease = async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/user/me`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const text = await response.text();
+    console.log(text)
+    return text ? JSON.parse(text) : null;
+}
+
+
 export const createLease = async (leaseData) => {
     try {
         console.log(leaseData);

@@ -1,10 +1,13 @@
 
 <script setup>
-import { ref } from "vue";
+import {onMounted, ref} from "vue";
 import Menubar from "primevue/menubar";
 import { PrimeIcons } from '@primevue/core/api';
 import UserDropdown from "@/components/UserDropdown.vue";
 import NotificationBell from "@/components/notification/NotificationBell.vue";
+import { jwtDecode } from "jwt-decode";
+
+const token = localStorage.getItem('token');
 
 const menuItems = ref({
   landlord: [
@@ -96,7 +99,21 @@ items: [
 
  */
 ]
+});
 
+onMounted(() => {
+  if (token) {
+    const decoded = jwtDecode(token);
+    const roles = decoded?.authorities || [];
+
+    if (roles.includes('ROLE_LANDLORD')) {
+      currentMenu.value = menuItems.value.landlord;
+    } else if (roles.includes('ROLE_TENANT')) {
+      currentMenu.value = menuItems.value.tenant;
+    } else if (roles.includes('ROLE_ADMIN')) {
+      currentMenu.value = menuItems.value.admin;
+    }
+  }
 });
 
 const currentMenu = ref(menuItems.value.landlord);
