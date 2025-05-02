@@ -4,6 +4,7 @@ import {fetchActiveLeasesByOwnerId, createLease} from "@/services/leaseService.j
 import LeaseList from "@/components/landlord/lease/LeaseList.vue";
 import LeaseSummaryCards from "@/components/landlord/lease/LeaseSummaryCards.vue";
 import LeaseTabs from "@/components/landlord/lease/LeaseTabs.vue";
+import { fetchMyLeases } from "@/services/leaseService.js";
 const leases = ref([])
 const loading = ref(true)
 const error = ref(null)
@@ -24,16 +25,18 @@ onMounted(async () => {
   await loadLeases()
 })
 
+
 const loadLeases = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    leases.value = await fetchActiveLeasesByOwnerId(1)
+    leases.value = await fetchMyLeases();
   } catch (err) {
-    error.value = err.message || 'Failed to load leases'
+    error.value = err.message || 'Failed to load leases';
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
+
 
 const handleCreateLease = async () => {
   try {
