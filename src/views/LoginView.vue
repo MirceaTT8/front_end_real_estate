@@ -23,7 +23,7 @@ const login = async () => {
     const roles = decoded.authorities || []
 
     if (roles.includes('ROLE_LANDLORD')) {
-      router.push('/landlord/dashboard')
+      router.push('/landlord')
     } else if (roles.includes('ROLE_TENANT')) {
       router.push('/tenant/dashboard')
     } else {

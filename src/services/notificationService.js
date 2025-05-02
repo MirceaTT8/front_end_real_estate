@@ -15,6 +15,28 @@ export const fetchNotifications = async (userId) => {
     }
 };
 
+export const fetchNotificationsByEmail = async (email) => {
+    try {
+        const token = localStorage.getItem('token')
+        const response = await fetch(`http://localhost:8080/notification/user/email/${encodeURIComponent(email)}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        return await response.json()
+    } catch (error) {
+        console.error('Error fetching notifications:', error)
+        throw error
+    }
+}
+
+
 export const markNotificationAsRead = async (notificationId) => {
     try {
         const response = await fetch(`${API}/${notificationId}/read`, {

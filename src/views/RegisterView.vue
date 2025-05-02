@@ -28,8 +28,9 @@ const register = async () => {
     const roles = decoded.authorities || []
 
     if (roles.includes('ROLE_LANDLORD')) {
-      router.push('/landlord/dashboard')
-    } else if (roles.includes('ROLE_TENANT')) {
+      router.push('/landlord')
+    }
+    if (roles.includes('ROLE_TENANT')) {
       router.push('/tenant/dashboard')
     } else {
       error.value = 'Unauthorized role.'
@@ -38,6 +39,11 @@ const register = async () => {
     error.value = 'Registration failed. Check your input.'
   }
 }
+const logout = () => {
+  localStorage.removeItem('token')
+  router.push('/login')
+}
+
 </script>
 
 <template>
@@ -50,6 +56,8 @@ const register = async () => {
       <input v-model="password" type="password" placeholder="Password" class="w-full border rounded p-2" />
       <button type="submit" class="w-full bg-green-600 text-white rounded py-2 hover:bg-green-700">Register</button>
       <p class="text-red-600 text-sm" v-if="error">{{ error }}</p>
+      <button @click="logout" class="text-red-600 hover:underline">Logout</button>
     </form>
   </div>
+
 </template>

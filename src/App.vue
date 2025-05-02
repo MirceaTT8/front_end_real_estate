@@ -3,6 +3,10 @@ import NavBar from "@/components/NavBar.vue"
 import { RouterView, useRouter } from 'vue-router'
 import { onMounted, ref } from 'vue'
 import { jwtDecode } from 'jwt-decode'
+import { useNotificationStore } from '@/stores/notificationStore'
+const notificationStore = useNotificationStore()
+notificationStore.startPolling()
+
 
 const router = useRouter()
 const isAuthenticated = ref(false)
@@ -19,11 +23,14 @@ onMounted(() => {
     const decoded = jwtDecode(token)
     const roles = decoded.authorities || []
 
-    isAuthenticated.value = true // ✅ set true only if token is valid
+    console.log(decoded)
 
-    if (roles.includes("ROLE_LANDLORD")) {
-      router.replace("/landlord/dashboard")
-    } else if (roles.includes("ROLE_TENANT")) {
+    isAuthenticated.value = true
+
+    // if (roles.includes("ROLE_LANDLORD")) {
+    //   router.replace("/landlord")
+    // }
+    if (roles.includes("ROLE_TENANT")) {
       router.replace("/tenant/dashboard")
     } else {
       router.replace("/login")
@@ -33,6 +40,8 @@ onMounted(() => {
     router.replace("/login")
   }
 })
+
+
 </script>
 
 
