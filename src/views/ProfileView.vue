@@ -1,6 +1,8 @@
 <script setup>
 import { reactive, onMounted } from 'vue';
-import { fetchUserById } from '@/services/userService';
+import { fetchUserByEmail } from '@/services/userService';
+import { jwtDecode } from 'jwt-decode';
+
 const user = reactive({
   firstName: '',
   lastName: '',
@@ -9,13 +11,21 @@ const user = reactive({
 
 onMounted(async () => {
   try {
-    const userData = await fetchUserById(1);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('User not authenticated');
+    }
+
+    const decoded = jwtDecode(token);
+    const email = decoded.sub;
+    const userData = await fetchUserByEmail(email);
     Object.assign(user, userData);
   } catch (error) {
-    console.error("Error fetching user data:", error);
+    console.error('Error fetching user data:', error);
   }
 });
 </script>
+
 
 <template>
   <div class="max-w-md mx-auto p-6 bg-white shadow-lg rounded-lg mt-10">
@@ -34,6 +44,3 @@ onMounted(async () => {
     </div>
   </div>
 </template>
-<style scoped>
-
-</style>
