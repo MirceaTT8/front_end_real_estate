@@ -1,9 +1,10 @@
 <script setup>
 defineProps({
-  payments: Array,
-  formatDate: Function,
-  formatCurrency: Function
+  payments: Array
 })
+
+import {formatDate} from "@/components/landlord/utils/formatters.js";
+import {formatCurrency} from "@/components/landlord/utils/formatters.js";
 </script>
 
 <template>
@@ -25,7 +26,7 @@ defineProps({
 
       <div
           v-for="payment in payments"
-          :key="payment.payment_id"
+          :key="payment.paymentId"
           class="grid grid-cols-5 px-4 py-3 border-t items-center text-sm"
       >
         <span>{{ formatDate(payment.paymentDate) }}</span>
