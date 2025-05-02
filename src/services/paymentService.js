@@ -17,20 +17,32 @@ export const getAllPayments = async () => {
 
 export const createPayment = async (leaseId, paymentRequest) => {
     try {
+        const token = localStorage.getItem('token');
+
         const response = await fetch(`${PAYMENT_API}/${leaseId}`, {
             method: "POST",
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(paymentRequest)
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `Payment failed with status: ${response.status}`);
+            let errorData = null;
+            try {
+                errorData = await response.json();
+            } catch (_) {}
+
+            throw new Error(errorData?.message || `Payment failed with status: ${response.status}`);
         }
 
-        return await response.json();
+        const contentLength = response.headers.get('content-length');
+        if (contentLength && parseInt(contentLength) > 0) {
+            return await response.json();
+        }
+
+        return {};
     } catch (error) {
         console.error('Error creating payment:', error);
         throw error;

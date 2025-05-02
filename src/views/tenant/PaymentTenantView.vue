@@ -1,22 +1,31 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import {getPaymentsByLeaseId, createPayment} from "@/services/paymentService.js";
+import { getPaymentsByLeaseId, createPayment } from "@/services/paymentService.js";
+import { fetchMyLease } from "@/services/leaseService.js";
 import PaymentHistory from "@/components/tenant/payment/PaymentHistory.vue";
 
 const payments = ref([])
 const loading = ref(true)
 const error = ref(null)
 const showPaymentModal = ref(false)
+const lease = ref(null)
+
 const paymentForm = ref({
-  amount: 1800.00,
+  amount: 0,
   paymentMethod: 'CREDIT_CARD'
 })
 
-const loadPaymentData = async (leaseId) => {
+const loadPaymentData = async () => {
   loading.value = true
   error.value = null
   try {
-    payments.value = await getPaymentsByLeaseId(leaseId)
+    lease.value = await fetchMyLease()
+    if (lease.value) {
+      paymentForm.value.amount = lease.value.monthlyRent
+      payments.value = await getPaymentsByLeaseId(lease.value.leaseId)
+    } else {
+      error.value = 'No active lease found.'
+    }
   } catch (err) {
     error.value = 'Failed to load payments. Please try again later.'
     console.error('Payment load failed:', err.message)
@@ -26,6 +35,7 @@ const loadPaymentData = async (leaseId) => {
 }
 
 const currentBalance = computed(() => {
+  if (!lease.value) return 0
   const currentMonth = new Date().getMonth() + 1
   const currentYear = new Date().getFullYear()
 
@@ -38,7 +48,7 @@ const currentBalance = computed(() => {
     )
   })
 
-  return hasPaidCurrentMonth ? 0 : 1800.00
+  return hasPaidCurrentMonth ? 0 : lease.value.monthlyRent
 })
 
 const formatDate = (dateString) => {
@@ -49,7 +59,6 @@ const formatDate = (dateString) => {
   })
 }
 
-// Format currency
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -63,23 +72,24 @@ const handlePayRent = () => {
 
 const submitPayment = async () => {
   try {
-    loading.value = true
-    const newPayment = await createPayment(1, paymentForm.value)
+    loading.value = true;
+    const newPayment = await createPayment(lease.value.leaseId, paymentForm.value);
+    if (newPayment) {
+      payments.value.unshift(newPayment);
+    }
 
-    payments.value.unshift(newPayment)
-
-    showPaymentModal.value = false
-    paymentForm.value = { amount: 1800.00, paymentMethod: 'CREDIT_CARD' }
-
+    showPaymentModal.value = false;
+    paymentForm.value = { amount: lease.value.monthlyRent, paymentMethod: 'CREDIT_CARD' };
   } catch (err) {
-    error.value = err.message || 'Payment failed. Please try again.'
+    error.value = err.message || 'Payment failed. Please try again.';
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
+
 
 onMounted(() => {
-  loadPaymentData(1)
+  loadPaymentData()
 })
 </script>
 

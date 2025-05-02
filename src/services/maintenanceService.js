@@ -54,6 +54,9 @@ export const setStatus = async (requestId, status) => {
 
 export const addMaintenanceRequest = async (leaseId, requestData) => {
     try {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error("Unauthorized: No token found");
+
         const formData = new FormData();
 
         const jsonBlob = new Blob(
@@ -61,9 +64,8 @@ export const addMaintenanceRequest = async (leaseId, requestData) => {
             { type: 'application/json' }
         );
 
-        console.log(requestData)
-
         formData.append('requestDTO', jsonBlob);
+
         if (requestData.attachments?.length) {
             requestData.attachments.forEach(attachment => {
                 formData.append('images', attachment.file);
@@ -72,14 +74,21 @@ export const addMaintenanceRequest = async (leaseId, requestData) => {
 
         const response = await fetch(`${API}/lease/${leaseId}`, {
             method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
             body: formData
         });
 
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errText}`);
+        }
 
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return await response.json();
     } catch (error) {
         console.error('Error adding maintenance request:', error);
         throw error;
     }
 };
+
