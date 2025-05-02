@@ -35,22 +35,49 @@ export const fetchMaintenanceRequestsByOwner = async (userId) => {
     }
 };
 
+export const fetchMaintenanceRequestsByLoggedInOwner = async () => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}/owner/me`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching maintenance requests:', error);
+        throw error;
+    }
+};
+
+
 export const setStatus = async (requestId, status) => {
     try {
+        const token = localStorage.getItem('token');
+
         const response = await fetch(`${API}/${requestId}/status?status=${status}`, {
             method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
         if (!response.ok) {
             throw new Error(`Failed to update status. HTTP status: ${response.status}`);
         }
 
-        return await response.json(); // return updated request if your backend returns it
+        return await response.json();
     } catch (error) {
         console.error('Error setting status:', error);
         throw error;
     }
 };
+
 
 export const addMaintenanceRequest = async (leaseId, requestData) => {
     try {

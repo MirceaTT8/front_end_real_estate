@@ -2,7 +2,7 @@
 import {computed, onMounted, ref} from 'vue'
 import {useRouter} from "vue-router";
 
-import {fetchMaintenanceRequestsByOwner, setStatus} from "@/services/maintenanceService.js";
+import {fetchMaintenanceRequestsByLoggedInOwner, setStatus} from "@/services/maintenanceService.js";
 import MaintenanceStatusFilter from "@/components/landlord/maintenance/MaintenanceStatusFilter.vue";
 import MaintenanceListLandlord from "@/components/landlord/maintenance/MaintenanceListLandlord.vue";
 
@@ -15,9 +15,8 @@ const router = useRouter()
 onMounted(async () => {
   try {
 
-    const ownerId = 1;
+    requests.value = await fetchMaintenanceRequestsByLoggedInOwner();
 
-    requests.value = await fetchMaintenanceRequestsByOwner(ownerId);
     console.log(requests.value)
   } catch (err) {
     error.value = err.message || 'Failed to load maintenance requests';
