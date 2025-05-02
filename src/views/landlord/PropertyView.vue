@@ -1,6 +1,6 @@
 <script setup>
 import {ref, onMounted, computed, watch, nextTick} from 'vue'
-import { fetchPropertiesByUserId } from '@/services/propertyService.js'
+import {fetchMyProperties} from '@/services/propertyService.js'
 import PropertyFilters from '@/components/landlord/property/PropertyFilters.vue'
 import PropertyList from "@/components/landlord/property/PropertyList.vue"
 import PropertyMap from "@/components/landlord/property/PropertyMap.vue"
@@ -83,8 +83,7 @@ watch(() => filters.value.type, (newType, oldType) => {
 
 onMounted(async () => {
   try {
-
-    properties.value = await fetchPropertiesByUserId(1)
+    properties.value = await fetchMyProperties()
     console.log('Fetched properties:', properties.value)
   } catch (err) {
     error.value = err

@@ -4,7 +4,11 @@ const API = `${BASE_URL}/lease`;
 
 export const fetchActiveLeasesByOwnerId = async (userId) => {
     try {
-        const response = await fetch(`${API}/active/${userId}`);
+        const response = await fetch(`${API}/active/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -17,7 +21,11 @@ export const fetchActiveLeasesByOwnerId = async (userId) => {
 
 export const fetchLeaseId = async (leaseId) => {
     try {
-        const response = await fetch(`${API}/${leaseId}`);
+        const response = await fetch(`${API}/${leaseId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

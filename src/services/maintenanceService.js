@@ -3,7 +3,11 @@ const API = `${BASE_URL}/maintenance`;
 
 export const fetchMaintenanceRequestsByLease = async (leaseId) => {
     try {
-        const response = await fetch(`${API}/lease/${leaseId}`);
+        const response = await fetch(`${API}/lease/${leaseId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -16,7 +20,11 @@ export const fetchMaintenanceRequestsByLease = async (leaseId) => {
 
 export const fetchMaintenanceRequestsByOwner = async (userId) => {
     try {
-        const response = await fetch(`${API}/owner/${userId}`);
+        const response = await fetch(`${API}/owner/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

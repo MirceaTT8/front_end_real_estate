@@ -39,7 +39,11 @@ export const createPayment = async (leaseId, paymentRequest) => {
 
 export const getPaymentsByLeaseId = async (leaseId) => {
     try {
-        const response = await fetch(`${PAYMENT_API}/lease/${leaseId}`);
+        const response = await fetch(`${PAYMENT_API}/lease/${leaseId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -52,7 +56,11 @@ export const getPaymentsByLeaseId = async (leaseId) => {
 
 export const getPaymentsByOwnerId = async (userId) => {
     try {
-        const response = await fetch(`${PAYMENT_API}/owner/${userId}`);
+        const response = await fetch(`${PAYMENT_API}/owner/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

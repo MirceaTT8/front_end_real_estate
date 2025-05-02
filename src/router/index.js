@@ -5,7 +5,7 @@ import { jwtDecode } from 'jwt-decode'
 import ProfileView from "@/views/ProfileView.vue"
 import DashboardView from "@/views/landlord/DashboardView.vue"
 import LoginView from "@/views/LoginView.vue"
-import RegisterView from "@/views/RegisterView.vue";
+import RegisterView from "@/views/RegisterView.vue"
 
 // Lazy loaded views
 const PropertyView = () => import('@/views/landlord/PropertyView.vue')
@@ -43,41 +43,31 @@ const router = createRouter({
             }
         },
         { path: '/profile', name: 'Profile', component: ProfileView },
-        {
-            path: '/landlord',
-            name: 'Dashboard',
-            component: DashboardView,
-            children: [
-                { path: 'properties', name: 'Property', component: PropertyView },
-                { path: 'property/:id', name: 'PropertyDetails', component: PropertyDetailsView },
-                { path: 'tenants', name: 'Tenant', component: TenantView },
-                { path: 'leases', name: 'Lease', component: LeaseView },
-                { path: 'payments', name: 'Payment', component: PaymentView },
-                { path: 'maintenance', name: 'Maintenance', component: MaintenanceRequestView },
-                { path: 'add-property', name: 'AddProperty', component: AddPropertyView }
-            ]
-        },
-        {
-            path: '/tenant',
-            children: [
-                { path: 'leases', name: 'LeaseTenant', component: LeaseTenantView },
-                { path: 'payments', name: 'PaymentTenant', component: PaymentTenantView },
-                { path: 'maintenance', name: 'MaintenanceTenant', component: MaintenanceRequestTenantView }
-            ]
-        },
-        {
-            path: '/admin',
-            children: [
-                { path: 'dashboard', name: 'AdminDashboard', component: AdminDashboardView },
-                { path: 'users', name: 'UserManagement', component: UserManagementView },
-                { path: 'logs', name: 'SystemLogs', component: LogsView }
-            ]
-        }
+
+        // Landlord routes
+        { path: '/landlord', name: 'Dashboard', component: DashboardView },
+        { path: '/landlord/properties', name: 'Property', component: PropertyView },
+        { path: '/landlord/property/:id', name: 'PropertyDetails', component: PropertyDetailsView },
+        { path: '/landlord/tenants', name: 'Tenant', component: TenantView },
+        { path: '/landlord/leases', name: 'Lease', component: LeaseView },
+        { path: '/landlord/payments', name: 'Payment', component: PaymentView },
+        { path: '/landlord/maintenance', name: 'Maintenance', component: MaintenanceRequestView },
+        { path: '/landlord/add-property', name: 'AddProperty', component: AddPropertyView },
+
+        // Tenant routes
+        { path: '/tenant/leases', name: 'LeaseTenant', component: LeaseTenantView },
+        { path: '/tenant/payments', name: 'PaymentTenant', component: PaymentTenantView },
+        { path: '/tenant/maintenance', name: 'MaintenanceTenant', component: MaintenanceRequestTenantView },
+
+        // Admin routes
+        { path: '/admin/dashboard', name: 'AdminDashboard', component: AdminDashboardView },
+        { path: '/admin/users', name: 'UserManagement', component: UserManagementView },
+        { path: '/admin/logs', name: 'SystemLogs', component: LogsView }
     ]
 })
 
 router.beforeEach((to, from, next) => {
-    const publicPages = ['/login','/register']
+    const publicPages = ['/login', '/register']
     const authRequired = !publicPages.includes(to.path)
     const token = localStorage.getItem('token')
 

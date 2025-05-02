@@ -75,7 +75,6 @@ const navigateToDetails = (id) => {
         </p>
       </div>
 
-      <!-- Image Gallery Section -->
       <div v-if="property.imageUrls?.length > 1" class="mb-4">
         <h4 class="font-medium text-gray-700 mb-2 text-sm">
           Property Photos ({{ property.imageUrls.length }})

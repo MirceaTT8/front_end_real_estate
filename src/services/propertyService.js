@@ -2,22 +2,27 @@ import {BASE_URL} from "@/configs/config.js";
 
 const API = `${BASE_URL}/property`;
 
-export const fetchPropertiesByUserId = async (userId) => {
-    try {
-        const response = await fetch(`${API}/user/${userId}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+export const fetchMyProperties = async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/user/me`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
         }
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching properties:', error);
-        throw error;
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
     }
-};
+    return await response.json();
+}
 
 export const fetchPropertyById = async (propertyId) => {
     try {
-        const response = await fetch(`${API}/${propertyId}`);
+        const response = await fetch(`${API}/${propertyId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -33,7 +38,6 @@ export const addProperty = async (propertyDTO, attachments) => {
     try {
         const formData = new FormData();
 
-        // Convert propertyDTO to JSON blob
         const jsonBlob = new Blob(
             [JSON.stringify(propertyDTO)],
             { type: 'application/json' }
@@ -49,7 +53,10 @@ export const addProperty = async (propertyDTO, attachments) => {
 
         const response = await fetch(`${API}`, {
             method: 'POST',
-            body: formData  // Note: Don't set Content-Type header - the browser will set it with the correct boundary
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: formData
         });
 
         if (!response.ok) {
