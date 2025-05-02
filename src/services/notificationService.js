@@ -39,8 +39,13 @@ export const fetchNotificationsByEmail = async (email) => {
 
 export const markNotificationAsRead = async (notificationId) => {
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${API}/${notificationId}/read`, {
-            method: 'PATCH'
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -51,3 +56,4 @@ export const markNotificationAsRead = async (notificationId) => {
         throw error;
     }
 };
+
