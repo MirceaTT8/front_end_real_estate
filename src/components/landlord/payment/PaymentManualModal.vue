@@ -1,6 +1,40 @@
 <script setup>
-defineProps(['leases', 'newPayment', 'getPropertyName', 'getTenantName'])
-defineEmits(['submit', 'cancel'])
+import { computed } from 'vue'
+
+const props = defineProps({
+  leases: {
+    type: Array,
+    default: () => []
+  },
+  newPayment: {
+    type: Object,
+    default: () => ({
+      leaseId: null,
+      amount: 0,
+      paymentDate: '',
+      paymentMethod: 'BANK_TRANSFER'
+    })
+  },
+  getPropertyName: {
+    type: Function,
+    required: true
+  },
+  getTenantName: {
+    type: Function,
+    required: true
+  }
+})
+
+const emit = defineEmits(['submit', 'cancel'])
+
+const isFormValid = computed(() => {
+  return (
+      props.newPayment.leaseId &&
+      props.newPayment.amount > 0 &&
+      props.newPayment.paymentDate &&
+      props.newPayment.paymentMethod
+  )
+})
 </script>
 
 <template>
@@ -8,66 +42,72 @@ defineEmits(['submit', 'cancel'])
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
       <div class="p-6">
         <h2 class="text-lg font-medium text-gray-900 mb-4">Record Manual Payment</h2>
-        <form @submit.prevent="$emit('submit')">
-        <div class="mb-4">
+
+        <form @submit.prevent="emit('submit', props.newPayment)">
+        <!-- Lease Select -->
+          <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Lease:</label>
             <select
-                v-model="newPayment.leaseId"
+                v-model="props.newPayment.leaseId"
                 required
-                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+                class="block w-full pl-3 pr-10 py-2 border rounded-md focus:ring-2 focus:ring-green-500"
             >
-              <option v-for="lease in leases" :key="lease.leaseId" :value="lease.leaseId">
-                {{ getPropertyName(lease.propertyId) }} ({{ getTenantName(lease.tenantId) }})
+              <option v-for="lease in props.leases" :key="lease.leaseId" :value="lease.leaseId">
+                {{ props.getPropertyName(lease.propertyId) }} ({{ props.getTenantName(lease.tenantId) }})
               </option>
             </select>
           </div>
 
+          <!-- Amount -->
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Amount:</label>
             <input
-                v-model.number="newPayment.amount"
+                v-model.number="props.newPayment.amount"
                 type="number"
-                step="0.01"
                 min="0"
+                step="0.01"
                 required
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                class="block w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500"
             />
           </div>
 
+          <!-- Date -->
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date:</label>
             <input
-                v-model="newPayment.paymentDate"
+                v-model="props.newPayment.paymentDate"
                 type="date"
                 required
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                class="block w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500"
             />
           </div>
 
+          <!-- Method -->
           <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method:</label>
             <select
-                v-model="newPayment.paymentMethod"
+                v-model="props.newPayment.paymentMethod"
                 required
-                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+                class="block w-full pl-3 pr-10 py-2 border rounded-md focus:ring-2 focus:ring-green-500"
             >
               <option value="BANK_TRANSFER">Bank Transfer</option>
-              <option value="CREDIT_CARD">Credit Card</option>
               <option value="CASH">Cash</option>
             </select>
           </div>
 
+          <!-- Buttons -->
           <div class="flex justify-end gap-3">
             <button
                 type="button"
-                @click="showManualPaymentModal = false"
-                class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-md shadow-sm transition-colors"
+                @click="emit('cancel')"
+                class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md"
             >
               Cancel
             </button>
             <button
                 type="submit"
-                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md shadow-sm transition-colors"
+                :disabled="!isFormValid"
+                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
             >
               Record Payment
             </button>
@@ -77,4 +117,3 @@ defineEmits(['submit', 'cancel'])
     </div>
   </div>
 </template>
-

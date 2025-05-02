@@ -1,23 +1,44 @@
 <script setup>
-const props = defineProps(['leases', 'selectedLease', 'getPropertyName', 'getTenantName'])
-const emit = defineEmits(['update:selectedLease'])
+import { computed } from 'vue'
+
+const props = defineProps({
+  payments: {
+    type: Array,
+    default: () => []
+  },
+  selectedLeaseId: {
+    type: Number,
+    default: null
+  }
+})
+
+const emit = defineEmits(['update:selectedLeaseId'])
+
+const leaseOptions = computed(() => {
+  const unique = new Map()
+  props.payments.forEach(p => {
+    if (!unique.has(p.leaseId)) {
+      unique.set(p.leaseId, `Lease #${p.leaseId}`)
+    }
+  })
+  return Array.from(unique, ([value, label]) => ({ value, label }))
+})
 </script>
 
 <template>
-  <div class="flex items-center gap-4 mb-6">
-    <label class="font-medium text-gray-700">Filter by Lease:</label>
+  <div class="mb-6 flex justify-end">
     <select
-        :value="selectedLease"
-        @change="emit('update:selectedLease', $event.target.value ? Number($event.target.value) : null)"
-        class="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 min-w-[300px]"
+        class="border rounded p-2 text-gray-700"
+        :value="selectedLeaseId"
+        @change="e => emit('update:selectedLeaseId', parseInt(e.target.value) || null)"
     >
       <option :value="null">All Leases</option>
       <option
-          v-for="lease in leases"
-          :key="lease.leaseId"
-          :value="lease.leaseId"
+          v-for="option in leaseOptions"
+          :key="option.value"
+          :value="option.value"
       >
-        {{ getPropertyName(lease.propertyId) }} - {{ getTenantName(lease.tenantId) }}
+        {{ option.label }}
       </option>
     </select>
   </div>

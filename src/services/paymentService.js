@@ -1,10 +1,10 @@
 import { BASE_URL } from "@/configs/config.js";
 
-const PAYMENT_API = `${BASE_URL}/payment`;
+const API = `${BASE_URL}/payment`;
 
 export const getAllPayments = async () => {
     try {
-        const response = await fetch(PAYMENT_API);
+        const response = await fetch(API);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -15,11 +15,27 @@ export const getAllPayments = async () => {
     }
 };
 
+export const fetchPaymentsForOwner = async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/owner/me`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+};
+
+
 export const createPayment = async (leaseId, paymentRequest) => {
     try {
         const token = localStorage.getItem('token');
 
-        const response = await fetch(`${PAYMENT_API}/${leaseId}`, {
+        const response = await fetch(`${API}/${leaseId}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -51,7 +67,7 @@ export const createPayment = async (leaseId, paymentRequest) => {
 
 export const getPaymentsByLeaseId = async (leaseId) => {
     try {
-        const response = await fetch(`${PAYMENT_API}/lease/${leaseId}`, {
+        const response = await fetch(`${API}/lease/${leaseId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -68,7 +84,7 @@ export const getPaymentsByLeaseId = async (leaseId) => {
 
 export const getPaymentsByOwnerId = async (userId) => {
     try {
-        const response = await fetch(`${PAYMENT_API}/owner/${userId}`, {
+        const response = await fetch(`${API}/owner/${userId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -85,7 +101,7 @@ export const getPaymentsByOwnerId = async (userId) => {
 
 export const getPaymentById = async (paymentId) => {
     try {
-        const response = await fetch(`${PAYMENT_API}/${paymentId}`);
+        const response = await fetch(`${API}/${paymentId}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
