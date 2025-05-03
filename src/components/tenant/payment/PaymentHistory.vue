@@ -1,10 +1,14 @@
 <script setup>
-defineProps({
+import { useRouter } from 'vue-router'
+import { formatDate, formatCurrency } from '@/components/landlord/utils/formatters.js'
+
+const props = defineProps({
   payments: Array
 })
 
-import {formatDate} from "@/components/landlord/utils/formatters.js";
-import {formatCurrency} from "@/components/landlord/utils/formatters.js";
+const router = useRouter()
+const firstThree = props.payments.slice(0, 3)
+const extraPayments = props.payments.slice(3)
 </script>
 
 <template>
@@ -16,6 +20,7 @@ import {formatCurrency} from "@/components/landlord/utils/formatters.js";
     </div>
 
     <div v-else>
+      <!-- Header row -->
       <div class="grid grid-cols-5 font-medium text-gray-700 bg-gray-100 px-4 py-2 rounded-t-md">
         <span>Date</span>
         <span>Amount</span>
@@ -24,9 +29,10 @@ import {formatCurrency} from "@/components/landlord/utils/formatters.js";
         <span>Invoice</span>
       </div>
 
+      <!-- First 3 payments -->
       <div
-          v-for="payment in payments"
-          :key="payment.paymentId"
+          v-for="payment in firstThree"
+          :key="'p1-' + payment.paymentId"
           class="grid grid-cols-5 px-4 py-3 border-t items-center text-sm"
       >
         <span>{{ formatDate(payment.paymentDate) }}</span>
@@ -50,6 +56,30 @@ import {formatCurrency} from "@/components/landlord/utils/formatters.js";
             View
           </a>
         </span>
+      </div>
+
+      <!-- Blurred/greyed-out extra payments -->
+      <div
+          v-for="payment in extraPayments"
+          :key="'p2-' + payment.paymentId"
+          class="grid grid-cols-5 px-4 py-3 border-t items-center text-sm opacity-50 cursor-pointer hover:opacity-75 transition"
+          @click="router.push('/tenant/payments')"
+      >
+        <span>{{ formatDate(payment.paymentDate) }}</span>
+        <span>{{ formatCurrency(payment.amount) }}</span>
+        <span class="capitalize">{{ payment.paymentMethod.replace('_', ' ') }}</span>
+        <span>{{ payment.status }}</span>
+        <span>View</span>
+      </div>
+
+      <!-- View All -->
+      <div v-if="extraPayments.length" class="mt-4 text-right">
+        <button
+            @click="router.push('/tenant/payments')"
+            class="text-sm text-green-600 hover:underline"
+        >
+          View all payments →
+        </button>
       </div>
     </div>
   </div>
