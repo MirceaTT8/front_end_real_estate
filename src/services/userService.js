@@ -3,7 +3,12 @@ const API = `${BASE_URL}/user`;
 
 export const fetchUserById = async (userId) => {
     try {
-        const response = await fetch(`${API}/${userId}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

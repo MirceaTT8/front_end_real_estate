@@ -2,15 +2,18 @@
 import { ref, computed, onMounted } from 'vue'
 import { fetchPaymentsForOwner, createPayment } from '@/services/paymentService.js'
 import { fetchMyLeases } from '@/services/leaseService.js'
-import { fetchAllUsers } from '@/services/userService.js' // assumes you have this
+import {fetchAllUsers, fetchUserById} from '@/services/userService.js' // assumes you have this
 import PaymentSummaryCard from '@/components/landlord/payment/PaymentSummaryCard.vue'
 import PaymentTable from '@/components/landlord/payment/PaymentTable.vue'
 import PaymentManualModal from '@/components/landlord/payment/PaymentManualModal.vue'
 import PaymentLeaseFilter from '@/components/landlord/payment/PaymentLeaseFilter.vue'
+import {fetchPropertyById} from "@/services/propertyService.js";
 
 const payments = ref([])
 const leases = ref([])
 const users = ref([])
+const properties = ref([])
+const tenants = ref([])
 const loading = ref(true)
 const error = ref(null)
 const showManualModal = ref(false)
@@ -27,15 +30,21 @@ const filteredPayments = computed(() => {
   return payments.value.filter(p => p.leaseId === selectedLeaseId.value)
 })
 
-const getPropertyName = (propertyId) => {
-  const lease = leases.value.find(l => l.propertyId === propertyId)
-  return lease?.property?.name || `Property ${propertyId}`
+const getPropertyName = (leaseId) => {
+  const lease = leases.value.find(l => l.leaseId === leaseId)
+  if (!lease) return 'Unknown Lease'
+  const property = properties.value.find(p => p.propertyId === lease.propertyId)
+  return property ? property.name : 'Unknown Property'
 }
 
-const getTenantName = (tenantId) => {
-  const tenant = users.value.find(u => u.userId === tenantId)
-  return tenant ? `${tenant.firstName} ${tenant.lastName}` : `Tenant ${tenantId}`
+const getTenantName = (leaseId) => {
+  const lease = leases.value.find(l => l.leaseId === leaseId)
+  if (!lease) return 'Unknown Lease'
+  const tenant = tenants.value.find(t => t.userId === lease.tenantId)
+  return tenant ? `${tenant.firstName} ${tenant.lastName}` : 'Unknown Tenant'
 }
+
+
 
 const loadPayments = async () => {
   try {
@@ -43,7 +52,11 @@ const loadPayments = async () => {
     error.value = null
     payments.value = await fetchPaymentsForOwner()
     leases.value = await fetchMyLeases()
-    users.value = await fetchAllUsers() // optional, if needed for tenant names
+    users.value = await fetchAllUsers()
+    properties.value = await Promise.all(leases.value.map(lease => fetchPropertyById(lease.propertyId)))
+    tenants.value = await Promise.all(leases.value.map(lease => fetchUserById(lease.tenantId)))
+    console.log(properties.value)
+    console.log(tenants.value)
   } catch (err) {
     error.value = err.message || 'Failed to load payments'
   } finally {
@@ -93,7 +106,14 @@ onMounted(() => {
         v-model:selectedLeaseId="selectedLeaseId"
     />
 
-    <PaymentTable :payments="filteredPayments" :loading="loading" />
+    <PaymentTable
+        v-if="!loading && properties.length > 0 && tenants.length > 0"
+        :payments="filteredPayments"
+        :loading="loading"
+        :get-property-name="getPropertyName"
+        :get-tenant-name="getTenantName"
+    />
+
 
     <PaymentManualModal
         v-if="showManualModal"
