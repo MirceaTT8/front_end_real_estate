@@ -29,10 +29,10 @@ const leaseOptions = computed(() => {
   <div class="mb-6 flex justify-end">
     <select
         class="border rounded p-2 text-gray-700"
-        :value="selectedLeaseId"
-        @change="e => emit('update:selectedLeaseId', parseInt(e.target.value) || null)"
+        :value="selectedLeaseId === null ? '' : selectedLeaseId"
+        @change="e => emit('update:selectedLeaseId', e.target.value ? parseInt(e.target.value) : null)"
     >
-      <option :value="null">All Leases</option>
+      <option value="">All Leases</option>
       <option
           v-for="option in leaseOptions"
           :key="option.value"
