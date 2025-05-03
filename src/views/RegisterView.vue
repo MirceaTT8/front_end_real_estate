@@ -32,7 +32,11 @@ const register = async () => {
     }
     if (roles.includes('ROLE_TENANT')) {
       router.push('/tenant/dashboard')
-    } else {
+    }
+    if (roles.includes('ROLE_ADMIN')) {
+      router.push('/admin/dashboard')
+    }
+    else {
       error.value = 'Unauthorized role.'
     }
   } catch (err) {

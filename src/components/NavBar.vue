@@ -6,10 +6,12 @@ import { PrimeIcons } from '@primevue/core/api';
 import UserDropdown from "@/components/UserDropdown.vue";
 import NotificationBell from "@/components/notification/NotificationBell.vue";
 import { jwtDecode } from "jwt-decode";
+import { useRoute} from "vue-router";
 
-const token = localStorage.getItem('token');
+const route = useRoute()
 
-const menuItems = ref({
+const currentMenu = ref([]);
+const menuItems = {
   landlord: [
     {
       label: "Dashboard",
@@ -99,29 +101,36 @@ items: [
 
  */
 ]
-});
+};
+
 
 onMounted(() => {
-  if (token) {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  const publicRoutes = ["/login", "/register"];
+  if (publicRoutes.includes(route.path)) return;
+
+  try {
     const decoded = jwtDecode(token);
     const roles = decoded?.authorities || [];
 
-    if (roles.includes('ROLE_LANDLORD')) {
-      currentMenu.value = menuItems.value.landlord;
-    } else if (roles.includes('ROLE_TENANT')) {
-      currentMenu.value = menuItems.value.tenant;
-    } else if (roles.includes('ROLE_ADMIN')) {
-      currentMenu.value = menuItems.value.admin;
+    if (roles.includes("ROLE_LANDLORD")) {
+      currentMenu.value = menuItems.landlord;
+    } else if (roles.includes("ROLE_TENANT")) {
+      currentMenu.value = menuItems.tenant;
+    } else if (roles.includes("ROLE_ADMIN")) {
+      currentMenu.value = menuItems.admin;
     }
+  } catch (err) {
+    console.error("Invalid token:", err);
   }
 });
-
-const currentMenu = ref(menuItems.value.landlord);
 </script>
 
 <template>
   <div class="card w-full bg-blue-500 p-0 m-0">
-    <Menubar :model="currentMenu" class="w-full p-0 m-0">
+    <Menubar v-if="currentMenu.length > 0" :model="currentMenu" class="w-full p-0 m-0">
       <template #start>
         <router-link to="/">
           <span class="logo">Immobille</span>

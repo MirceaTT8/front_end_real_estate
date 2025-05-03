@@ -25,8 +25,11 @@ const login = async () => {
     if (roles.includes('ROLE_LANDLORD')) {
       router.push('/landlord')
     } else if (roles.includes('ROLE_TENANT')) {
-      router.push('/tenant/dashboard')
-    } else {
+      router.push('/tenant/leases')
+    } else if (roles.includes('ROLE_ADMIN')) {
+      router.push('/admin/dashboard')
+    }
+    else {
       error.value = 'Unauthorized role.'
     }
 
