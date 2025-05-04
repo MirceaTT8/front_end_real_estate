@@ -21,6 +21,7 @@ const emit = defineEmits(['update:selectedStatus']);
       <option value="PENDING">Pending</option>
       <option value="IN_PROGRESS">In Progress</option>
       <option value="CANCELLED">Cancelled</option>
+      <option value="COMPLETED">Completed</option>
     </select>
   </div>
 </template>

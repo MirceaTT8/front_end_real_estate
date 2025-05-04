@@ -2,26 +2,29 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  payments: {
-    type: Array,
-    default: () => []
-  },
-  selectedLeaseId: {
-    type: Number,
-    default: null
-  }
+  payments: Array,
+  leases: Array,
+  selectedLeaseId: Number
 })
 
 const emit = defineEmits(['update:selectedLeaseId'])
 
 const leaseOptions = computed(() => {
-  const unique = new Map()
-  props.payments.forEach(p => {
-    if (!unique.has(p.leaseId)) {
-      unique.set(p.leaseId, `Lease #${p.leaseId}`)
-    }
+  const leaseMap = new Map()
+  props.leases.forEach(lease => {
+    leaseMap.set(lease.leaseId, lease)
   })
-  return Array.from(unique, ([value, label]) => ({ value, label }))
+
+  const seen = new Set()
+  return props.payments
+      .filter(p => !seen.has(p.leaseId) && seen.add(p.leaseId))
+      .map(p => {
+        const lease = leaseMap.get(p.leaseId)
+        const label = lease && lease.property && lease.property.name
+            ? lease.property.name
+            : `Lease #${p.leaseId}`
+        return { value: p.leaseId, label }
+      })
 })
 </script>
 

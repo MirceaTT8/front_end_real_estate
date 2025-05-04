@@ -55,8 +55,12 @@ const loadPayments = async () => {
     users.value = await fetchAllUsers()
     properties.value = await Promise.all(leases.value.map(lease => fetchPropertyById(lease.propertyId)))
     tenants.value = await Promise.all(leases.value.map(lease => fetchUserById(lease.tenantId)))
-    console.log(properties.value)
-    console.log(tenants.value)
+
+    // To pass to LeaseFilter
+    leases.value = leases.value.map(lease => ({
+      ...lease,
+      property: properties.value.find(p => p.propertyId === lease.propertyId)
+    }))
   } catch (err) {
     error.value = err.message || 'Failed to load payments'
   } finally {
@@ -103,8 +107,11 @@ onMounted(() => {
 
     <PaymentLeaseFilter
         :payments="payments"
+        :leases="leases"
         v-model:selectedLeaseId="selectedLeaseId"
     />
+
+
 
     <PaymentTable
         v-if="!loading && properties.length > 0 && tenants.length > 0"
