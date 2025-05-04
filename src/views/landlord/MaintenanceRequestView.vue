@@ -16,8 +16,6 @@ onMounted(async () => {
   try {
 
     requests.value = await fetchMaintenanceRequestsByLoggedInOwner();
-
-    console.log(requests.value)
   } catch (err) {
     error.value = err.message || 'Failed to load maintenance requests';
     console.error('Error:', err);
@@ -26,10 +24,11 @@ onMounted(async () => {
   }
 })
 
-const filteredRequests = computed(() => {
-  if (selectedStatus.value === 'all') return requests.value
-  return requests.value.filter(req => req.status === selectedStatus.value)
-})
+const availableStatuses = computed(() => {
+  const statusSet = new Set(requests.value.map(req => req.status));
+  return Array.from(statusSet);
+});
+
 
 const updateRequestStatus = async (requestId, newStatus) => {
   try {
@@ -47,9 +46,7 @@ const updateRequestStatus = async (requestId, newStatus) => {
     error.value = err.message || 'Failed to update request status';
   }
 };
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleString()
-}
+
 </script>
 
 <template>
@@ -72,11 +69,12 @@ const formatDate = (dateString) => {
       </button>
     </div>
 
-    <!-- Content -->
     <div v-else>
       <MaintenanceStatusFilter
           v-model:selectedStatus="selectedStatus"
+          :availableStatuses="availableStatuses"
       />
+
       <MaintenanceListLandlord
           :requests="requests"
           :selected-status="selectedStatus"
