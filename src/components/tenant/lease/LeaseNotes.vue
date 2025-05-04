@@ -1,18 +1,12 @@
+
 <script setup>
-defineProps({
-  lease: {
-    type: Object,
-    required: true
-  }
-});
+defineProps({ lease: Object })
 </script>
 
 <template>
-  <section>
-    <h2 class="text-xl font-semibold text-gray-700 border-b pb-2 mb-4">Important Notes</h2>
-    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded text-yellow-800">
-      <p class="mb-2">{{ lease.specialTerms }}</p>
-      <p>Please contact property management for any questions about your lease.</p>
-    </div>
-  </section>
+  <div>
+    <h3 class="text-lg font-semibold text-gray-800 mb-3">Notes</h3>
+    <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ lease.notes || 'No additional notes.' }}</p>
+  </div>
 </template>
+
