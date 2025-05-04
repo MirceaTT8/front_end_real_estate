@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import Chart from 'primevue/chart'
+import { fetchMyProperties } from '@/services/propertyService.js'
+import { fetchPaymentsForOwner } from '@/services/paymentService.js'
 
 const activities = ref([
   { type: 'payment', description: 'Jane Smith paid rent for Downtown Loft', time: '2 hours ago' },
@@ -11,6 +13,10 @@ const activities = ref([
 
 const chartData = ref()
 const chartOptions = ref()
+
+const occupancyRate = ref(0)
+const vacantUnits = ref(0)
+const rentPaymentsLastMonth = ref(0)
 
 const initChart = () => {
   chartData.value = {
@@ -53,8 +59,35 @@ const daysUntil = (dateString) => {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 }
 
-onMounted(() => {
+const isInLast30Days = (dateStr) => {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(now.getDate() - 30)
+  return date >= thirtyDaysAgo && date <= now
+}
+
+
+onMounted(async () => {
   initChart()
+
+  try {
+    const properties = await fetchMyProperties()
+    const total = properties.length
+    const vacant = properties.filter(p => p.status === 'AVAILABLE').length
+    const occupied = total - vacant
+
+    occupancyRate.value = total > 0 ? Math.round((occupied / total) * 100) : 0
+    vacantUnits.value = vacant
+
+    const payments = await fetchPaymentsForOwner()
+
+    rentPaymentsLastMonth.value = payments
+        .filter(p => isInLast30Days(p.paymentDate))
+        .reduce((sum, p) => sum + p.amount, 0)
+  } catch (err) {
+    console.error('Error loading dashboard data:', err)
+  }
 })
 </script>
 
@@ -72,18 +105,18 @@ onMounted(() => {
       <div class="space-y-4">
         <div class="p-4 bg-green-50 rounded-lg">
           <p class="text-sm text-green-700">Collected Rent</p>
-          <p class="text-2xl font-bold">$18,000</p>
-          <p class="text-xs text-green-600">+12% from last month</p>
+          <p class="text-2xl font-bold">${{ rentPaymentsLastMonth.toLocaleString() }}</p>
+          <p class="text-xs text-green-600">Past 30 days</p>
         </div>
-        <div class="p-4 bg-blue-50 rounded-lg">
-          <p class="text-sm text-blue-700">Maintenance Costs</p>
-          <p class="text-2xl font-bold">$2,200</p>
-          <p class="text-xs text-blue-600">-5% from last month</p>
-        </div>
+<!--        <div class="p-4 bg-blue-50 rounded-lg">-->
+<!--          <p class="text-sm text-blue-700">Maintenance Costs</p>-->
+<!--          <p class="text-2xl font-bold">$2,200</p>-->
+<!--          <p class="text-xs text-blue-600">-5% from last month</p>-->
+<!--        </div>-->
         <div class="p-4 bg-purple-50 rounded-lg">
           <p class="text-sm text-purple-700">Occupancy Rate</p>
-          <p class="text-2xl font-bold">92%</p>
-          <p class="text-xs text-purple-600">3 units available</p>
+          <p class="text-2xl font-bold">{{ occupancyRate }}%</p>
+          <p class="text-xs text-purple-600">{{ vacantUnits }} units available</p>
         </div>
       </div>
     </section>
