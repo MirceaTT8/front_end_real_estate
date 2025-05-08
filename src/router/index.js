@@ -19,7 +19,7 @@ const AddPropertyView = () => import('@/views/landlord/AddPropertyView.vue')
 const LeaseTenantView = () => import('@/views/tenant/LeaseTenantView.vue')
 const PaymentTenantView = () => import('@/views/tenant/PaymentTenantView.vue')
 const MaintenanceRequestTenantView = () => import('@/views/tenant/MaintenanceRequestTenantView.vue')
-
+const PaymentSuccesView = () => import('@/views/tenant/PaymentSuccesView.vue')
 import AdminDashboardView from "@/views/admin/AdminDashboardView.vue"
 import UserManagementView from "@/views/admin/UserManagementView.vue"
 import LogsView from "@/views/admin/LogsView.vue"
@@ -27,6 +27,11 @@ import LogsView from "@/views/admin/LogsView.vue"
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
+        {
+            path: '/payment/success',
+            name: 'PaymentSuccess',
+            component: PaymentSuccesView
+        },
         { path: '/register', name: 'Register', component: RegisterView },
         { path: '/login', name: 'Login', component: LoginView },
         {

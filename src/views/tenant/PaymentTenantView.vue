@@ -2,6 +2,9 @@
 import { ref, onMounted, computed } from 'vue'
 import { getPaymentsByLeaseId, createPayment } from "@/services/paymentService.js";
 import { fetchMyLease } from "@/services/leaseService.js";
+import { createStripeCheckoutSession } from "@/services/paymentService.js";
+import { loadStripe } from "@stripe/stripe-js";
+const stripePromise = loadStripe('pk_test_51MMELpFqC40RfDoFO6Jg3gMWPzmE16VwhlDkBdaa5DlTHn7s7jtjok0zsiLT3x4v2h8TB6nTEgtg9552gtGCGsYn00Qg9p6wT4')
 import PaymentHistory from "@/components/tenant/payment/PaymentHistory.vue";
 
 const payments = ref([])
@@ -87,6 +90,18 @@ const submitPayment = async () => {
   }
 };
 
+const handleStripeCheckout = async () => {
+  try {
+    const { id: sessionId } = await createStripeCheckoutSession(lease.value.leaseId);
+    const stripe = await stripePromise;
+    await stripe.redirectToCheckout({ sessionId });
+  } catch (err) {
+    console.error('Stripe Checkout failed:', err);
+    error.value = err.message || 'Failed to start Stripe checkout.';
+  }
+};
+
+
 
 onMounted(() => {
   loadPaymentData()
@@ -99,10 +114,10 @@ onMounted(() => {
       <h1 class="text-3xl font-semibold text-gray-800">Rent Payment Information</h1>
       <button
           v-if="currentBalance > 0"
-          @click="handlePayRent"
-          class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+          @click="handleStripeCheckout"
+          class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition"
       >
-        Pay Rent
+        Pay via Stripe
       </button>
     </div>
 

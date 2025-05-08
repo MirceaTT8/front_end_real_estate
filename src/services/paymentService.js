@@ -112,6 +112,27 @@ export const getPaymentById = async (paymentId) => {
     }
 };
 
+export const createStripeCheckoutSession = async (leaseId) => {
+    const token = localStorage.getItem('token');
+
+    const response = await fetch(`${API}/stripe/create-session`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ leaseId })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Stripe session creation failed with status: ${response.status}`);
+    }
+
+    return await response.json(); // { id: sessionId }
+};
+
+
 export const PaymentStatus = {
     PENDING: 'PENDING',
     COMPLETED: 'COMPLETED',
