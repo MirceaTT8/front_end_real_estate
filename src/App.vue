@@ -12,14 +12,22 @@ const isAuthenticated = ref(false)
 const notificationStore = useNotificationStore()
 notificationStore.startPolling()
 
-const publicRoutes = ['/login', '/register']
+const publicRoutes = ['/login', '/register', '/payment/success', '/payment/cancel']
+
 
 const isPublicRoute = computed(() => publicRoutes.includes(route.path))
 
 onMounted(() => {
   const token = localStorage.getItem("token")
+
+  const normalizedPath = route.path.split('?')[0]
+  const isPublic = publicRoutes.includes(normalizedPath)
+
+  console.log("Resolved path:", normalizedPath)
+  console.log("Is public?", isPublic)
+
   if (!token) {
-    if (!isPublicRoute.value) {
+    if (!isPublic) {
       router.replace("/login")
     }
     return
@@ -31,19 +39,19 @@ onMounted(() => {
 
     isAuthenticated.value = true
 
-    // Don't redirect if already on a valid route
-    if (route.path === '/' || isPublicRoute.value) {
-      if (roles.includes("ROLE_LANDLORD")) router.replace("/landlord")
-      else if (roles.includes("ROLE_TENANT")) router.replace("/tenant/leases")
-      else if (roles.includes("ROLE_ADMIN")) router.replace("/admin/dashboard")
-      else router.replace("/login")
-    }
+    // if (normalizedPath === '/' ) {
+    //   if (roles.includes("ROLE_LANDLORD")) router.replace("/landlord")
+    //   else if (roles.includes("ROLE_TENANT")) router.replace("/tenant/leases")
+    //   else if (roles.includes("ROLE_ADMIN")) router.replace("/admin/dashboard")
+    //   else router.replace("/login")
+    // }
 
   } catch (err) {
     localStorage.removeItem("token")
     router.replace("/login")
   }
 })
+
 </script>
 
 <template>

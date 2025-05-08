@@ -72,8 +72,11 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-    const publicPages = ['/login', '/register']
-    const authRequired = !publicPages.includes(to.path)
+    const publicPages = ['/login', '/register', '/payment/success']
+
+    const authRequired = !publicPages.includes(to.path.split('?')[0])
+
+
     const token = localStorage.getItem('token')
 
     if (authRequired && !token) return next('/login')

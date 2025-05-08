@@ -115,6 +115,7 @@ export const getPaymentById = async (paymentId) => {
 export const createStripeCheckoutSession = async (leaseId) => {
     const token = localStorage.getItem('token');
 
+
     const response = await fetch(`${API}/stripe/create-session`, {
         method: 'POST',
         headers: {
@@ -130,6 +131,27 @@ export const createStripeCheckoutSession = async (leaseId) => {
     }
 
     return await response.json(); // { id: sessionId }
+};
+
+export const confirmStripePayment = async (sessionId) => {
+    const token = localStorage.getItem('token');
+
+    console.log('Calling Stripe Confirm')
+
+
+    const response = await fetch(`${API}/stripe/confirm?session_id=${sessionId}`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `Failed to confirm payment. Status: ${response.status}`);
+    }
+
+    return await response.json();
 };
 
 

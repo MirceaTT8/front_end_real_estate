@@ -93,6 +93,7 @@ const submitPayment = async () => {
 const handleStripeCheckout = async () => {
   try {
     const { id: sessionId } = await createStripeCheckoutSession(lease.value.leaseId);
+    console.log(sessionId)
     const stripe = await stripePromise;
     await stripe.redirectToCheckout({ sessionId });
   } catch (err) {

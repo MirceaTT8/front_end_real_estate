@@ -1,26 +1,29 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { confirmStripePayment } from '@/services/paymentService.js'
 
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
 const error = ref(null)
-const sessionId = route.query.session_id
+
 
 onMounted(async () => {
+  const sessionId = route.query.session_id
   if (!sessionId) {
     error.value = 'No session ID found.'
     loading.value = false
     return
   }
-  setTimeout(() => router.push('/tenant/lease'), 3000)
+  console.log('Loaded PaymentSuccessView with session:', sessionId)
 
 
   try {
-    // Optional: confirm payment on backend (if needed)
-    // await confirmStripePayment(sessionId)
-    // Not implemented here — Stripe webhook should handle it.
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    await confirmStripePayment(sessionId);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setTimeout(() => router.push('/tenant/leases'), 3000)
   } catch (err) {
     error.value = 'Payment confirmation failed.'
     console.error(err)
@@ -28,9 +31,8 @@ onMounted(async () => {
     loading.value = false
   }
 })
-
-
 </script>
+
 
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
