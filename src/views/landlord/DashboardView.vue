@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import Chart from 'primevue/chart'
 import { fetchMyProperties } from '@/services/propertyService.js'
 import { fetchPaymentsForOwner } from '@/services/paymentService.js'
+import {fetchMaintenanceRequestsByLoggedInOwner} from "@/services/maintenanceService.js";
+import {fetchMyLeases} from "@/services/leaseService.js";
 import { fetchRecentLogs } from "@/services/logsService.js";
 
 const activities = ref([])
@@ -40,11 +42,11 @@ const initChart = () => {
   }
 }
 
-const deadlines = ref([
-  { type: 'lease', description: 'Lease renewal for Apt 3B', date: '2024-06-15' },
-  { type: 'inspection', description: 'Annual property inspection', date: '2024-06-20' },
-  { type: 'tax', description: 'Property tax due', date: '2024-06-30' }
-])
+// const deadlines = ref([
+//   { type: 'lease', description: 'Lease renewal for Apt 3B', date: '2024-06-15' },
+//   { type: 'inspection', description: 'Annual property inspection', date: '2024-06-20' },
+//   { type: 'tax', description: 'Property tax due', date: '2024-06-30' }
+// ])
 
 const daysUntil = (dateString) => {
   const today = new Date()
@@ -74,10 +76,72 @@ function formatTimeAgo(timestamp) {
   return `${days} day${days > 1 ? 's' : ''} ago`
 }
 
+const deadlines = ref([])
+
+const loadUpcomingDeadlines = async () => {
+  const now = new Date()
+  const soon = new Date()
+  soon.setDate(now.getDate() + 14)
+  const leaseThreshold = new Date()
+  leaseThreshold.setDate(now.getDate() + 60)
+
+  const result = []
+
+  try {
+    // 🧾 Rent payments due soon
+    const payments = await fetchPaymentsForOwner()
+    payments.forEach(p => {
+      const due = new Date(p.dueDate)
+      if (p.status !== 'PAID' && due <= soon) {
+        result.push({
+          type: 'payment',
+          description: `Rent due for ${p.tenantName || 'Tenant'} (${p.propertyName || 'Property'})`,
+          date: due
+        })
+      }
+    })
+
+    // 🛠 Open maintenance requests
+    const maintenance = await fetchMaintenanceRequestsByLoggedInOwner()
+    maintenance.forEach(r => {
+      if (['OPEN', 'PENDING'].includes(r.status)) {
+        result.push({
+          type: 'maintenance',
+          description: `Unresolved maintenance: ${r.title || 'Unnamed'}`,
+          date: null // No due date, but treat as urgent
+        })
+      }
+    })
+
+    // 📆 Lease expirations in 60 days
+    const leases = await fetchMyLeases()
+    leases.forEach(l => {
+      const end = new Date(l.endDate)
+      if (end >= now && end <= leaseThreshold) {
+        result.push({
+          type: 'lease',
+          description: `Lease expiring for ${l.tenantName || 'Tenant'}`,
+          date: end
+        })
+      }
+    })
+
+    // Sort deadlines (put nulls last)
+    deadlines.value = result.sort((a, b) => {
+      if (!a.date) return 1
+      if (!b.date) return -1
+      return new Date(a.date) - new Date(b.date)
+    })
+  } catch (err) {
+    console.error('Failed to load deadlines:', err)
+  }
+}
+
 
 
 onMounted(async () => {
   initChart()
+  await loadUpcomingDeadlines()
 
   try {
     const properties = await fetchMyProperties()
@@ -175,7 +239,8 @@ onMounted(async () => {
         >
           <p class="font-medium">{{ deadline.description }}</p>
           <p class="text-sm text-gray-600">
-            Due in {{ daysUntil(deadline.date) }} days • {{ new Date(deadline.date).toLocaleDateString() }}
+            Due in {{ deadline.date ? daysUntil(deadline.date) + ' days' : 'ASAP' }} •
+            {{ deadline.date ? new Date(deadline.date).toLocaleDateString() : '' }}
           </p>
         </div>
       </div>
