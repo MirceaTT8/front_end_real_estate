@@ -3,17 +3,11 @@ import { ref, onMounted } from 'vue'
 import Chart from 'primevue/chart'
 import { fetchMyProperties } from '@/services/propertyService.js'
 import { fetchPaymentsForOwner } from '@/services/paymentService.js'
+import { fetchRecentLogs } from "@/services/logsService.js";
 
-const activities = ref([
-  { type: 'payment', description: 'Jane Smith paid rent for Downtown Loft', time: '2 hours ago' },
-  { type: 'maintenance', description: 'New maintenance request for Sunset Apartments', time: '1 day ago' },
-  { type: 'lease', description: 'Mike Johnson signed lease renewal', time: '3 days ago' },
-  { type: 'message', description: 'New message from Sarah Williams', time: '5 days ago' }
-])
-
+const activities = ref([])
 const chartData = ref()
 const chartOptions = ref()
-
 const occupancyRate = ref(0)
 const vacantUnits = ref(0)
 const rentPaymentsLastMonth = ref(0)
@@ -67,6 +61,20 @@ const isInLast30Days = (dateStr) => {
   return date >= thirtyDaysAgo && date <= now
 }
 
+function formatTimeAgo(timestamp) {
+  const time = new Date(timestamp)
+  const now = new Date()
+  const diff = Math.floor((now - time) / 1000 / 60) // minutes
+
+  if (diff < 1) return 'just now'
+  if (diff < 60) return `${diff} min ago`
+  const hours = Math.floor(diff / 60)
+  if (hours < 24) return `${hours} hr${hours > 1 ? 's' : ''} ago`
+  const days = Math.floor(hours / 24)
+  return `${days} day${days > 1 ? 's' : ''} ago`
+}
+
+
 
 onMounted(async () => {
   initChart()
@@ -79,6 +87,14 @@ onMounted(async () => {
 
     occupancyRate.value = total > 0 ? Math.round((occupied / total) * 100) : 0
     vacantUnits.value = vacant
+
+    const logs = await fetchRecentLogs()
+
+    activities.value = logs.map(log => ({
+      type: log.type || 'message',
+      description: log.actionType,
+      time: formatTimeAgo(log.createdAt)
+    }))
 
     const payments = await fetchPaymentsForOwner()
 
