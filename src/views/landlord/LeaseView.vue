@@ -44,7 +44,7 @@ const handleCreateLease = async () => {
     const createdLease = await createLease(newLease.value)
     leases.value.push(createdLease)
     showCreateModal.value = false
-    // Reset form
+
     newLease.value = {
       propertyId: null,
       tenantId: null,
@@ -96,7 +96,6 @@ const handleTerminate = (leaseId) => {
 
 <template>
   <div class="max-w-6xl mx-auto px-4 py-8">
-    <!-- Header -->
     <header class="flex justify-between items-center mb-8">
       <h1 class="text-2xl font-bold text-gray-800">Lease Management</h1>
       <button
@@ -195,15 +194,11 @@ const handleTerminate = (leaseId) => {
       </div>
     </div>
 
-
-
-    <!-- Loading State -->
     <div v-if="loading" class="flex flex-col items-center justify-center py-12">
       <div class="w-10 h-10 border-4 border-gray-200 border-t-green-500 rounded-full animate-spin mb-4"></div>
       <p class="text-gray-600">Loading leases...</p>
     </div>
 
-    <!-- Error State -->
     <div v-else-if="error" class="bg-red-50 p-6 rounded-lg text-center">
       <p class="text-red-600 mb-4">⚠️ {{ error }}</p>
       <button
@@ -214,9 +209,7 @@ const handleTerminate = (leaseId) => {
       </button>
     </div>
 
-    <!-- Content -->
     <div v-else>
-      <!-- Summary Cards -->
       <LeaseSummaryCards
           :total-leases="leases.length"
           :active-leases="activeLeasesCount"
@@ -239,8 +232,6 @@ const handleTerminate = (leaseId) => {
           @terminate="handleTerminate"
       />
 
-
-      <!-- Empty State -->
       <div v-else class="bg-white p-12 rounded-lg shadow-sm text-center">
         <div class="text-5xl mb-4 opacity-50">📄</div>
         <h3 class="text-xl font-semibold text-gray-800 mb-2">No leases found</h3>
