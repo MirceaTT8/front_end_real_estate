@@ -1,9 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import {
-  fetchMaintenanceRequestsByLease,
-  addMaintenanceRequest
-} from "@/services/maintenanceService.js";
+import { fetchMaintenanceRequestsByLease, addMaintenanceRequest } from "@/services/maintenanceService.js";
 import { fetchMyLease } from "@/services/leaseService.js";
 import MaintenanceListTenant from "@/components/tenant/maintenance/MaintenanceListTenant.vue";
 import MaintenanceCreateForm from "@/components/tenant/maintenance/MaintenanceCreateForm.vue";

@@ -44,7 +44,6 @@ const isFormValid = computed(() => {
         <h2 class="text-lg font-medium text-gray-900 mb-4">Record Manual Payment</h2>
 
         <form @submit.prevent="emit('submit', props.newPayment)">
-        <!-- Lease Select -->
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Lease:</label>
             <select
@@ -58,7 +57,6 @@ const isFormValid = computed(() => {
             </select>
           </div>
 
-          <!-- Amount -->
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Amount:</label>
             <input
@@ -71,7 +69,6 @@ const isFormValid = computed(() => {
             />
           </div>
 
-          <!-- Date -->
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date:</label>
             <input
@@ -82,7 +79,6 @@ const isFormValid = computed(() => {
             />
           </div>
 
-          <!-- Method -->
           <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method:</label>
             <select
@@ -95,7 +91,6 @@ const isFormValid = computed(() => {
             </select>
           </div>
 
-          <!-- Buttons -->
           <div class="flex justify-end gap-3">
             <button
                 type="button"

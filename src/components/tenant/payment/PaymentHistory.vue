@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { formatDate, formatCurrency } from '@/components/landlord/utils/formatters.js'
+import { formatDate, formatCurrency } from '@/components/utils/formatters.js'
 
 const props = defineProps({
   payments: Array
@@ -20,7 +20,6 @@ const extraPayments = props.payments.slice(3)
     </div>
 
     <div v-else>
-      <!-- Header row -->
       <div class="grid grid-cols-5 font-medium text-gray-700 bg-gray-100 px-4 py-2 rounded-t-md">
         <span>Date</span>
         <span>Amount</span>
@@ -29,7 +28,6 @@ const extraPayments = props.payments.slice(3)
         <span>Invoice</span>
       </div>
 
-      <!-- First 3 payments -->
       <div
           v-for="payment in firstThree"
           :key="'p1-' + payment.paymentId"
@@ -58,7 +56,6 @@ const extraPayments = props.payments.slice(3)
         </span>
       </div>
 
-      <!-- Blurred/greyed-out extra payments -->
       <div
           v-for="payment in extraPayments"
           :key="'p2-' + payment.paymentId"
@@ -72,7 +69,6 @@ const extraPayments = props.payments.slice(3)
         <span>View</span>
       </div>
 
-      <!-- View All -->
       <div v-if="extraPayments.length" class="mt-4 text-right">
         <button
             @click="router.push('/tenant/payments')"

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { formatDate } from '@/components/landlord/utils/formatters.js'
+import { formatDate } from '@/components/utils/formatters.js'
 
 const props = defineProps({
   lease: {

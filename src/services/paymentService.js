@@ -136,9 +136,6 @@ export const createStripeCheckoutSession = async (leaseId) => {
 export const confirmStripePayment = async (sessionId) => {
     const token = localStorage.getItem('token');
 
-    console.log('Calling Stripe Confirm')
-
-
     const response = await fetch(`${API}/stripe/confirm?session_id=${sessionId}`, {
         method: 'POST',
         headers: {
@@ -152,11 +149,4 @@ export const confirmStripePayment = async (sessionId) => {
     }
 
     return await response.json();
-};
-
-
-export const PaymentStatus = {
-    PENDING: 'PENDING',
-    COMPLETED: 'COMPLETED',
-    CANCELED: 'CANCELED',
 };

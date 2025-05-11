@@ -6,6 +6,8 @@ import ProfileAvatar from "@/views/profile/ProfileAvatar.vue";
 import ProfileDetailItem from "@/views/profile/ProfileDetailItem.vue";
 import ProfileInputField from "@/views/profile/ProfileInputField.vue";
 import ProfileTextareaField from "@/views/profile/ProfileTextareaField.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import ErrorMessage from "@/components/ErrorMessage.vue";
 const user = reactive({
   firstName: '',
   lastName: '',

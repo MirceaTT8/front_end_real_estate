@@ -49,7 +49,6 @@ const removeAttachment = (index) => {
   <div class="bg-white rounded-lg shadow p-6 space-y-6">
     <h2 class="text-xl font-semibold text-gray-700">Create Maintenance Request</h2>
 
-    <!-- Error message -->
     <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
       {{ error }}
     </div>

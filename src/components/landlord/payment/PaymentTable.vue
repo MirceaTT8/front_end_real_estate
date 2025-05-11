@@ -15,7 +15,7 @@ defineProps({
   }
 })
 
-import { formatDate } from "@/components/landlord/utils/formatters.js"
+import { formatDate } from "@/components/utils/formatters.js"
 </script>
 
 <template>

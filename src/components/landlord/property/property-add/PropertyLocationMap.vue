@@ -1,5 +1,5 @@
 <script setup>
-import PropertyAddMap from "@/components/landlord/property/PropertyAddMap.vue";
+import PropertyAddMap from "@/components/landlord/property/property-add/PropertyAddMap.vue";
 
 const props = defineProps({
   longitude: Number,

@@ -26,8 +26,8 @@ export const useNotificationStore = defineStore('notification', () => {
 
     const startPolling = () => {
         if (!intervalId.value) {
-            fetchNotification() // immediate
-            intervalId.value = setInterval(fetchNotification, 30000) // every 30s
+            fetchNotification()
+            intervalId.value = setInterval(fetchNotification, 30000)
         }
     }
 

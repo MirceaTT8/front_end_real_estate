@@ -60,7 +60,6 @@ const availableTypes = computed(() => {
 })
 
 const availableStatuses = computed(() => {
-  // Filter properties first by type if one is selected
   const filteredByType = properties.value.filter(property => {
     if (!filters.value.type) return true
     return property.type === filters.value.type.toUpperCase()

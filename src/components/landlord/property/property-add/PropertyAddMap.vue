@@ -48,7 +48,7 @@ const clearAllMarkers = () => {
 }
 
 const addSingleMarker = (position) => {
-  clearAllMarkers() // Always clear existing marker first
+  clearAllMarkers()
 
   if (!map.value) return
 
@@ -59,7 +59,6 @@ const addSingleMarker = (position) => {
     draggable: props.draggable
   })
 
-  // Set up dragend listener if draggable
   if (props.draggable) {
     google.maps.event.addListener(currentMarker.value, 'dragend', (event) => {
       const newPosition = {
@@ -70,7 +69,6 @@ const addSingleMarker = (position) => {
     })
   }
 
-  // Center and zoom map
   map.value.setCenter(position)
   map.value.setZoom(14)
 }
@@ -78,7 +76,6 @@ const addSingleMarker = (position) => {
 const setupMapClickHandler = () => {
   if (!map.value || !props.clickable) return
 
-  // Remove previous click listener if exists
   if (clickListener.value) {
     google.maps.event.removeListener(clickListener.value)
   }
@@ -103,7 +100,6 @@ const initMap = async () => {
 
     await loader.load()
 
-    // Initialize map only if not already initialized
     if (!map.value) {
       map.value = new google.maps.Map(mapContainer.value, {
         center: { lat: 45.9432, lng: 24.9668 },
@@ -114,7 +110,6 @@ const initMap = async () => {
       })
     }
 
-    // Setup initial marker if provided
     if (props.initialMarkers?.length > 0) {
       addSingleMarker(props.initialMarkers[0])
     }
@@ -125,7 +120,6 @@ const initMap = async () => {
   }
 }
 
-// Clean up all resources when component unmounts
 onUnmounted(() => {
   if (clickListener.value) {
     google.maps.event.removeListener(clickListener.value)

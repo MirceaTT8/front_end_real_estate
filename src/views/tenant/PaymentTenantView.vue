@@ -69,10 +69,6 @@ const formatCurrency = (amount) => {
   }).format(amount)
 }
 
-const handlePayRent = () => {
-  showPaymentModal.value = true
-}
-
 const submitPayment = async () => {
   try {
     loading.value = true;

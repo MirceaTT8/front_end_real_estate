@@ -44,7 +44,6 @@ const attachments = computed({
 const autocompleteInput = ref(null)
 const autocomplete = ref(null)
 
-// Watch for Google Maps API to be available
 const initAutocomplete = () => {
   if (!window.google || !window.google.maps || !window.google.maps.places) {
     console.log('Google Maps API not ready yet')

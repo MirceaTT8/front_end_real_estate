@@ -46,7 +46,6 @@ const openSlider = (index) => {
 
 <template>
   <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-all duration-200">
-    <!-- Header -->
     <div class="px-6 py-4 border-b relative" :class="statusDisplay[request.status].border">
       <div class="flex justify-between items-center">
         <div>
@@ -66,7 +65,6 @@ const openSlider = (index) => {
       </span>
     </div>
 
-    <!-- Details -->
     <div class="px-6 py-4">
       <div class="grid grid-cols-[auto,1fr] gap-y-3 gap-x-4 text-sm">
         <span class="font-medium text-gray-500">Lease:</span>
@@ -82,7 +80,6 @@ const openSlider = (index) => {
         <span class="text-gray-800">{{ formatDate(request.updatedAt) }}</span>
       </div>
 
-      <!-- Image Previews -->
       <div v-if="request.imageUrls?.length" class="mt-6">
         <h4 class="font-medium text-gray-700 mb-3 flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -110,7 +107,6 @@ const openSlider = (index) => {
       </div>
     </div>
 
-    <!-- Footer -->
     <div class="px-6 py-4 bg-gray-50 border-t">
       <div class="flex flex-col sm:flex-row sm:items-center gap-3">
         <label class="text-sm font-medium text-gray-700 flex-shrink-0">Update status:</label>
@@ -127,7 +123,6 @@ const openSlider = (index) => {
       </div>
     </div>
 
-    <!-- Modal for full image slider -->
     <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center">
       <div class="bg-white rounded-lg overflow-hidden w-full max-w-5xl shadow-lg relative">
         <button @click="showModal = false" class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-xl font-bold z-10">&times;</button>

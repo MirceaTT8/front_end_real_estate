@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { fetchPaymentsForOwner, createPayment } from '@/services/paymentService.js'
 import { fetchMyLeases } from '@/services/leaseService.js'
-import {fetchAllUsers, fetchUserById} from '@/services/userService.js' // assumes you have this
+import { fetchAllUsers, fetchUserById } from '@/services/userService.js'
 import PaymentSummaryCard from '@/components/landlord/payment/PaymentSummaryCard.vue'
 import PaymentTable from '@/components/landlord/payment/PaymentTable.vue'
 import PaymentManualModal from '@/components/landlord/payment/PaymentManualModal.vue'
@@ -44,8 +44,6 @@ const getTenantName = (leaseId) => {
   return tenant ? `${tenant.firstName} ${tenant.lastName}` : 'Unknown Tenant'
 }
 
-
-
 const loadPayments = async () => {
   try {
     loading.value = true
@@ -56,7 +54,6 @@ const loadPayments = async () => {
     properties.value = await Promise.all(leases.value.map(lease => fetchPropertyById(lease.propertyId)))
     tenants.value = await Promise.all(leases.value.map(lease => fetchUserById(lease.tenantId)))
 
-    // To pass to LeaseFilter
     leases.value = leases.value.map(lease => ({
       ...lease,
       property: properties.value.find(p => p.propertyId === lease.propertyId)
@@ -110,8 +107,6 @@ onMounted(() => {
         :leases="leases"
         v-model:selectedLeaseId="selectedLeaseId"
     />
-
-
 
     <PaymentTable
         v-if="!loading && properties.length > 0 && tenants.length > 0"

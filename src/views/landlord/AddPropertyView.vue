@@ -2,8 +2,8 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { addProperty } from '@/services/propertyService.js'
-import PropertyFormFields from "@/components/landlord/property/PropertyFormFields.vue";
-import PropertyLocationMap from "@/components/landlord/property/PropertyLocationMap.vue";
+import PropertyFormFields from "@/components/landlord/property/property-add/PropertyFormFields.vue";
+import PropertyLocationMap from "@/components/landlord/property/property-add/PropertyLocationMap.vue";
 const router = useRouter()
 const form = ref({
   owner_id: 1,
@@ -19,8 +19,6 @@ const form = ref({
 const isLoading = ref(false)
 const errorMessage = ref('')
 const attachments = ref([])
-
-
 
 const handleMapClick = (location) => {
   form.value.longitude = location.lng
