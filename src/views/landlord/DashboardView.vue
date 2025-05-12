@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import {ref, onMounted, computed} from 'vue'
 import Chart from 'primevue/chart'
 import VueCal from 'vue-cal'
 import 'vue-cal/dist/vuecal.css'
@@ -29,6 +29,56 @@ function isInLast30Days(dateStr) {
   thirtyDaysAgo.setDate(now.getDate() - 30)
   return date >= thirtyDaysAgo && date <= now
 }
+const activeRange = ref('3M')
+
+const rangeOptions = ref([
+  { label: '1M', value: '1M', enabled: false },
+  { label: '3M', value: '3M', enabled: false },
+  { label: '6M', value: '6M', enabled: false },
+  { label: '1Y', value: '1Y', enabled: false },
+  { label: '5Y', value: '5Y', enabled: false }
+])
+
+const filteredChartData = computed(() => {
+  if (!chartData.value || !chartData.value.datasets) {
+    return {
+      labels: [],
+      datasets: [
+        { label: 'Rent Collection', data: [], backgroundColor: '#4CAF50' },
+        { label: 'Maintenance Costs', data: [], backgroundColor: '#FF9800' }
+      ]
+    }
+  }
+
+  const rangeMap = { '1M': 1, '3M': 3, '6M': 6, '1Y': 12, '5Y': 60 }
+  const count = rangeMap[activeRange.value]
+  const labels = chartData.value.labels.slice(-count)
+  const rent = chartData.value.datasets[0].data.slice(-count)
+  const maintenance = chartData.value.datasets[1].data.slice(-count)
+
+  return {
+    labels,
+    datasets: [
+      { ...chartData.value.datasets[0], data: rent },
+      { ...chartData.value.datasets[1], data: maintenance }
+    ]
+  }
+})
+
+
+const updateRangeAvailability = () => {
+  const monthsWithData = chartData.value?.labels?.length || 0
+  rangeOptions.value.forEach(r => {
+    const limit = { '1M': 1, '3M': 3, '6M': 6, '1Y': 12, '5Y': 60 }[r.value]
+    r.enabled = monthsWithData >= limit
+  })
+
+  const valid = rangeOptions.value.filter(r => r.enabled)
+  if (!valid.some(v => v.value === activeRange.value)) {
+    activeRange.value = valid.at(-1)?.value || '1M'
+  }
+}
+
 
 const initChart = async () => {
   const payments = await fetchPaymentsForOwner()
@@ -37,19 +87,18 @@ const initChart = async () => {
   const rentTotals = {}
   const maintenanceTotals = {}
 
-  const months = [...Array(6)].map((_, i) => {
-    const date = new Date()
-    date.setMonth(date.getMonth() - (5 - i))
-    return date.toISOString().slice(0, 7) // "YYYY-MM"
-  })
+  const now = new Date()
+  const months = []
 
-  // Initialize with 0
-  months.forEach(m => {
-    rentTotals[m] = 0
-    maintenanceTotals[m] = 0
-  })
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date(now)
+    date.setMonth(date.getMonth() - i)
+    const key = date.toISOString().slice(0, 7)
+    months.push(key)
+    rentTotals[key] = 0
+    maintenanceTotals[key] = 0
+  }
 
-  // Rent payments
   payments.forEach(p => {
     const month = p.paymentDate?.slice(0, 7)
     if (month && rentTotals[month] !== undefined) {
@@ -57,7 +106,6 @@ const initChart = async () => {
     }
   })
 
-  // Maintenance costs
   maintenance.forEach(r => {
     if (r.status === 'COMPLETED' && r.updatedAt && r.cost) {
       const month = r.updatedAt.slice(0, 7)
@@ -95,8 +143,9 @@ const initChart = async () => {
       }
     }
   }
-}
+  updateRangeAvailability()
 
+}
 
 onMounted(async () => {
   await initChart()
@@ -141,7 +190,6 @@ onMounted(async () => {
 
     const maintenance = await fetchMaintenanceRequestsByLoggedInOwner()
 
-    // 🛠️ Maintenance cost calculation
     maintenanceCostThisMonth.value = maintenance
         .filter(r => r.status === 'COMPLETED' && isInLast30Days(r.updatedAt))
         .reduce((sum, r) => sum + (r.cost || 0), 0)
@@ -181,6 +229,7 @@ onMounted(async () => {
   }
 })
 </script>
+
 <template>
   <div class="max-w-[1400px] mx-auto p-6 grid grid-cols-12 gap-6">
     <!-- Header -->
@@ -267,13 +316,29 @@ onMounted(async () => {
       </div>
     </section>
 
-    <!-- Financial Chart -->
     <section class="col-span-full bg-white rounded-lg shadow p-6">
       <h2 class="text-xl font-semibold text-gray-700 mb-4">Financial Overview</h2>
+
+      <div class="flex gap-2 mb-4">
+        <button
+            v-for="range in rangeOptions"
+            :key="range.value"
+            :disabled="!range.enabled"
+            @click="activeRange = range.value"
+            class="px-3 py-1 text-sm rounded border"
+            :class="[
+        range.enabled ? 'hover:bg-blue-100' : 'opacity-50 cursor-not-allowed',
+        activeRange === range.value ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 border-blue-600'
+      ]"
+        >
+          {{ range.label }}
+        </button>
+      </div>
+
       <div class="h-[300px] relative">
         <Chart
             type="bar"
-            :data="chartData"
+            :data="filteredChartData"
             :options="chartOptions"
             class="w-full h-full"
         />
