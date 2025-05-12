@@ -1,11 +1,15 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import {fetchActiveLeasesByOwnerId, createLease} from "@/services/leaseService.js";
-import LeaseList from "@/components/landlord/lease/LeaseList.vue";
-import LeaseSummaryCards from "@/components/landlord/lease/LeaseSummaryCards.vue";
-import LeaseTabs from "@/components/landlord/lease/LeaseTabs.vue";
-import { fetchMyLeases } from "@/services/leaseService.js";
+import { fetchMyLeases, createLease } from '@/services/leaseService.js';
+import { fetchAllUsers, fetchUserById } from '@/services/userService.js';
+import { fetchPropertyById } from '@/services/propertyService.js';
+import LeaseList from '@/components/landlord/lease/LeaseList.vue';
+import LeaseSummaryCards from '@/components/landlord/lease/LeaseSummaryCards.vue';
+import LeaseTabs from '@/components/landlord/lease/LeaseTabs.vue';
+
 const leases = ref([])
+const properties = ref([])
+const tenants = ref([])
 const loading = ref(true)
 const error = ref(null)
 const activeTab = ref('ACTIVE')
@@ -20,23 +24,26 @@ const newLease = ref({
   status: 'ACTIVE'
 })
 
-// Fetch leases on mount
 onMounted(async () => {
-  await loadLeases()
+  await loadLeasesAndRelatedData()
 })
 
-
-const loadLeases = async () => {
+const loadLeasesAndRelatedData = async () => {
   loading.value = true;
   try {
-    leases.value = await fetchMyLeases();
+    const leaseResults = await fetchMyLeases();
+    const propertyResults = await Promise.all(leaseResults.map(lease => fetchPropertyById(lease.propertyId)))
+    const tenantResults = await Promise.all(leaseResults.map(lease => fetchUserById(lease.tenantId)))
+
+    leases.value = leaseResults
+    properties.value = propertyResults
+    tenants.value = tenantResults
   } catch (err) {
-    error.value = err.message || 'Failed to load leases';
+    error.value = err.message || 'Failed to load leases'
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
-
 
 const handleCreateLease = async () => {
   try {
@@ -60,20 +67,18 @@ const handleCreateLease = async () => {
   }
 }
 
-
-
 const STATUS_COLORS = {
   ACTIVE: { bg: 'bg-green-50', text: 'text-green-600' },
   TERMINATED: { bg: 'bg-red-50', text: 'text-red-600' },
   PENDING: { bg: 'bg-orange-50', text: 'text-orange-600' }
 }
 
-
 const filteredLeases = computed(() => {
   return activeTab.value === 'all'
       ? leases.value
       : leases.value.filter(lease => lease.status === activeTab.value)
 })
+
 const totalMonthlyRent = computed(() => {
   return leases.value
       .filter(l => l.status === 'ACTIVE')
@@ -84,11 +89,6 @@ const activeLeasesCount = computed(() => {
   return leases.value.filter(l => l.status.toUpperCase() === 'ACTIVE').length
 })
 
-const statusColors = {
-  ACTIVE: { bg: 'bg-green-50', text: 'text-green-600' },
-  TERMINATED: { bg: 'bg-red-50', text: 'text-red-600' },
-  PENDING: { bg: 'bg-orange-50', text: 'text-orange-600' }
-}
 const handleTerminate = (leaseId) => {
   console.log('Terminating lease:', leaseId)
 }
@@ -162,16 +162,6 @@ const handleTerminate = (leaseId) => {
                     placeholder="0.00"
                 >
               </div>
-
-<!--              <div>-->
-<!--                <label class="block text-sm font-medium text-gray-700 mb-1">Deposit Amount</label>-->
-<!--                <input-->
-<!--                    v-model.number="newLease.depositAmount"-->
-<!--                    type="number"-->
-<!--                    class="w-full p-2 border rounded"-->
-<!--                    placeholder="0.00"-->
-<!--                >-->
-<!--              </div>-->
             </div>
           </div>
 
@@ -228,6 +218,8 @@ const handleTerminate = (leaseId) => {
       <LeaseList
           v-if="filteredLeases.length > 0"
           :leases="filteredLeases"
+          :properties="properties"
+          :tenants="tenants"
           :status-colors="STATUS_COLORS"
           @terminate="handleTerminate"
       />

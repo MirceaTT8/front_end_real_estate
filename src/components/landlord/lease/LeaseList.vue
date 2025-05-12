@@ -1,4 +1,9 @@
 <script setup>
+import {
+  getPropertyNameByLeaseId,
+  getTenantNameByLeaseId
+} from '@/utils/leaseNameUtils';
+
 defineProps({
   leases: {
     type: Array,
@@ -7,12 +12,21 @@ defineProps({
   statusColors: {
     type: Object,
     required: true
+  },
+  properties: {
+    type: Array,
+    required: true
+  },
+  tenants: {
+    type: Array,
+    required: true
   }
 });
 
 const emit = defineEmits(['terminate']);
 
 const formatDate = (dateString) => {
+  if (!dateString || dateString === 'undetermined') return 'undetermined';
   return new Date(dateString).toLocaleDateString();
 };
 
@@ -48,7 +62,7 @@ const handleTerminate = (leaseId) => {
               :to="`/properties/${lease.propertyId}`"
               class="text-blue-600 hover:text-blue-800 hover:underline font-medium"
           >
-            {{ lease.propertyName || `Property #${lease.propertyId}` }}
+            {{ getPropertyNameByLeaseId(lease.leaseId, leases, properties) }}
           </router-link>
         </div>
 
@@ -58,7 +72,7 @@ const handleTerminate = (leaseId) => {
               :to="`/tenants/${lease.tenantId}`"
               class="text-blue-600 hover:text-blue-800 hover:underline font-medium"
           >
-            {{ lease.tenantName || `Tenant #${lease.tenantId}` }}
+            {{ getTenantNameByLeaseId(lease.leaseId, leases, tenants) }}
           </router-link>
         </div>
 
