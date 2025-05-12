@@ -1,40 +1,31 @@
 <script setup>
 import { computed } from 'vue'
+import {
+  getPropertyNameByLeaseId,
+  getTenantNameByLeaseId
+} from '@/utils/leaseNameUtils.js'
 
 const props = defineProps({
-  leases: {
-    type: Array,
-    default: () => []
-  },
-  newPayment: {
-    type: Object,
-    default: () => ({
-      leaseId: null,
-      amount: 0,
-      paymentDate: '',
-      paymentMethod: 'BANK_TRANSFER'
-    })
-  },
-  getPropertyName: {
-    type: Function,
-    required: true
-  },
-  getTenantName: {
-    type: Function,
-    required: true
-  }
+  leases: Array,
+  newPayment: Object,
+  properties: Array,
+  tenants: Array
 })
 
 const emit = defineEmits(['submit', 'cancel'])
 
-const isFormValid = computed(() => {
-  return (
-      props.newPayment.leaseId &&
-      props.newPayment.amount > 0 &&
-      props.newPayment.paymentDate &&
-      props.newPayment.paymentMethod
-  )
-})
+const isFormValid = computed(() =>
+    props.newPayment.leaseId &&
+    props.newPayment.amount > 0 &&
+    props.newPayment.paymentDate &&
+    props.newPayment.paymentMethod
+)
+
+const resolvePropertyName = (leaseId) =>
+    getPropertyNameByLeaseId(leaseId, props.leases, props.properties)
+
+const resolveTenantName = (leaseId) =>
+    getTenantNameByLeaseId(leaseId, props.leases, props.tenants)
 </script>
 
 <template>
@@ -52,7 +43,7 @@ const isFormValid = computed(() => {
                 class="block w-full pl-3 pr-10 py-2 border rounded-md focus:ring-2 focus:ring-green-500"
             >
               <option v-for="lease in props.leases" :key="lease.leaseId" :value="lease.leaseId">
-                {{ props.getPropertyName(lease.propertyId) }} ({{ props.getTenantName(lease.tenantId) }})
+                {{ resolvePropertyName(lease.leaseId) }} ({{ resolveTenantName(lease.leaseId) }})
               </option>
             </select>
           </div>

@@ -1,22 +1,31 @@
 <script setup>
-defineProps({
-  payments: {
-    type: Array,
-    default: () => []
-  },
-  loading: Boolean,
-  getPropertyName: {
-    type: Function,
-    required: true
-  },
-  getTenantName: {
-    type: Function,
-    required: true
-  }
+import { getPropertyNameByLeaseId, getTenantNameByLeaseId } from '@/utils/leaseNameUtils.js'
+import { computed } from 'vue'
+
+const props = defineProps({
+  payments: Array,
+  leases: Array,
+  tenants: Array,
+  properties: Array,
+  loading: Boolean
 })
 
-import { formatDate } from "@/components/utils/formatters.js"
+const getTenantName = (leaseId) =>
+    getTenantNameByLeaseId(leaseId, props.leases, props.tenants)
+
+const getPropertyName = (leaseId) =>
+    getPropertyNameByLeaseId(leaseId, props.leases, props.properties)
+
+const formatDate = (dateStr) => {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+}
 </script>
+
 
 <template>
   <div class="bg-white shadow rounded overflow-x-auto">

@@ -30,20 +30,6 @@ const filteredPayments = computed(() => {
   return payments.value.filter(p => p.leaseId === selectedLeaseId.value)
 })
 
-const getPropertyName = (leaseId) => {
-  const lease = leases.value.find(l => l.leaseId === leaseId)
-  if (!lease) return 'Unknown Lease'
-  const property = properties.value.find(p => p.propertyId === lease.propertyId)
-  return property ? property.name : 'Unknown Property'
-}
-
-const getTenantName = (leaseId) => {
-  const lease = leases.value.find(l => l.leaseId === leaseId)
-  if (!lease) return 'Unknown Lease'
-  const tenant = tenants.value.find(t => t.userId === lease.tenantId)
-  return tenant ? `${tenant.firstName} ${tenant.lastName}` : 'Unknown Tenant'
-}
-
 const loadPayments = async () => {
   try {
     loading.value = true
@@ -109,24 +95,25 @@ onMounted(() => {
     />
 
     <PaymentTable
-        v-if="!loading && properties.length > 0 && tenants.length > 0"
         :payments="filteredPayments"
+        :leases="leases"
+        :tenants="tenants"
+        :properties="properties"
         :loading="loading"
-        :get-property-name="getPropertyName"
-        :get-tenant-name="getTenantName"
     />
 
 
     <PaymentManualModal
         v-if="showManualModal"
         :leases="leases"
+        :tenants="tenants"
+        :properties="properties"
         :newPayment="newPayment"
-        :getPropertyName="getPropertyName"
-        :getTenantName="getTenantName"
         @close="showManualModal = false"
         @cancel="showManualModal = false"
         @submit="handleSubmitManualPayment"
     />
+
 
   </div>
 </template>
