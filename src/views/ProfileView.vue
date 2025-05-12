@@ -5,16 +5,14 @@ import { jwtDecode } from 'jwt-decode';
 import ProfileAvatar from "@/views/profile/ProfileAvatar.vue";
 import ProfileDetailItem from "@/views/profile/ProfileDetailItem.vue";
 import ProfileInputField from "@/views/profile/ProfileInputField.vue";
-import ProfileTextareaField from "@/views/profile/ProfileTextareaField.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import ErrorMessage from "@/components/ErrorMessage.vue";
+
 const user = reactive({
   firstName: '',
   lastName: '',
   email: '',
-  phone: '',
-  address: '',
-  bio: ''
+  phone: ''
 });
 
 const isEditing = ref(false);
@@ -49,30 +47,17 @@ const cancelEditing = () => {
   isEditing.value = false;
 };
 
-// const saveProfile = async () => {
-//   try {
-//     isLoading.value = true;
-//     const updatedUser = await updateUserProfile(user.email, tempProfile);
-//     Object.assign(user, updatedUser);
-//     isEditing.value = false;
-//   } catch (err) {
-//     error.value = err.message || 'Failed to update profile';
-//   } finally {
-//     isLoading.value = false;
-//   }
-// };
-
 onMounted(fetchUserData);
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
-    <div class="flex justify-between items-start mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">My Profile</h1>
+  <div class="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg mt-10">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-800">My Profile</h1>
       <button
           v-if="!isEditing"
           @click="startEditing"
-          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
       >
         Edit Profile
       </button>
@@ -82,12 +67,12 @@ onMounted(fetchUserData);
     <ErrorMessage v-else-if="error" :message="error" @retry="fetchUserData" />
 
     <template v-else>
-      <div class="flex flex-col md:flex-row gap-6">
+      <div class="flex flex-col md:flex-row gap-8">
         <!-- Profile Picture Column -->
-        <div class="md:w-1/3 flex flex-col items-center">
+        <div class="md:w-1/3 flex flex-col items-center text-center">
           <ProfileAvatar :user="user" class="mb-4" />
-          <p class="text-lg font-semibold">{{ user.firstName }} {{ user.lastName }}</p>
-          <p class="text-gray-600">{{ user.email }}</p>
+          <p class="text-xl font-semibold text-gray-800">{{ user.firstName }} {{ user.lastName }}</p>
+          <p class="text-gray-500 text-sm">{{ user.email }}</p>
         </div>
 
         <!-- Profile Details Column -->
@@ -98,8 +83,6 @@ onMounted(fetchUserData);
               <ProfileDetailItem label="Last Name" :value="user.lastName" />
               <ProfileDetailItem label="Email" :value="user.email" />
               <ProfileDetailItem label="Phone" :value="user.phone || 'Not provided'" />
-              <ProfileDetailItem label="Address" :value="user.address || 'Not provided'" />
-              <ProfileDetailItem label="Bio" :value="user.bio || 'Not provided'" />
             </div>
           </template>
 
@@ -109,8 +92,6 @@ onMounted(fetchUserData);
               <ProfileInputField v-model="tempProfile.lastName" label="Last Name" required />
               <ProfileInputField v-model="tempProfile.email" label="Email" type="email" disabled />
               <ProfileInputField v-model="tempProfile.phone" label="Phone" type="tel" />
-              <ProfileInputField v-model="tempProfile.address" label="Address" />
-              <ProfileTextareaField v-model="tempProfile.bio" label="Bio" />
 
               <div class="flex justify-end gap-4 pt-4">
                 <button
@@ -122,7 +103,7 @@ onMounted(fetchUserData);
                 </button>
                 <button
                     type="submit"
-                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    class="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                     :disabled="isLoading"
                 >
                   {{ isLoading ? 'Saving...' : 'Save Changes' }}
