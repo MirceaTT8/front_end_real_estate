@@ -76,14 +76,13 @@ const addMarkers = () => {
       icon: getMarkerIcon(property.status)
     })
 
-    // Info window and event listeners
     const infoWindow = new google.maps.InfoWindow({
       content: `
         <div class="p-2">
           <h3 class="font-bold">${property.name}</h3>
           <p>${property.address}</p>
           <p class="text-green-600 font-semibold">$${property.rentAmount}/month</p>
-          <a href="/properties/${property.propertyId}" class="text-blue-500 hover:underline">View details</a>
+          <a href="/landlord/property/${property.propertyId}" class="text-blue-500 hover:underline">View details</a>
         </div>
       `
     })
@@ -94,7 +93,6 @@ const addMarkers = () => {
     hasValidMarkers = true
   })
 
-  // Only adjust view if we have valid markers
   if (hasValidMarkers) {
     try {
       map.value.fitBounds(bounds)

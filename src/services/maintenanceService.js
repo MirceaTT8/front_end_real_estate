@@ -119,3 +119,23 @@ export const addMaintenanceRequest = async (leaseId, requestData) => {
     }
 };
 
+export const setMaintenanceCost = async (requestId, cost) => {
+    try {
+        const token = localStorage.getItem('token')
+        const response = await fetch(`${API}/${requestId}/cost?cost=${cost}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to set cost. HTTP status: ${response.status}`)
+        }
+
+        return await response.json()
+    } catch (error) {
+        console.error('Error setting maintenance cost:', error)
+        throw error
+    }
+}

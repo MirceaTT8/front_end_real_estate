@@ -71,7 +71,6 @@ onMounted(async () => {
         </button>
       </div>
 
-      <!-- Thumbnails -->
       <div v-if="property.imageUrls?.length" class="flex gap-2 overflow-x-auto mt-2">
         <img
             v-for="(img, index) in property.imageUrls"
@@ -87,7 +86,6 @@ onMounted(async () => {
         />
       </div>
 
-      <!-- Property Info -->
       <div class="space-y-4">
         <div class="flex flex-wrap items-center gap-3">
           <h1 class="text-3xl font-semibold text-gray-900">{{ property.name }}</h1>

@@ -1,47 +1,73 @@
 <script setup>
-import { ref } from 'vue';
-import { Swiper, SwiperSlide } from 'swiper/vue';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
-import SwiperCore from 'swiper';
-import {Navigation, Pagination} from "swiper/modules";
-SwiperCore.use([Navigation, Pagination]);
+import { ref, watch } from 'vue'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
+import SwiperCore from 'swiper'
+import { Navigation, Pagination } from 'swiper/modules'
+import { setMaintenanceCost } from '@/services/maintenanceService.js'
 
-defineProps({
+SwiperCore.use([Navigation, Pagination])
+
+const emit = defineEmits(['update-status'])
+
+const { request } = defineProps({
   request: {
     type: Object,
     required: true
   }
-});
-
-const emit = defineEmits(['update-status']);
+})
 
 const statusDisplay = {
   PENDING: { bg: 'bg-amber-50', text: 'text-amber-800', emoji: '⏳', border: 'border-amber-200' },
   IN_PROGRESS: { bg: 'bg-blue-50', text: 'text-blue-800', emoji: '🔧', border: 'border-blue-200' },
   COMPLETED: { bg: 'bg-green-50', text: 'text-green-800', emoji: '✅', border: 'border-green-200' },
   CANCELLED: { bg: 'bg-red-50', text: 'text-red-800', emoji: '❌', border: 'border-red-200' }
-};
+}
 
 const formatDate = (dateString) => {
-  const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-  return new Date(dateString).toLocaleString(undefined, options);
-};
+  const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+  return new Date(dateString).toLocaleString(undefined, options)
+}
 
 const isRecentlyUpdated = (updatedAt) => {
-  const updated = new Date(updatedAt);
-  const now = new Date();
-  return (now - updated) / (1000 * 60 * 60) < 24;
-};
+  const updated = new Date(updatedAt)
+  const now = new Date()
+  return (now - updated) / (1000 * 60 * 60) < 24
+}
 
-const showModal = ref(false);
-const activeIndex = ref(0);
+const showModal = ref(false)
+const activeIndex = ref(0)
 
 const openSlider = (index) => {
-  activeIndex.value = index;
-  showModal.value = true;
-};
+  activeIndex.value = index
+  showModal.value = true
+}
+
+// New: Maintenance cost logic
+const cost = ref(request.cost || '')
+const isSaving = ref(false)
+const saveError = ref(null)
+
+const saveCost = async () => {
+  if (!cost.value || isNaN(cost.value)) {
+    saveError.value = 'Please enter a valid number'
+    return
+  }
+
+  try {
+    isSaving.value = true
+    saveError.value = null
+    await setMaintenanceCost(request.requestId, parseFloat(cost.value))
+    // optionally emit an event or show confirmation
+  } catch (err) {
+    saveError.value = 'Failed to save cost'
+    console.error(err)
+  } finally {
+    isSaving.value = false
+  }
+}
 </script>
 
 <template>
@@ -82,11 +108,7 @@ const openSlider = (index) => {
 
       <div v-if="request.imageUrls?.length" class="mt-6">
         <h4 class="font-medium text-gray-700 mb-3 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-          </svg>
-          Attachments ({{ request.imageUrls.length }})
+          📎 Attachments ({{ request.imageUrls.length }})
         </h4>
 
         <div class="grid grid-cols-3 gap-2">
@@ -107,7 +129,7 @@ const openSlider = (index) => {
       </div>
     </div>
 
-    <div class="px-6 py-4 bg-gray-50 border-t">
+    <div class="px-6 py-4 bg-gray-50 border-t space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center gap-3">
         <label class="text-sm font-medium text-gray-700 flex-shrink-0">Update status:</label>
         <select
@@ -120,6 +142,24 @@ const openSlider = (index) => {
           <option value="COMPLETED">✅ Completed</option>
           <option value="CANCELLED">❌ Cancelled</option>
         </select>
+      </div>
+
+      <div v-if="request.status === 'COMPLETED'" class="flex flex-col gap-2">
+        <label class="text-sm text-gray-700 font-medium">Maintenance Cost</label>
+        <input
+            v-model="cost"
+            type="number"
+            placeholder="Enter cost"
+            class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+            @click="saveCost"
+            :disabled="isSaving"
+            class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition"
+        >
+          {{ isSaving ? 'Saving...' : 'Save Cost' }}
+        </button>
+        <p v-if="saveError" class="text-red-500 text-sm">{{ saveError }}</p>
       </div>
     </div>
 
