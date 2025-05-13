@@ -64,7 +64,7 @@ const leaseChartOptions = ref({
         Terminate Leases
       </button>
       <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-        Accept New Properties
+        Accept Pending Properties
       </button>
       <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
         Approve Pending Leases

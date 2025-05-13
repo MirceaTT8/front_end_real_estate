@@ -18,11 +18,6 @@ const settings = ref([
     route: "/profile"
   },
   {
-    label: "Settings",
-    icon: PrimeIcons.COG,
-    route: "/settings"
-  },
-  {
     label: "Logout",
     icon: PrimeIcons.SIGN_OUT,
     command: logout
@@ -30,7 +25,7 @@ const settings = ref([
 ]);
 
 const navigateTo = (route) => {
-  showMenu.value = false; // close dropdown
+  showMenu.value = false;
   router.push(route);
 };
 
