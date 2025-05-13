@@ -1,6 +1,67 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import Chart from 'primevue/chart'
+import Dialog from 'primevue/dialog'
+import {
+  approveLeaseTermination,
+  fetchPendingLeaseTerminations,
+  fetchPendingLeases
+} from '@/services/leaseService'
+import { fetchPendingProperties } from '@/services/propertyService'
+
+const showTerminateModal = ref(false)
+const showPendingLeasesModal = ref(false)
+const showPendingPropertiesModal = ref(false)
+const pendingLeases = ref([])
+const pendingApprovalLeases = ref([])
+const pendingProperties = ref([])
+const isLoading = ref(false)
+
+const openTerminationModal = async () => {
+  showTerminateModal.value = true
+  isLoading.value = true
+  try {
+    pendingLeases.value = await fetchPendingLeaseTerminations()
+  } catch (err) {
+    console.error('Error fetching leases:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const openPendingLeasesModal = async () => {
+  showPendingLeasesModal.value = true
+  isLoading.value = true
+  try {
+    pendingApprovalLeases.value = await fetchPendingLeases()
+  } catch (err) {
+    console.error('Error fetching pending leases:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const openPendingPropertiesModal = async () => {
+  showPendingPropertiesModal.value = true
+  isLoading.value = true
+  try {
+    pendingProperties.value = await fetchPendingProperties()
+  } catch (err) {
+    console.error('Error fetching pending properties:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const terminateLease = async (id) => {
+  try {
+    await approveLeaseTermination(id)
+    pendingLeases.value = pendingLeases.value.filter(lease => lease.id !== id)
+  } catch (err) {
+    console.error('Failed to approve lease termination:', err)
+    alert('Failed to approve termination. Please try again.')
+  }
+}
 
 const recentActivities = ref([
   { action: 'New lease created', user: 'landlord_john', date: '2024-05-07' },
@@ -58,15 +119,14 @@ const leaseChartOptions = ref({
   <div class="max-w-6xl mx-auto px-4 py-8 space-y-8">
     <h1 class="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
 
-    <!-- Admin Actions -->
     <section class="bg-white p-6 rounded shadow flex flex-wrap gap-4">
-      <button class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+      <button @click="openTerminationModal" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
         Terminate Leases
       </button>
-      <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+      <button @click="openPendingPropertiesModal" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
         Accept Pending Properties
       </button>
-      <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+      <button @click="openPendingLeasesModal" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
         Approve Pending Leases
       </button>
       <button class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded">
@@ -77,51 +137,90 @@ const leaseChartOptions = ref({
       </button>
     </section>
 
-    <!-- Analytics Overview -->
+    <Dialog v-model:visible="showTerminateModal" modal header="Terminate Leases" class="w-full max-w-2xl rounded-xl shadow-lg">
+      <div v-if="isLoading" class="text-center py-6 text-gray-500">Loading leases...</div>
+      <div v-else-if="pendingLeases.length > 0" class="space-y-4">
+        <div
+            v-for="lease in pendingLeases"
+            :key="lease.id"
+            class="flex justify-between items-center p-4 bg-red-50 border border-red-200 rounded-lg"
+        >
+          <div>
+            <div>
+              <p class="font-semibold text-red-800">
+                Tenant: {{ lease.tenantFullName || lease.tenant?.name }} (ID: {{ lease.tenantId }})
+              </p>
+              <p class="text-sm text-gray-600">
+                Property ID: {{ lease.propertyId }}
+              </p>
+              <p class="text-xs text-red-500 italic">Termination Requested</p>
+            </div>
+            <p class="text-xs text-red-500 italic">Termination Requested</p>
+          </div>
+          <button
+              @click="terminateLease(lease.id)"
+              class="bg-red-600 text-white text-sm px-4 py-2 rounded hover:bg-red-700"
+          >
+            Approve
+          </button>
+        </div>
+      </div>
+      <div v-else class="text-center text-gray-600 py-8">
+        <p>No pending lease termination requests.</p>
+      </div>
+    </Dialog>
+
+    <!-- Pending Properties Modal -->
+    <Dialog v-model:visible="showPendingPropertiesModal" modal header="Pending Properties" class="w-full max-w-2xl rounded-xl shadow-lg">
+      <div v-if="isLoading" class="text-center py-6 text-gray-500">Loading properties...</div>
+      <div v-else-if="pendingProperties.length > 0" class="space-y-4">
+        <div v-for="property in pendingProperties" :key="property.id" class="p-4 border rounded bg-blue-50">
+          <p class="font-semibold text-blue-900">Property: {{ property.name || property.address }}</p>
+          <p class="text-sm text-gray-600">Owner ID: {{ property.ownerId }}</p>
+          <p class="text-sm text-gray-600">Status: {{ property.status }}</p>
+        </div>
+      </div>
+      <div v-else class="text-center text-gray-600 py-8">
+        <p>No pending properties found.</p>
+      </div>
+    </Dialog>
+
+    <!-- Pending Leases Modal -->
+    <Dialog v-model:visible="showPendingLeasesModal" modal header="Pending Leases" class="w-full max-w-2xl rounded-xl shadow-lg">
+      <div v-if="isLoading" class="text-center py-6 text-gray-500">Loading leases...</div>
+      <div v-else-if="pendingLeaseApprovals.length > 0" class="space-y-4">
+        <div v-for="lease in pendingLeaseApprovals" :key="lease.id" class="p-4 border rounded bg-green-50">
+          <p class="font-semibold text-green-900">Tenant ID: {{ lease.tenantId }}</p>
+          <p class="text-sm text-gray-600">Property ID: {{ lease.propertyId }}</p>
+          <p class="text-sm text-gray-600">Start Date: {{ lease.startDate }}</p>
+          <p class="text-sm text-gray-600">Monthly Rent: ${{ lease.monthlyRent }}</p>
+          <p class="text-sm text-gray-500 italic">Status: {{ lease.status }}</p>
+        </div>
+      </div>
+      <div v-else class="text-center text-gray-600 py-8">
+        <p>No pending leases found.</p>
+      </div>
+    </Dialog>
+
+
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white p-6 rounded shadow">
-        <p class="text-sm text-gray-500">Total Users</p>
-        <p class="text-2xl font-bold">{{ analytics.totalUsers }}</p>
-      </div>
-      <div class="bg-white p-6 rounded shadow">
-        <p class="text-sm text-gray-500">Active Landlords</p>
-        <p class="text-2xl font-bold">{{ analytics.activeLandlords }}</p>
-      </div>
-      <div class="bg-white p-6 rounded shadow">
-        <p class="text-sm text-gray-500">Active Tenants</p>
-        <p class="text-2xl font-bold">{{ analytics.activeTenants }}</p>
-      </div>
-      <div class="bg-white p-6 rounded shadow">
-        <p class="text-sm text-gray-500">Total Properties</p>
-        <p class="text-2xl font-bold">{{ analytics.totalProperties }}</p>
-      </div>
-      <div class="bg-white p-6 rounded shadow">
-        <p class="text-sm text-gray-500">Rented Properties</p>
-        <p class="text-2xl font-bold">{{ analytics.rentedProperties }}</p>
-      </div>
-      <div class="bg-white p-6 rounded shadow">
-        <p class="text-sm text-gray-500">Total Leases</p>
-        <p class="text-2xl font-bold">{{ analytics.totalLeases }}</p>
-      </div>
-      <div class="bg-white p-6 rounded shadow">
-        <p class="text-sm text-gray-500">Avg. Monthly Rent</p>
-        <p class="text-2xl font-bold">${{ analytics.avgRent }}</p>
-      </div>
-      <div class="bg-white p-6 rounded shadow">
-        <p class="text-sm text-gray-500">Total Payments</p>
-        <p class="text-2xl font-bold">${{ analytics.totalPayments }}</p>
-      </div>
-      <div class="bg-white p-6 rounded shadow">
-        <p class="text-sm text-gray-500">Pending Maintenance</p>
-        <p class="text-2xl font-bold">{{ analytics.pendingRequests }}</p>
-      </div>
-      <div class="bg-white p-6 rounded shadow">
-        <p class="text-sm text-gray-500">Avg. Maintenance Response</p>
-        <p class="text-2xl font-bold">{{ analytics.avgResolutionTime }} days</p>
+      <div class="bg-white p-6 rounded shadow" v-for="(value, key) in {
+        'Total Users': analytics.totalUsers,
+        'Active Landlords': analytics.activeLandlords,
+        'Active Tenants': analytics.activeTenants,
+        'Total Properties': analytics.totalProperties,
+        'Rented Properties': analytics.rentedProperties,
+        'Total Leases': analytics.totalLeases,
+        'Avg. Monthly Rent': `$${analytics.avgRent}`,
+        'Total Payments': `$${analytics.totalPayments}`,
+        'Pending Maintenance': analytics.pendingRequests,
+        'Avg. Maintenance Response': `${analytics.avgResolutionTime} days`
+      }" :key="key">
+        <p class="text-sm text-gray-500">{{ key }}</p>
+        <p class="text-2xl font-bold">{{ value }}</p>
       </div>
     </section>
 
-    <!-- Lease Trends Chart -->
     <section class="bg-white p-6 rounded shadow">
       <h2 class="text-lg font-semibold text-gray-700 mb-4">Lease Trends</h2>
       <div class="h-[300px]">
@@ -129,7 +228,6 @@ const leaseChartOptions = ref({
       </div>
     </section>
 
-    <!-- Landlord Ratings -->
     <section class="bg-white p-6 rounded shadow">
       <h2 class="text-lg font-semibold text-gray-700 mb-4">Top Rated Landlords</h2>
       <ul class="divide-y">
@@ -140,7 +238,6 @@ const leaseChartOptions = ref({
       </ul>
     </section>
 
-    <!-- Recent Activity -->
     <section class="bg-white p-6 rounded shadow">
       <h2 class="text-lg font-semibold text-gray-700 mb-4">Recent Activity</h2>
       <ul class="divide-y">
@@ -152,4 +249,3 @@ const leaseChartOptions = ref({
     </section>
   </div>
 </template>
-

@@ -93,3 +93,51 @@ export const createLease = async (leaseData) => {
         throw error
     }
 }
+
+export const approveLeaseTermination = async (leaseId) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/${leaseId}/terminate-decision?decision=APPROVED`, {
+        method: 'PATCH',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to approve lease termination');
+    }
+
+    return await response.json();
+};
+
+export const fetchPendingLeaseTerminations = async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/termination-requests`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch pending lease terminations');
+    }
+
+    return await response.json();
+};
+
+export const fetchPendingLeases = async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${BASE_URL}/lease/pending`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch pending leases');
+    }
+
+    return await response.json();
+};
+

@@ -68,3 +68,18 @@ export const addProperty = async (propertyDTO, attachments) => {
         throw error;
     }
 }
+
+export const fetchPendingProperties = async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${BASE_URL}/property/pending`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch pending properties');
+    }
+
+    return await response.json();
+};
