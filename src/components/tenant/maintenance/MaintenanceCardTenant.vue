@@ -14,22 +14,33 @@ const openSlider = (index) => {
   showModal.value = true;
 };
 
-defineProps({
+const props = defineProps({
   request: {
     type: Object,
     required: true
   }
-})
+});
 
+// Status label/color mapping
 const statusDisplay = {
   PENDING: { label: 'Pending', color: 'orange' },
   IN_PROGRESS: { label: 'In Progress', color: 'blue' },
   COMPLETED: { label: 'Completed', color: 'green' }
-}
+};
 
 const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleString()
-}
+  return new Date(dateString).toLocaleString();
+};
+
+// Track if user has responded
+const userFixedResponse = ref(props.request.is_fixed ?? null);
+const hasSubmittedResponse = ref(props.request.is_fixed !== null);
+
+const submitFixedStatus = () => {
+  // In real usage, you'd send this to the backend
+  hasSubmittedResponse.value = true;
+  // Optionally show a toast or emit an event
+};
 </script>
 
 <template>
@@ -74,14 +85,34 @@ const formatDate = (dateString) => {
       </div>
     </div>
 
-    <div class="text-xs text-gray-500 space-y-1">
+    <div class="text-xs text-gray-500 space-y-1 mb-4">
       <div><span class="font-medium">Submitted:</span> {{ formatDate(request.createdAt) }}</div>
       <div><span class="font-medium">Last Updated:</span> {{ formatDate(request.updatedAt) }}</div>
       <div v-if="request.status === 'COMPLETED'">
         <span class="font-medium">Resolution Time:</span> {{ request.resolution_time }} days
       </div>
-      <div v-if="request.status === 'COMPLETED'">
-        <span class="font-medium">Fixed?:</span> {{ request.is_fixed ? 'Yes' : 'No' }}
+    </div>
+
+    <div v-if="request.status === 'COMPLETED'" class="mt-4">
+      <h4 class="text-sm font-medium text-gray-700 mb-2">Is the issue fixed?</h4>
+
+      <div v-if="!hasSubmittedResponse" class="flex gap-3 items-center">
+        <button
+            @click="userFixedResponse = true; submitFixedStatus()"
+            class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-md transition"
+        >
+          Yes
+        </button>
+        <button
+            @click="userFixedResponse = false; submitFixedStatus()"
+            class="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-md transition"
+        >
+          No
+        </button>
+      </div>
+
+      <div v-else class="text-sm text-gray-800 mt-2">
+        ✅ You responded: <strong>{{ userFixedResponse ? 'Yes' : 'No' }}</strong>. An admin will contact you shortly.
       </div>
     </div>
 
@@ -97,4 +128,3 @@ const formatDate = (dateString) => {
     </div>
   </div>
 </template>
-

@@ -36,23 +36,35 @@ const loadPaymentData = async () => {
     loading.value = false
   }
 }
+const hasPaidThisCycle = computed(() => {
+  if (!lease.value || !payments.value.length) return false;
+
+  const startDate = new Date(lease.value.startDate);
+  const today = new Date();
+
+  const monthsSinceStart = (today.getFullYear() - startDate.getFullYear()) * 12 +
+      (today.getMonth() - startDate.getMonth());
+
+  const cycleStart = new Date(startDate);
+  cycleStart.setMonth(startDate.getMonth() + monthsSinceStart);
+
+  const nextCycleStart = new Date(cycleStart);
+  nextCycleStart.setMonth(cycleStart.getMonth() + 1);
+
+  return payments.value.some(payment => {
+    const paymentDate = new Date(payment.paymentDate);
+    return (
+        payment.status === 'COMPLETED' &&
+        paymentDate >= cycleStart &&
+        paymentDate < nextCycleStart
+    );
+  });
+});
 
 const currentBalance = computed(() => {
-  if (!lease.value) return 0
-  const currentMonth = new Date().getMonth() + 1
-  const currentYear = new Date().getFullYear()
+  return hasPaidThisCycle.value ? 0 : lease.value?.monthlyRent || 0;
+});
 
-  const hasPaidCurrentMonth = payments.value.some(payment => {
-    const paymentDate = new Date(payment.paymentDate)
-    return (
-        paymentDate.getMonth() + 1 === currentMonth &&
-        paymentDate.getFullYear() === currentYear &&
-        payment.status === 'COMPLETED'
-    )
-  })
-
-  return hasPaidCurrentMonth ? 0 : lease.value.monthlyRent
-})
 
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -100,6 +112,7 @@ const handleStripeCheckout = async () => {
 
 
 
+
 onMounted(() => {
   loadPaymentData()
 })
@@ -110,12 +123,12 @@ onMounted(() => {
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-semibold text-gray-800">Rent Payment Information</h1>
       <button
-          v-if="currentBalance > 0"
+          v-if="!loading && !hasPaidThisCycle"
           @click="handleStripeCheckout"
-          class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition"
       >
         Pay via Stripe
       </button>
+
     </div>
 
     <div v-if="loading" class="flex flex-col items-center justify-center text-center py-16">

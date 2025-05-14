@@ -1,6 +1,7 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { formatDate } from '@/components/utils/formatters.js'
+import { isPaymentMadeThisCycle } from '@/services/paymentService.js'
 
 const props = defineProps({
   lease: {
@@ -10,17 +11,34 @@ const props = defineProps({
 })
 
 const currentDate = new Date()
+const rentPaidThisMonth = ref(false)
+const loadingStatus = ref(true)
+
+const dueDay = new Date(props.lease.startDate).getDate()
 
 const rentStatus = computed(() => {
-  const dueDate = new Date(props.lease.startDate)
-  dueDate.setFullYear(currentDate.getFullYear(), currentDate.getMonth(), dueDate.getDate())
+  if (loadingStatus.value) {
+    return { status: 'checking...', class: 'text-gray-500 italic' }
+  }
 
-  return currentDate > dueDate
+  const dueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), dueDay)
+
+  return !rentPaidThisMonth.value && currentDate > dueDate
       ? { status: 'overdue', class: 'text-red-500 font-semibold' }
       : { status: 'current', class: 'text-green-600 font-semibold' }
 })
 
-const dueDay = new Date(props.lease.startDate).getDate()
+
+onMounted(async () => {
+  try {
+    rentPaidThisMonth.value = await isPaymentMadeThisCycle(props.lease.leaseId)
+  } catch (err) {
+    console.warn('Could not check payment status:', err)
+  } finally {
+    loadingStatus.value = false
+  }
+})
+
 </script>
 
 <template>
@@ -38,7 +56,10 @@ const dueDay = new Date(props.lease.startDate).getDate()
       <div class="bg-white shadow rounded p-5">
         <h3 class="font-semibold text-gray-800 mb-2">Rent Information</h3>
         <p><strong>$</strong>{{ lease.monthlyRent.toFixed(2) }} per month</p>
-        <p>Due on the {{ dueDay }}{{ dueDay === 1 ? 'st' : dueDay === 2 ? 'nd' : dueDay === 3 ? 'rd' : 'th' }} of each month</p>
+        <p>
+          Due on the {{ dueDay }}
+          {{ dueDay === 1 ? 'st' : dueDay === 2 ? 'nd' : dueDay === 3 ? 'rd' : 'th' }} of each month
+        </p>
         <p :class="rentStatus.class">Status: {{ rentStatus.status }}</p>
       </div>
     </div>

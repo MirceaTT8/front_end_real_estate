@@ -38,7 +38,22 @@ const loadPayments = async () => {
     leases.value = await fetchMyLeases()
     users.value = await fetchAllUsers()
     properties.value = await Promise.all(leases.value.map(lease => fetchPropertyById(lease.propertyId)))
-    tenants.value = await Promise.all(leases.value.map(lease => fetchUserById(lease.tenantId)))
+    tenants.value = await Promise.all(
+        leases.value.map(async lease => {
+          if (lease.tenantId) {
+            try {
+              return await fetchUserById(lease.tenantId)
+            } catch (e) {
+              console.warn(`Failed to fetch tenant ${lease.tenantId}:`, e)
+              return null
+            }
+          } else {
+            console.warn('Skipped null tenantId for lease:', lease.leaseId)
+            return null
+          }
+        })
+    )
+
 
     leases.value = leases.value.map(lease => ({
       ...lease,

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
 import 'swiper/css/navigation'
@@ -45,10 +45,11 @@ const openSlider = (index) => {
   showModal.value = true
 }
 
-// New: Maintenance cost logic
+// Maintenance cost logic
 const cost = ref(request.cost || '')
 const isSaving = ref(false)
 const saveError = ref(null)
+const isCostSaved = computed(() => !!request.cost)
 
 const saveCost = async () => {
   if (!cost.value || isNaN(cost.value)) {
@@ -60,7 +61,7 @@ const saveCost = async () => {
     isSaving.value = true
     saveError.value = null
     await setMaintenanceCost(request.requestId, parseFloat(cost.value))
-    // optionally emit an event or show confirmation
+    request.cost = parseFloat(cost.value) // mark as saved in UI
   } catch (err) {
     saveError.value = 'Failed to save cost'
     console.error(err)
@@ -146,20 +147,27 @@ const saveCost = async () => {
 
       <div v-if="request.status === 'COMPLETED'" class="flex flex-col gap-2">
         <label class="text-sm text-gray-700 font-medium">Maintenance Cost</label>
-        <input
-            v-model="cost"
-            type="number"
-            placeholder="Enter cost"
-            class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-            @click="saveCost"
-            :disabled="isSaving"
-            class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition"
-        >
-          {{ isSaving ? 'Saving...' : 'Save Cost' }}
-        </button>
-        <p v-if="saveError" class="text-red-500 text-sm">{{ saveError }}</p>
+
+        <div v-if="!isCostSaved">
+          <input
+              v-model="cost"
+              type="number"
+              placeholder="Enter cost"
+              class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+              @click="saveCost"
+              :disabled="isSaving"
+              class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition"
+          >
+            {{ isSaving ? 'Saving...' : 'Save Cost' }}
+          </button>
+          <p v-if="saveError" class="text-red-500 text-sm">{{ saveError }}</p>
+        </div>
+
+        <div v-else class="text-sm text-green-700 font-medium">
+          ✅ Cost saved: ${{ request.cost }}
+        </div>
       </div>
     </div>
 

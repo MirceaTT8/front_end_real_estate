@@ -150,3 +150,43 @@ export const confirmStripePayment = async (sessionId) => {
 
     return await response.json();
 };
+
+export const isPaymentMadeThisMonth = async (leaseId) => {
+    try {
+        const response = await fetch(`${API}/lease/${leaseId}/paid-this-month`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        return await response.json() // should return true or false
+    } catch (error) {
+        console.error(`Error checking payment status for lease ${leaseId}:`, error)
+        throw error
+    }
+}
+
+export const isPaymentMadeThisCycle = async (leaseId) => {
+    try {
+        const response = await fetch(`${API}/lease/${leaseId}/paid-this-cycle`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json(); // true or false
+    } catch (error) {
+        console.error(`Error checking payment status for lease ${leaseId}:`, error);
+        throw error;
+    }
+};
+
+
