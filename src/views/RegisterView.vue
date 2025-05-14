@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { jwtDecode } from 'jwt-decode'
+import { useAuthStore } from '@/stores/authStore.js'
 
 const firstName = ref('')
 const lastName = ref('')
@@ -11,6 +11,7 @@ const password = ref('')
 const phone = ref('')
 const error = ref('')
 const router = useRouter()
+const authStore = useAuthStore()
 
 const register = async () => {
   try {
@@ -23,19 +24,20 @@ const register = async () => {
     })
 
     const token = response.data.token
-    localStorage.setItem('token', token)
+    authStore.login(token)
 
-    const decoded = jwtDecode(token)
-    const roles = decoded.authorities || []
-
-    if (roles.includes('ROLE_LANDLORD')) {
-      router.push('/landlord')
-    } else if (roles.includes('ROLE_TENANT')) {
-      router.push('/tenant/dashboard')
-    } else if (roles.includes('ROLE_ADMIN')) {
-      router.push('/admin/dashboard')
-    } else {
-      error.value = 'Unauthorized role.'
+    switch (authStore.userRole) {
+      case 'ROLE_LANDLORD':
+        router.push('/landlord')
+        break
+      case 'ROLE_TENANT':
+        router.push('/tenant/leases')
+        break
+      case 'ROLE_ADMIN':
+        router.push('/admin/dashboard')
+        break
+      default:
+        error.value = 'Unauthorized role.'
     }
   } catch (err) {
     error.value = 'Registration failed. Check your input.'
@@ -43,7 +45,7 @@ const register = async () => {
 }
 
 const logout = () => {
-  localStorage.removeItem('token')
+  authStore.logout()
   router.push('/login')
 }
 </script>

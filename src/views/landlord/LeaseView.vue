@@ -33,7 +33,21 @@ const loadLeasesAndRelatedData = async () => {
   try {
     const leaseResults = await fetchMyLeases();
     const propertyResults = await Promise.all(leaseResults.map(lease => fetchPropertyById(lease.propertyId)))
-    const tenantResults = await Promise.all(leaseResults.map(lease => fetchUserById(lease.tenantId)))
+    const tenantResults = await Promise.all(
+        leaseResults.map(async lease => {
+          if (lease.tenantId) {
+            try {
+              return await fetchUserById(lease.tenantId);
+            } catch (e) {
+              console.warn(`Failed to fetch tenant for lease ${lease.leaseId}:`, e);
+              return null;
+            }
+          } else {
+            return null;
+          }
+        })
+    )
+
 
     leases.value = leaseResults
     properties.value = propertyResults

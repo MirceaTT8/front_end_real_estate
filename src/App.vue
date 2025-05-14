@@ -13,12 +13,12 @@ notificationStore.startPolling()
 onMounted(() => {
   const token = localStorage.getItem("token")
 
-  if (!token) {
+  /*if (!token) {
     if (!isPublic) {
       router.replace("/login")
     }
     return
-  }
+  }*/
 
   try {
     const decoded = jwtDecode(token)

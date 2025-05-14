@@ -1,136 +1,66 @@
-
 <script setup>
-import {onMounted, ref} from "vue";
-import Menubar from "primevue/menubar";
-import { PrimeIcons } from '@primevue/core/api';
-import UserDropdown from "@/components/UserDropdown.vue";
-import NotificationBell from "@/components/notification/NotificationBell.vue";
-import { jwtDecode } from "jwt-decode";
-import { useRoute} from "vue-router";
+import { onMounted, ref, computed, watch } from 'vue'
+import Menubar from 'primevue/menubar'
+import { PrimeIcons } from '@primevue/core/api'
+import UserDropdown from '@/components/UserDropdown.vue'
+import NotificationBell from '@/components/notification/NotificationBell.vue'
+import { useAuthStore } from '@/stores/authStore.js'
+import { useRoute } from 'vue-router'
 
 const route = useRoute()
+const authStore = useAuthStore()
 
-const currentMenu = ref([]);
+const currentMenu = ref([])
+
 const menuItems = {
   landlord: [
+    { label: 'Dashboard', icon: PrimeIcons.CHART_BAR, route: '/landlord' },
     {
-      label: "Dashboard",
-      icon: PrimeIcons.CHART_BAR,
-      route: "/landlord"
-    },
-    {
-      label: 'Property',
-      icon: PrimeIcons.HOME,
-      items: [
-        {
-          label: 'See Properties',
-          icon: 'pi pi-bolt',
-          route: "/landlord/properties"
-        },
-        {
-          label: 'Add Property',
-          icon: 'pi pi-bolt',
-          route: "/landlord/add-property"
-        }
+      label: 'Property', icon: PrimeIcons.HOME, items: [
+        { label: 'See Properties', icon: 'pi pi-bolt', route: '/landlord/properties' },
+        { label: 'Add Property', icon: 'pi pi-bolt', route: '/landlord/add-property' }
       ]
     },
-    {
-      label: "Leases",
-      icon: "pi pi-file",
-      route: "/landlord/leases"
-    },
-    {
-      label: "Payments",
-      icon: "pi pi-dollar",
-      route: "/landlord/payments"
-    },
-    {
-      label: "Maintenance",
-      icon: "pi pi-wrench",
-      route: "/landlord/maintenance"
-    }
+    { label: 'Leases', icon: 'pi pi-file', route: '/landlord/leases' },
+    { label: 'Payments', icon: 'pi pi-dollar', route: '/landlord/payments' },
+    { label: 'Maintenance', icon: 'pi pi-wrench', route: '/landlord/maintenance' }
   ],
   tenant: [
-    {
-      label: "Lease",
-      icon: PrimeIcons.HOME,
-      route: "/tenant/leases"
-    },
-    {
-      label: "Payments",
-      icon: "pi pi-dollar",
-      route: "/tenant/payments"
-    },
-    {
-      label: "Maintenance",
-      icon: "pi pi-wrench",
-      route: "/tenant/maintenance"
-    }
+    { label: 'Lease', icon: PrimeIcons.HOME, route: '/tenant/leases' },
+    { label: 'Payments', icon: 'pi pi-dollar', route: '/tenant/payments' },
+    { label: 'Maintenance', icon: 'pi pi-wrench', route: '/tenant/maintenance' }
   ],
   admin: [
-    {
-      label: "Dashboard",
-      icon: PrimeIcons.CHART_BAR,
-      route: "/admin/dashboard"
-    },
-    {
-      label: "User Management",
-      icon: "pi pi-users",
-      route: "/admin/users"
-    },
-    {
-      label: "System Logs",
-      icon: "pi pi-cog",
-      route: "/admin/logs"
-    },
-    /*
-{
-label: "Reports",
-icon: "pi pi-chart-bar",
-items: [
-  {
-    label: "Financial",
-    route: "/admin/reports/financial"
-  },
-  {
-    label: "Activity",
-    route: "/admin/reports/activity"
-  }
-]
+    { label: 'Dashboard', icon: PrimeIcons.CHART_BAR, route: '/admin/dashboard' },
+    { label: 'User Management', icon: 'pi pi-users', route: '/admin/users' },
+    { label: 'System Logs', icon: 'pi pi-cog', route: '/admin/logs' }
+  ]
 }
 
- */
-]
-};
-
+const updateMenu = () => {
+  const role = authStore.userRole
+  if (role === 'ROLE_LANDLORD') currentMenu.value = menuItems.landlord
+  else if (role === 'ROLE_TENANT') currentMenu.value = menuItems.tenant
+  else if (role === 'ROLE_ADMIN') currentMenu.value = menuItems.admin
+  else currentMenu.value = []
+}
 
 onMounted(() => {
-  const token = localStorage.getItem("token");
-  if (!token) return;
+  updateMenu()
+})
 
-  const publicRoutes = ["/login", "/register"];
-  if (publicRoutes.includes(route.path)) return;
+watch(() => authStore.userRole, updateMenu)
+watch(() => route.path, updateMenu)
 
-  try {
-    const decoded = jwtDecode(token);
-    const roles = decoded?.authorities || [];
-
-    if (roles.includes("ROLE_LANDLORD")) {
-      currentMenu.value = menuItems.landlord;
-    } else if (roles.includes("ROLE_TENANT")) {
-      currentMenu.value = menuItems.tenant;
-    } else if (roles.includes("ROLE_ADMIN")) {
-      currentMenu.value = menuItems.admin;
-    }
-  } catch (err) {
-    console.error("Invalid token:", err);
-  }
-});
+const hideRoutes = ['/login', '/register', '/payment/success']
+const showNavBar = computed(() => {
+  return authStore.isAuthenticated && !hideRoutes.includes(route.path)
+})
 </script>
 
 <template>
-  <div class="card w-full bg-blue-500 p-0 m-0">
-    <Menubar v-if="currentMenu.length > 0" :model="currentMenu" class="w-full p-0 m-0">
+  <div v-if="showNavBar" class="card w-full bg-blue-500 p-0 m-0">
+    <Menubar :model="currentMenu" class="w-full p-0 m-0">
       <template #start>
         <router-link to="/">
           <span class="logo">Immobille</span>
@@ -140,14 +70,12 @@ onMounted(() => {
       <template #item="{ item, props }">
         <div class="flex items-center gap-2 p-4 bg-blue-500 text-white hover:bg-blue-600 transition-colors">
           <template v-if="item.items">
-            <!-- Dropdown items (like Property) -->
             <div v-bind="props.action" class="flex items-center">
               <i v-if="item.icon" :class="item.icon" class="mr-2"></i>
               <span class="font-bold">{{ item.label }}</span>
             </div>
           </template>
           <template v-else>
-            <!-- Regular route items -->
             <router-link v-slot="{ href, navigate }" :to="item.route" custom>
               <a :href="href" v-bind="props.action" @click="navigate" class="flex items-center">
                 <i v-if="item.icon" :class="item.icon" class="mr-2"></i>
@@ -176,12 +104,10 @@ onMounted(() => {
   font-size: 1.5rem;
 }
 
-/* Style for active menu items */
 :deep(.router-link-active) {
   @apply bg-blue-600;
 }
 
-/* Dropdown menu styling */
 :deep(.p-menubar-root-list) {
   background: #3b82f6;
 }
