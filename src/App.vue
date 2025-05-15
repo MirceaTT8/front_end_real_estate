@@ -13,12 +13,6 @@ notificationStore.startPolling()
 onMounted(() => {
   const token = localStorage.getItem("token")
 
-  /*if (!token) {
-    if (!isPublic) {
-      router.replace("/login")
-    }
-    return
-  }*/
 
   try {
     const decoded = jwtDecode(token)
@@ -36,7 +30,7 @@ onMounted(() => {
 
 <template>
   <main>
-    <NavBar v-if="isAuthenticated && !isPublicRoute" />
+    <NavBar v-if="isAuthenticated" />
     <RouterView class="router-view" />
   </main>
 </template>

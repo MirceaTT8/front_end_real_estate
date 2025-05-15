@@ -5,6 +5,7 @@ import ProfileView from "@/views/ProfileView.vue"
 import DashboardView from "@/views/landlord/DashboardView.vue"
 import LoginView from "@/views/LoginView.vue"
 import RegisterView from "@/views/RegisterView.vue"
+import InvitedRegisterView from "@/views/InvitedRegisterView.vue";
 
 const PropertyView = () => import('@/views/landlord/PropertyView.vue')
 const PropertyDetailsView = () => import('@/views/landlord/PropertyDetailsView.vue')
@@ -24,13 +25,10 @@ import LogsView from "@/views/admin/LogsView.vue"
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
-        {
-            path: '/payment/success',
-            name: 'PaymentSuccess',
-            component: PaymentSuccessView
-        },
+        { path: '/payment/success', name: 'PaymentSuccess', component: PaymentSuccessView },
         { path: '/register', name: 'Register', component: RegisterView },
         { path: '/login', name: 'Login', component: LoginView },
+        { path: '/invite', name: 'InvitedRegister', component: InvitedRegisterView },
         {
             path: '/',
             redirect: () => {

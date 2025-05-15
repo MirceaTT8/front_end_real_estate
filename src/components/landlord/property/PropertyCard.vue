@@ -13,6 +13,7 @@ defineProps({
 const statusColors = {
   AVAILABLE: { bg: 'bg-green-100', text: 'text-green-800' },
   RENTED: { bg: 'bg-amber-100', text: 'text-amber-800' },
+  INACTIVE: { bg: 'bg-amber-100', text: 'text-amber-800' },
   MAINTENANCE: { bg: 'bg-red-100', text: 'text-red-800' }
 }
 
