@@ -4,6 +4,8 @@ import {
   getTenantNameByLeaseId
 } from '@/utils/leaseNameUtils';
 
+import {requestLeaseTermination} from "@/services/leaseService.js";
+
 defineProps({
   leases: {
     type: Array,
@@ -30,8 +32,14 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString();
 };
 
-const handleTerminate = (leaseId) => {
-  emit('terminate', leaseId);
+const handleTerminate = async (leaseId) => {
+  try {
+    await requestLeaseTermination(leaseId); // 🔁 Call the backend API
+    emit('terminate', leaseId); // 🔁 Notify parent to refresh or update list
+  } catch (error) {
+    console.error('Termination request failed:', error);
+    alert('Failed to request lease termination.');
+  }
 };
 </script>
 
@@ -91,14 +99,31 @@ const handleTerminate = (leaseId) => {
         >
           View Details
         </router-link>
+
+        <div
+            v-if="lease.terminationStatus === 'PENDING'"
+            class="text-orange-600 font-medium px-4 py-2 rounded-md bg-orange-100"
+        >
+          Termination Requested
+        </div>
+
+        <div
+            v-else-if="lease.terminationStatus === 'APPROVED'"
+            class="text-green-700 font-medium px-4 py-2 rounded-md bg-green-100"
+        >
+          Termination Approved
+        </div>
+
         <button
-            v-if="lease.status === 'ACTIVE'"
+            v-else-if="lease.status === 'ACTIVE'"
             @click="handleTerminate(lease.leaseId)"
             class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors"
         >
           Terminate
         </button>
       </div>
+
+
     </div>
   </div>
 </template>

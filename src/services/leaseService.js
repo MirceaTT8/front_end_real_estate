@@ -172,3 +172,42 @@ export const rejectLease = async (leaseId) => {
 
     return await response.json();
 };
+
+export const requestLeaseTermination = async (leaseId) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/${leaseId}/terminate-request`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to request lease termination');
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+};
+
+export const decideLeaseTermination = async (leaseId, decision) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/${leaseId}/terminate-decision?decision=${decision}`, {
+        method: 'PATCH',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to process lease termination decision');
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+};
+
+
+

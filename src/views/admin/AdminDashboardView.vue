@@ -7,7 +7,7 @@ import {
   fetchPendingLeaseTerminations,
   fetchPendingLeases,
   approveLease,
-  rejectLease
+  rejectLease, decideLeaseTermination
 } from '@/services/leaseService'
 import { fetchPendingProperties } from '@/services/propertyService'
 
@@ -57,13 +57,25 @@ const openPendingPropertiesModal = async () => {
 
 const terminateLease = async (id) => {
   try {
-    await approveLeaseTermination(id)
-    pendingLeases.value = pendingLeases.value.filter(lease => lease.leaseId !== id)
+    await decideLeaseTermination(id, 'APPROVED');
+    pendingLeases.value = pendingLeases.value.filter(lease => lease.leaseId !== id);
   } catch (err) {
-    console.error('Failed to approve lease termination:', err)
-    alert('Failed to approve termination. Please try again.')
+    console.error('Failed to approve lease termination:', err);
+    alert('Failed to approve termination. Please try again.');
   }
-}
+};
+
+const rejectTerminationRequest = async (id) => {
+  try {
+    await decideLeaseTermination(id, 'REJECTED');
+    pendingLeases.value = pendingLeases.value.filter(lease => lease.leaseId !== id);
+  } catch (err) {
+    console.error('Failed to reject lease termination:', err);
+    alert('Failed to reject termination. Please try again.');
+  }
+};
+
+
 
 const approvePendingLease = async (id) => {
   try {
@@ -171,6 +183,35 @@ const leaseChartOptions = ref({
       </div>
       <div v-else class="text-center text-gray-600 py-8">
         <p>No pending properties found.</p>
+      </div>
+    </Dialog>
+
+    <!-- Termination Requests Modal -->
+    <Dialog v-model:visible="showTerminateModal" modal header="Lease Termination Requests" class="w-full max-w-2xl rounded-xl shadow-lg">
+      <div v-if="isLoading" class="text-center py-6 text-gray-500">Loading termination requests...</div>
+
+      <div v-else-if="pendingLeases.length > 0" class="space-y-4">
+        <div v-for="lease in pendingLeases" :key="lease.leaseId" class="p-4 border rounded bg-red-50 space-y-2">
+          <p class="font-semibold text-red-900">Tenant ID: {{ lease.tenantId }}</p>
+          <p class="text-sm text-gray-600">Property ID: {{ lease.propertyId }}</p>
+          <p class="text-sm text-gray-600">Start Date: {{ lease.startDate }}</p>
+          <p class="text-sm text-gray-600">End Date: {{ lease.endDate }}</p>
+          <p class="text-sm text-gray-600">Monthly Rent: ${{ lease.monthlyRent }}</p>
+          <p class="text-sm text-gray-500 italic">Termination Status: {{ lease.terminationStatus }}</p>
+
+          <div class="flex gap-2">
+            <button @click="terminateLease(lease.leaseId)" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+              Approve
+            </button>
+            <button @click="rejectTerminationRequest(lease.leaseId)" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+              Reject
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="text-center text-gray-600 py-8">
+        <p>No termination requests found.</p>
       </div>
     </Dialog>
 
