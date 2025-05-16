@@ -69,8 +69,6 @@ export const fetchMyLeases = async () => {
     return text ? JSON.parse(text) : [];
 }
 
-
-
 export const createLease = async (leaseData) => {
     try {
         console.log(leaseData);
@@ -141,3 +139,36 @@ export const fetchPendingLeases = async () => {
     return await response.json();
 };
 
+export const approveLease = async (leaseId) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/${leaseId}/approve`, {
+        method: 'PATCH',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to approve lease');
+    }
+
+    return await response.json();
+};
+
+export const rejectLease = async (leaseId) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/${leaseId}/reject`, {
+        method: 'PATCH',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to reject lease');
+    }
+
+    return await response.json();
+};

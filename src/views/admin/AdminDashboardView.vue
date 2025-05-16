@@ -5,7 +5,9 @@ import Dialog from 'primevue/dialog'
 import {
   approveLeaseTermination,
   fetchPendingLeaseTerminations,
-  fetchPendingLeases
+  fetchPendingLeases,
+  approveLease,
+  rejectLease
 } from '@/services/leaseService'
 import { fetchPendingProperties } from '@/services/propertyService'
 
@@ -13,7 +15,7 @@ const showTerminateModal = ref(false)
 const showPendingLeasesModal = ref(false)
 const showPendingPropertiesModal = ref(false)
 const pendingLeases = ref([])
-const pendingApprovalLeases = ref([])
+const pendingLeaseApprovals = ref([])
 const pendingProperties = ref([])
 const isLoading = ref(false)
 
@@ -33,7 +35,7 @@ const openPendingLeasesModal = async () => {
   showPendingLeasesModal.value = true
   isLoading.value = true
   try {
-    pendingApprovalLeases.value = await fetchPendingLeases()
+    pendingLeaseApprovals.value = await fetchPendingLeases()
   } catch (err) {
     console.error('Error fetching pending leases:', err)
   } finally {
@@ -56,10 +58,30 @@ const openPendingPropertiesModal = async () => {
 const terminateLease = async (id) => {
   try {
     await approveLeaseTermination(id)
-    pendingLeases.value = pendingLeases.value.filter(lease => lease.id !== id)
+    pendingLeases.value = pendingLeases.value.filter(lease => lease.leaseId !== id)
   } catch (err) {
     console.error('Failed to approve lease termination:', err)
     alert('Failed to approve termination. Please try again.')
+  }
+}
+
+const approvePendingLease = async (id) => {
+  try {
+    await approveLease(id)
+    pendingLeaseApprovals.value = pendingLeaseApprovals.value.filter(lease => lease.leaseId !== id)
+  } catch (err) {
+    console.error('Failed to approve lease:', err)
+    alert('Failed to approve lease. Please try again.')
+  }
+}
+
+const rejectPendingLease = async (id) => {
+  try {
+    await rejectLease(id)
+    pendingLeaseApprovals.value = pendingLeaseApprovals.value.filter(lease => lease.leaseId !== id)
+  } catch (err) {
+    console.error('Failed to reject lease:', err)
+    alert('Failed to reject lease. Please try again.')
   }
 }
 
@@ -113,8 +135,8 @@ const leaseChartOptions = ref({
     }
   }
 })
-</script>
 
+</script>
 <template>
   <div class="max-w-6xl mx-auto px-4 py-8 space-y-8">
     <h1 class="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
@@ -137,39 +159,6 @@ const leaseChartOptions = ref({
       </button>
     </section>
 
-    <Dialog v-model:visible="showTerminateModal" modal header="Terminate Leases" class="w-full max-w-2xl rounded-xl shadow-lg">
-      <div v-if="isLoading" class="text-center py-6 text-gray-500">Loading leases...</div>
-      <div v-else-if="pendingLeases.length > 0" class="space-y-4">
-        <div
-            v-for="lease in pendingLeases"
-            :key="lease.id"
-            class="flex justify-between items-center p-4 bg-red-50 border border-red-200 rounded-lg"
-        >
-          <div>
-            <div>
-              <p class="font-semibold text-red-800">
-                Tenant: {{ lease.tenantFullName || lease.tenant?.name }} (ID: {{ lease.tenantId }})
-              </p>
-              <p class="text-sm text-gray-600">
-                Property ID: {{ lease.propertyId }}
-              </p>
-              <p class="text-xs text-red-500 italic">Termination Requested</p>
-            </div>
-            <p class="text-xs text-red-500 italic">Termination Requested</p>
-          </div>
-          <button
-              @click="terminateLease(lease.id)"
-              class="bg-red-600 text-white text-sm px-4 py-2 rounded hover:bg-red-700"
-          >
-            Approve
-          </button>
-        </div>
-      </div>
-      <div v-else class="text-center text-gray-600 py-8">
-        <p>No pending lease termination requests.</p>
-      </div>
-    </Dialog>
-
     <!-- Pending Properties Modal -->
     <Dialog v-model:visible="showPendingPropertiesModal" modal header="Pending Properties" class="w-full max-w-2xl rounded-xl shadow-lg">
       <div v-if="isLoading" class="text-center py-6 text-gray-500">Loading properties...</div>
@@ -189,12 +178,21 @@ const leaseChartOptions = ref({
     <Dialog v-model:visible="showPendingLeasesModal" modal header="Pending Leases" class="w-full max-w-2xl rounded-xl shadow-lg">
       <div v-if="isLoading" class="text-center py-6 text-gray-500">Loading leases...</div>
       <div v-else-if="pendingLeaseApprovals.length > 0" class="space-y-4">
-        <div v-for="lease in pendingLeaseApprovals" :key="lease.id" class="p-4 border rounded bg-green-50">
+        <div v-for="lease in pendingLeaseApprovals" :key="lease.leaseId" class="p-4 border rounded bg-green-50 space-y-2">
           <p class="font-semibold text-green-900">Tenant ID: {{ lease.tenantId }}</p>
           <p class="text-sm text-gray-600">Property ID: {{ lease.propertyId }}</p>
           <p class="text-sm text-gray-600">Start Date: {{ lease.startDate }}</p>
           <p class="text-sm text-gray-600">Monthly Rent: ${{ lease.monthlyRent }}</p>
           <p class="text-sm text-gray-500 italic">Status: {{ lease.status }}</p>
+
+          <div class="flex gap-2">
+            <button @click="approvePendingLease(lease.leaseId)" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+              Approve
+            </button>
+            <button @click="rejectPendingLease(lease.leaseId)" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+              Reject
+            </button>
+          </div>
         </div>
       </div>
       <div v-else class="text-center text-gray-600 py-8">
