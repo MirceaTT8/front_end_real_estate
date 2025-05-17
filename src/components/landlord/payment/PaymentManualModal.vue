@@ -1,9 +1,10 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, watch, ref } from 'vue'
 import {
   getPropertyNameByLeaseId,
   getTenantNameByLeaseId
 } from '@/utils/leaseNameUtils.js'
+import { isPaymentMadeThisCycle } from '@/services/paymentService.js' // Adjust path as needed
 
 const props = defineProps({
   leases: Array,
@@ -14,11 +15,47 @@ const props = defineProps({
 
 const emit = defineEmits(['submit', 'cancel'])
 
+const isLeaseActive = ref(true)
+const alreadyPaid = ref(false)
+const errorMsg = ref('')
+
+// Automatically set amount and validate lease on selection
+watch(
+    () => props.newPayment.leaseId,
+    async (leaseId) => {
+      if (!leaseId) return
+
+      const selectedLease = props.leases.find(lease => lease.leaseId === leaseId)
+
+      if (!selectedLease) return
+
+      isLeaseActive.value = selectedLease.status === 'ACTIVE'
+
+      try {
+        alreadyPaid.value = await isPaymentMadeThisCycle(leaseId)
+      } catch (error) {
+        alreadyPaid.value = false
+        console.error('Failed to check payment status:', error)
+      }
+
+      if (!isLeaseActive.value) {
+        errorMsg.value = 'This lease is not active.'
+      } else if (alreadyPaid.value) {
+        errorMsg.value = 'Payment has already been made for this billing cycle.'
+      } else {
+        errorMsg.value = ''
+        props.newPayment.amount = selectedLease.monthlyRent
+      }
+    }
+)
+
 const isFormValid = computed(() =>
     props.newPayment.leaseId &&
     props.newPayment.amount > 0 &&
     props.newPayment.paymentDate &&
-    props.newPayment.paymentMethod
+    props.newPayment.paymentMethod &&
+    isLeaseActive.value &&
+    !alreadyPaid.value
 )
 
 const resolvePropertyName = (leaseId) =>
@@ -42,10 +79,21 @@ const resolveTenantName = (leaseId) =>
                 required
                 class="block w-full pl-3 pr-10 py-2 border rounded-md focus:ring-2 focus:ring-green-500"
             >
-              <option v-for="lease in props.leases" :key="lease.leaseId" :value="lease.leaseId">
+              <option
+                  v-for="lease in props.leases.filter(
+      l => l.status === 'ACTIVE' && l.terminationStatus !== 'APPROVED'
+    )"
+                  :key="lease.leaseId"
+                  :value="lease.leaseId"
+              >
                 {{ resolvePropertyName(lease.leaseId) }} ({{ resolveTenantName(lease.leaseId) }})
               </option>
             </select>
+
+          </div>
+
+          <div v-if="errorMsg" class="text-sm text-red-600 mb-3">
+            {{ errorMsg }}
           </div>
 
           <div class="mb-4">
@@ -56,7 +104,8 @@ const resolveTenantName = (leaseId) =>
                 min="0"
                 step="0.01"
                 required
-                class="block w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500"
+                readonly
+                class="block w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-700 cursor-not-allowed"
             />
           </div>
 
