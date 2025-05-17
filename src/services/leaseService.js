@@ -209,5 +209,22 @@ export const decideLeaseTermination = async (leaseId, decision) => {
     return text ? JSON.parse(text) : null;
 };
 
+export const createInvitation = async (leaseData) => {
+    const response = await fetch(`${API}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(leaseData)
+    })
+
+    if (!response.ok) {
+        throw new Error(`Failed to send invitation: ${response.statusText}`)
+    }
+
+    return await response.text()
+}
+
 
 

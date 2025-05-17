@@ -1,11 +1,13 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { fetchMyLeases, createLease } from '@/services/leaseService.js';
-import { fetchAllUsers, fetchUserById } from '@/services/userService.js';
+import { fetchMyLeases } from '@/services/leaseService.js';
+import { fetchUserById } from '@/services/userService.js';
 import { fetchPropertyById } from '@/services/propertyService.js';
 import LeaseList from '@/components/landlord/lease/LeaseList.vue';
 import LeaseSummaryCards from '@/components/landlord/lease/LeaseSummaryCards.vue';
 import LeaseTabs from '@/components/landlord/lease/LeaseTabs.vue';
+import LeaseCreateModal from "@/components/landlord/lease/LeaseCreateModal.vue";
+import {createWebHistory as $router} from "vue-router/dist/vue-router.esm-browser.js";
 
 const leases = ref([])
 const properties = ref([])
@@ -48,34 +50,11 @@ const loadLeasesAndRelatedData = async () => {
         })
     )
 
-
     leases.value = leaseResults
     properties.value = propertyResults
     tenants.value = tenantResults
   } catch (err) {
     error.value = err.message || 'Failed to load leases'
-  } finally {
-    loading.value = false
-  }
-}
-
-const handleCreateLease = async () => {
-  try {
-    loading.value = true
-    const createdLease = await createLease(newLease.value)
-    leases.value.push(createdLease)
-    showCreateModal.value = false
-
-    newLease.value = {
-      propertyId: null,
-      tenantId: null,
-      startDate: '',
-      endDate: '',
-      monthlyRent: 0,
-      status: 'ACTIVE'
-    }
-  } catch (err) {
-    error.value = err.message || 'Failed to create lease'
   } finally {
     loading.value = false
   }
@@ -120,83 +99,15 @@ const handleTerminate = (leaseId) => {
       </button>
     </header>
 
-    <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
-        <div class="p-6">
-          <h2 class="text-xl font-bold mb-4">Create New Lease</h2>
+    <LeaseCreateModal
+        v-if="showCreateModal"
+        @cancel="showCreateModal = false"
+        @success="() => {
+        showCreateModal = false
+        loadLeasesAndRelatedData()
+      }"
+    />
 
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Property ID</label>
-              <input
-                  v-model.number="newLease.propertyId"
-                  type="number"
-                  class="w-full p-2 border rounded"
-                  placeholder="Enter property ID"
-              >
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Tenant ID</label>
-              <input
-                  v-model.number="newLease.tenantId"
-                  type="number"
-                  class="w-full p-2 border rounded"
-                  placeholder="Enter tenant ID"
-              >
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                <input
-                    v-model="newLease.startDate"
-                    type="date"
-                    class="w-full p-2 border rounded"
-                >
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                <input
-                    v-model="newLease.endDate"
-                    type="date"
-                    class="w-full p-2 border rounded"
-                >
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Rent</label>
-                <input
-                    v-model.number="newLease.monthlyRent"
-                    type="number"
-                    class="w-full p-2 border rounded"
-                    placeholder="0.00"
-                >
-              </div>
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-2 mt-6">
-            <button
-                @click="showCreateModal = false"
-                class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100"
-            >
-              Cancel
-            </button>
-            <button
-                @click="handleCreateLease"
-                :disabled="loading"
-                class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-300"
-            >
-              {{ loading ? 'Creating...' : 'Create Lease' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <div v-if="loading" class="flex flex-col items-center justify-center py-12">
       <div class="w-10 h-10 border-4 border-gray-200 border-t-green-500 rounded-full animate-spin mb-4"></div>
@@ -242,12 +153,6 @@ const handleTerminate = (leaseId) => {
         <div class="text-5xl mb-4 opacity-50">📄</div>
         <h3 class="text-xl font-semibold text-gray-800 mb-2">No leases found</h3>
         <p class="text-gray-600 mb-6">You don't have any {{ activeTab }} leases yet.</p>
-        <router-link
-            to="/leases/new"
-            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors inline-block"
-        >
-          Create New Lease
-        </router-link>
       </div>
     </div>
   </div>
