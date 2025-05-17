@@ -10,6 +10,12 @@ import { fetchMaintenanceRequestsByLoggedInOwner } from '@/services/maintenanceS
 import { fetchMyLeases } from '@/services/leaseService.js'
 import { fetchRecentLogs } from '@/services/logsService.js'
 import { formatActivityLogs } from '@/utils/formatActivityLog.js'
+import MonthlySummary from "@/components/landlord/dashboard/MonthlySummary.vue";
+import RecentActivity from "@/components/landlord/dashboard/RecentActivity.vue";
+import UpcomingDeadlines from "@/components/landlord/dashboard/UpcomingDeadlines.vue";
+import FinancialOverview from "@/components/landlord/dashboard/FinancialOverview.vue";
+import ActivityModal from "@/components/landlord/dashboard/ActivityModal.vue";
+import CalendarModal from "@/components/landlord/dashboard/CalendarModal.vue";
 
 const showActivityModal = ref(false)
 const showCalendar = ref(false)
@@ -232,7 +238,6 @@ onMounted(async () => {
 
 <template>
   <div class="max-w-[1400px] mx-auto p-6 grid grid-cols-12 gap-6">
-    <!-- Header -->
     <header class="col-span-full flex justify-between items-center">
       <h1 class="text-2xl font-bold text-gray-800">Landlord Dashboard</h1>
       <div class="text-sm text-gray-500">
@@ -240,150 +245,42 @@ onMounted(async () => {
       </div>
     </header>
 
-    <!-- Monthly Summary -->
-    <section class="col-span-full md:col-span-4 bg-white rounded-lg shadow p-6">
-      <h2 class="text-xl font-semibold text-gray-700 mb-4">Monthly Summary</h2>
-      <div class="space-y-4">
-        <div class="p-4 bg-green-50 rounded-lg">
-          <p class="text-sm text-green-700">Collected Rent</p>
-          <p class="text-2xl font-bold">${{ rentPaymentsLastMonth.toLocaleString() }}</p>
-          <p class="text-xs text-green-600">Past 30 days</p>
-        </div>
-        <div class="p-4 bg-purple-50 rounded-lg">
-          <p class="text-sm text-purple-700">Occupancy Rate</p>
-          <p class="text-2xl font-bold">{{ occupancyRate }}%</p>
-          <p class="text-xs text-purple-600">{{ vacantUnits }} units available</p>
-        </div>
-        <div class="p-4 bg-orange-50 rounded-lg">
-          <p class="text-sm text-orange-700">Maintenance Costs</p>
-          <p class="text-2xl font-bold">${{ maintenanceCostThisMonth.toLocaleString() }}</p>
-          <p class="text-xs text-orange-600">Past 30 days</p>
-        </div>
-      </div>
-    </section>
+    <MonthlySummary
+        :rent-payments-last-month="rentPaymentsLastMonth"
+        :occupancy-rate="occupancyRate"
+        :vacant-units="vacantUnits"
+        :maintenance-cost-this-month="maintenanceCostThisMonth"
+    />
 
-    <!-- Recent Activity -->
-    <section class="col-span-full md:col-span-4 bg-white rounded-lg shadow p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-semibold text-gray-700">Recent Activity</h2>
-        <button v-if="activities.length > 5" @click="showActivityModal = true"
-                class="text-sm text-blue-600 hover:underline">
-          View All
-        </button>
-      </div>
-      <div class="space-y-4">
-        <div
-            v-for="(activity, index) in activities.slice(0, 5)"
-            :key="index"
-            class="flex gap-3 items-start p-3 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          <div class="mt-1 text-xl">
-            <span v-if="activity.type === 'payment'">💰</span>
-            <span v-else-if="activity.type === 'maintenance'">🔧</span>
-            <span v-else-if="activity.type === 'lease'">📝</span>
-            <span v-else>✉️</span>
-          </div>
-          <div>
-            <p class="font-medium">{{ activity.description }}</p>
-            <p class="text-sm text-gray-500">{{ activity.time }}</p>
-          </div>
-        </div>
-      </div>
-    </section>
+    <RecentActivity
+        :activities="activities"
+        @view-all="showActivityModal = true"
+    />
 
-    <!-- Upcoming Deadlines -->
-    <section class="col-span-full md:col-span-4 bg-white rounded-lg shadow p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-semibold text-gray-700">Upcoming Deadlines</h2>
-        <button class="text-sm text-blue-600 hover:underline" @click="showCalendar = true">
-          View Calendar
-        </button>
-      </div>
-      <div class="space-y-3">
-        <div
-            v-for="(event, index) in calendarEvents.slice(0, 5)"
-            :key="index"
-            class="p-3 border-l-4 bg-blue-50 rounded-r-lg"
-            :class="{
-            'border-blue-500': event.class === 'payment-event',
-            'border-green-500': event.class === 'lease-event',
-            'border-red-500': event.class === 'maintenance-event'
-          }"
-        >
-          <p class="font-medium">{{ event.title }}</p>
-          <p class="text-sm text-gray-600">{{ new Date(event.start).toLocaleDateString() }}</p>
-        </div>
-      </div>
-    </section>
+    <UpcomingDeadlines
+        :calendar-events="calendarEvents"
+        @view-calendar="showCalendar = true"
+    />
 
-    <section class="col-span-full bg-white rounded-lg shadow p-6">
-      <h2 class="text-xl font-semibold text-gray-700 mb-4">Financial Overview</h2>
+    <FinancialOverview
+        :range-options="rangeOptions"
+        :active-range="activeRange"
+        :filtered-chart-data="filteredChartData"
+        :chart-options="chartOptions"
+        @change-range="activeRange = $event"
+    />
+    <ActivityModal
+        v-if="showActivityModal"
+        :activities="activities"
+        @close="showActivityModal = false"
+    />
 
-      <div class="flex gap-2 mb-4">
-        <button
-            v-for="range in rangeOptions"
-            :key="range.value"
-            :disabled="!range.enabled"
-            @click="activeRange = range.value"
-            class="px-3 py-1 text-sm rounded border"
-            :class="[
-        range.enabled ? 'hover:bg-blue-100' : 'opacity-50 cursor-not-allowed',
-        activeRange === range.value ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 border-blue-600'
-      ]"
-        >
-          {{ range.label }}
-        </button>
-      </div>
+    <CalendarModal
+        v-if="showCalendar"
+        :calendar-events="calendarEvents"
+        @close="showCalendar = false"
+    />
 
-      <div class="h-[300px] relative">
-        <Chart
-            type="bar"
-            :data="filteredChartData"
-            :options="chartOptions"
-            class="w-full h-full"
-        />
-      </div>
-    </section>
-  </div>
-
-  <!-- Activity Modal -->
-  <div v-if="showActivityModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-xl p-6 max-w-xl w-full max-h-[90vh] overflow-y-auto relative">
-      <button @click="showActivityModal = false" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg">✕</button>
-      <h2 class="text-xl font-semibold mb-4 text-gray-800">All Activity</h2>
-      <div class="space-y-4">
-        <div
-            v-for="(activity, index) in activities"
-            :key="index"
-            class="flex gap-3 items-start p-3 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          <div class="mt-1 text-xl">
-            <span v-if="activity.type === 'payment'">💰</span>
-            <span v-else-if="activity.type === 'maintenance'">🔧</span>
-            <span v-else-if="activity.type === 'lease'">📝</span>
-            <span v-else>✉️</span>
-          </div>
-          <div>
-            <p class="font-medium">{{ activity.description }}</p>
-            <p class="text-sm text-gray-500">{{ activity.time }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Vue Cal Calendar Modal -->
-  <div v-if="showCalendar" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-    <div class="bg-white p-6 rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto relative">
-      <button @click="showCalendar = false" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-lg">✕</button>
-      <h2 class="text-xl font-semibold mb-4 text-gray-800">Calendar</h2>
-      <VueCal
-          :events="calendarEvents"
-          :time="false"
-          default-view="month"
-          style="height: 600px"
-      />
-    </div>
   </div>
 </template>
 
