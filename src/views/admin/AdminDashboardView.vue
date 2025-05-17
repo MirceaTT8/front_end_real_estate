@@ -10,6 +10,9 @@ import {
   rejectLease, decideLeaseTermination
 } from '@/services/leaseService'
 import { fetchPendingProperties } from '@/services/propertyService'
+import LeaseTerminationModal from "@/components/admin/dashboard/LeaseTerminationModal.vue";
+import PendingLeasesModal from "@/components/admin/dashboard/PendingLeasesModal.vue";
+import PendingPropertiesModal from "@/components/admin/dashboard/PendingPropertiesModal.vue";
 
 const showTerminateModal = ref(false)
 const showPendingLeasesModal = ref(false)
@@ -163,83 +166,32 @@ const leaseChartOptions = ref({
       <button @click="openPendingLeasesModal" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
         Approve Pending Leases
       </button>
-      <button class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded">
-        View Maintenance Requests
-      </button>
-      <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
-        View Payments
-      </button>
     </section>
 
-    <!-- Pending Properties Modal -->
-    <Dialog v-model:visible="showPendingPropertiesModal" modal header="Pending Properties" class="w-full max-w-2xl rounded-xl shadow-lg">
-      <div v-if="isLoading" class="text-center py-6 text-gray-500">Loading properties...</div>
-      <div v-else-if="pendingProperties.length > 0" class="space-y-4">
-        <div v-for="property in pendingProperties" :key="property.id" class="p-4 border rounded bg-blue-50">
-          <p class="font-semibold text-blue-900">Property: {{ property.name || property.address }}</p>
-          <p class="text-sm text-gray-600">Owner ID: {{ property.ownerId }}</p>
-          <p class="text-sm text-gray-600">Status: {{ property.status }}</p>
-        </div>
-      </div>
-      <div v-else class="text-center text-gray-600 py-8">
-        <p>No pending properties found.</p>
-      </div>
-    </Dialog>
+    <LeaseTerminationModal
+        :visible="showTerminateModal"
+        :leases="pendingLeases"
+        :loading="isLoading"
+        @update:visible="showTerminateModal = $event"
+        @approve="terminateLease"
+        @reject="rejectTerminationRequest"
+    />
 
-    <!-- Termination Requests Modal -->
-    <Dialog v-model:visible="showTerminateModal" modal header="Lease Termination Requests" class="w-full max-w-2xl rounded-xl shadow-lg">
-      <div v-if="isLoading" class="text-center py-6 text-gray-500">Loading termination requests...</div>
+    <PendingLeasesModal
+        :visible="showPendingLeasesModal"
+        :leases="pendingLeaseApprovals"
+        :loading="isLoading"
+        @update:visible="showPendingLeasesModal = $event"
+        @approve="approvePendingLease"
+        @reject="rejectPendingLease"
+    />
 
-      <div v-else-if="pendingLeases.length > 0" class="space-y-4">
-        <div v-for="lease in pendingLeases" :key="lease.leaseId" class="p-4 border rounded bg-red-50 space-y-2">
-          <p class="font-semibold text-red-900">Tenant ID: {{ lease.tenantId }}</p>
-          <p class="text-sm text-gray-600">Property ID: {{ lease.propertyId }}</p>
-          <p class="text-sm text-gray-600">Start Date: {{ lease.startDate }}</p>
-          <p class="text-sm text-gray-600">End Date: {{ lease.endDate }}</p>
-          <p class="text-sm text-gray-600">Monthly Rent: ${{ lease.monthlyRent }}</p>
-          <p class="text-sm text-gray-500 italic">Termination Status: {{ lease.terminationStatus }}</p>
-
-          <div class="flex gap-2">
-            <button @click="terminateLease(lease.leaseId)" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
-              Approve
-            </button>
-            <button @click="rejectTerminationRequest(lease.leaseId)" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
-              Reject
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div v-else class="text-center text-gray-600 py-8">
-        <p>No termination requests found.</p>
-      </div>
-    </Dialog>
-
-    <!-- Pending Leases Modal -->
-    <Dialog v-model:visible="showPendingLeasesModal" modal header="Pending Leases" class="w-full max-w-2xl rounded-xl shadow-lg">
-      <div v-if="isLoading" class="text-center py-6 text-gray-500">Loading leases...</div>
-      <div v-else-if="pendingLeaseApprovals.length > 0" class="space-y-4">
-        <div v-for="lease in pendingLeaseApprovals" :key="lease.leaseId" class="p-4 border rounded bg-green-50 space-y-2">
-          <p class="font-semibold text-green-900">Tenant ID: {{ lease.tenantId }}</p>
-          <p class="text-sm text-gray-600">Property ID: {{ lease.propertyId }}</p>
-          <p class="text-sm text-gray-600">Start Date: {{ lease.startDate }}</p>
-          <p class="text-sm text-gray-600">Monthly Rent: ${{ lease.monthlyRent }}</p>
-          <p class="text-sm text-gray-500 italic">Status: {{ lease.status }}</p>
-
-          <div class="flex gap-2">
-            <button @click="approvePendingLease(lease.leaseId)" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
-              Approve
-            </button>
-            <button @click="rejectPendingLease(lease.leaseId)" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
-              Reject
-            </button>
-          </div>
-        </div>
-      </div>
-      <div v-else class="text-center text-gray-600 py-8">
-        <p>No pending leases found.</p>
-      </div>
-    </Dialog>
+    <PendingPropertiesModal
+        :visible="showPendingPropertiesModal"
+        :properties="pendingProperties"
+        :loading="isLoading"
+        @update:visible="showPendingPropertiesModal = $event"
+    />
 
 
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

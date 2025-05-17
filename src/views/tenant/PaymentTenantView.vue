@@ -125,9 +125,11 @@ onMounted(() => {
       <button
           v-if="!loading && !hasPaidThisCycle"
           @click="handleStripeCheckout"
+          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md transition-colors"
       >
         Pay via Stripe
       </button>
+
 
     </div>
 

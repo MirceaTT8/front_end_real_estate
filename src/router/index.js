@@ -20,6 +20,8 @@ const MaintenanceRequestTenantView = () => import('@/views/tenant/MaintenanceReq
 const PaymentSuccessView = () => import('@/views/tenant/PaymentSuccessView.vue')
 import AdminDashboardView from "@/views/admin/AdminDashboardView.vue"
 import UserManagementView from "@/views/admin/UserManagementView.vue"
+const AdminPaymentsView = () => import('@/views/admin/AdminPaymentView.vue')
+const AdminMaintenanceView = () => import('@/views/admin/AdminMaintenanceView.vue')
 import LogsView from "@/views/admin/LogsView.vue"
 
 const router = createRouter({
@@ -58,7 +60,9 @@ const router = createRouter({
 
         { path: '/admin/dashboard', name: 'AdminDashboard', component: AdminDashboardView },
         { path: '/admin/users', name: 'UserManagement', component: UserManagementView },
-        { path: '/admin/logs', name: 'SystemLogs', component: LogsView }
+        { path: '/admin/logs', name: 'SystemLogs', component: LogsView },
+        { path: '/admin/payments', name: 'AdminPayments', component: AdminPaymentsView },
+        { path: '/admin/maintenance', name: 'AdminMaintenance', component: AdminMaintenanceView }
     ]
 })
 

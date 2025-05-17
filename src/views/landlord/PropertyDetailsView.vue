@@ -104,8 +104,6 @@ onMounted(async () => {
   </div>
 </template>
 
-
-
 <style scoped>
 button {
   transition: background-color 0.2s;

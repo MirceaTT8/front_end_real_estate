@@ -139,3 +139,21 @@ export const setMaintenanceCost = async (requestId, cost) => {
         throw error
     }
 }
+
+export const fetchAllMaintenanceRequests = async () => {
+    try {
+        const response = await fetch(`${API}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching all maintenance requests:', error);
+        throw error;
+    }
+};
+
