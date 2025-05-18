@@ -1,85 +1,34 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { fetchMyLeases } from '@/services/leaseService.js';
-import { fetchUserById } from '@/services/userService.js';
-import { fetchPropertyById } from '@/services/propertyService.js';
+import { useLeaseStore } from '@/stores/leaseStore.js'
 import LeaseList from '@/components/landlord/lease/LeaseList.vue';
 import LeaseSummaryCards from '@/components/landlord/lease/LeaseSummaryCards.vue';
 import LeaseTabs from '@/components/landlord/lease/LeaseTabs.vue';
 import LeaseCreateModal from "@/components/landlord/lease/LeaseCreateModal.vue";
-import {createWebHistory as $router} from "vue-router/dist/vue-router.esm-browser.js";
+import { createWebHistory as $router } from "vue-router/dist/vue-router.esm-browser.js";
 
-const leases = ref([])
-const properties = ref([])
-const tenants = ref([])
-const loading = ref(true)
-const error = ref(null)
+const leaseStore = useLeaseStore()
 const activeTab = ref('ACTIVE')
 const showCreateModal = ref(false)
 
-const newLease = ref({
-  propertyId: null,
-  tenantId: null,
-  startDate: '',
-  endDate: '',
-  monthlyRent: 0,
-  status: 'ACTIVE'
-})
-
 onMounted(async () => {
-  await loadLeasesAndRelatedData()
+  await leaseStore.loadLeasesAndData()
 })
-
-const loadLeasesAndRelatedData = async () => {
-  loading.value = true;
-  try {
-    const leaseResults = await fetchMyLeases();
-    const propertyResults = await Promise.all(leaseResults.map(lease => fetchPropertyById(lease.propertyId)))
-    const tenantResults = await Promise.all(
-        leaseResults.map(async lease => {
-          if (lease.tenantId) {
-            try {
-              return await fetchUserById(lease.tenantId);
-            } catch (e) {
-              console.warn(`Failed to fetch tenant for lease ${lease.leaseId}:`, e);
-              return null;
-            }
-          } else {
-            return null;
-          }
-        })
-    )
-
-    leases.value = leaseResults
-    properties.value = propertyResults
-    tenants.value = tenantResults
-  } catch (err) {
-    error.value = err.message || 'Failed to load leases'
-  } finally {
-    loading.value = false
-  }
-}
-
-const STATUS_COLORS = {
-  ACTIVE: { bg: 'bg-green-50', text: 'text-green-600' },
-  TERMINATED: { bg: 'bg-red-50', text: 'text-red-600' },
-  PENDING: { bg: 'bg-orange-50', text: 'text-orange-600' }
-}
 
 const filteredLeases = computed(() => {
   return activeTab.value === 'all'
-      ? leases.value
-      : leases.value.filter(lease => lease.status === activeTab.value)
+      ? leaseStore.leases
+      : leaseStore.leases.filter(lease => lease.status === activeTab.value)
 })
 
 const totalMonthlyRent = computed(() => {
-  return leases.value
+  return leaseStore.leases
       .filter(l => l.status === 'ACTIVE')
       .reduce((sum, lease) => sum + lease.monthlyRent, 0)
 })
 
 const activeLeasesCount = computed(() => {
-  return leases.value.filter(l => l.status.toUpperCase() === 'ACTIVE').length
+  return leaseStore.leases.filter(l => l.status.toUpperCase() === 'ACTIVE').length
 })
 
 const handleTerminate = (leaseId) => {
@@ -104,18 +53,17 @@ const handleTerminate = (leaseId) => {
         @cancel="showCreateModal = false"
         @success="() => {
         showCreateModal = false
-        loadLeasesAndRelatedData()
+        leaseStore.loadLeasesAndData()
       }"
     />
 
-
-    <div v-if="loading" class="flex flex-col items-center justify-center py-12">
+    <div v-if="leaseStore.loading" class="flex flex-col items-center justify-center py-12">
       <div class="w-10 h-10 border-4 border-gray-200 border-t-green-500 rounded-full animate-spin mb-4"></div>
       <p class="text-gray-600">Loading leases...</p>
     </div>
 
-    <div v-else-if="error" class="bg-red-50 p-6 rounded-lg text-center">
-      <p class="text-red-600 mb-4">⚠️ {{ error }}</p>
+    <div v-else-if="leaseStore.error" class="bg-red-50 p-6 rounded-lg text-center">
+      <p class="text-red-600 mb-4">⚠️ {{ leaseStore.error }}</p>
       <button
           @click="$router.go(0)"
           class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md transition-colors"
@@ -126,7 +74,7 @@ const handleTerminate = (leaseId) => {
 
     <div v-else>
       <LeaseSummaryCards
-          :total-leases="leases.length"
+          :total-leases="leaseStore.leases.length"
           :active-leases="activeLeasesCount"
           :monthly-revenue="totalMonthlyRent"
       />
@@ -143,9 +91,13 @@ const handleTerminate = (leaseId) => {
       <LeaseList
           v-if="filteredLeases.length > 0"
           :leases="filteredLeases"
-          :properties="properties"
-          :tenants="tenants"
-          :status-colors="STATUS_COLORS"
+          :properties="leaseStore.properties"
+          :tenants="leaseStore.tenants"
+          :status-colors="{
+          ACTIVE: { bg: 'bg-green-50', text: 'text-green-600' },
+          TERMINATED: { bg: 'bg-red-50', text: 'text-red-600' },
+          PENDING: { bg: 'bg-orange-50', text: 'text-orange-600' }
+        }"
           @terminate="handleTerminate"
       />
 

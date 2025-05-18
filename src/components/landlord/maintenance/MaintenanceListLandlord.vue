@@ -3,15 +3,13 @@ import { computed } from 'vue';
 import MaintenanceCardLandlord from './MaintenanceCardLandlord.vue';
 
 const props = defineProps({
-  requests: {
-    type: Array,
-    required: true
-  },
-  selectedStatus: {
-    type: String,
-    required: true
-  }
-});
+  requests: Array,
+  selectedStatus: String,
+  leases: Array,
+  tenants: Array,
+  properties: Array
+})
+
 
 const emit = defineEmits(['update-status']);
 
@@ -27,8 +25,12 @@ const filteredRequests = computed(() => {
         v-for="request in filteredRequests"
         :key="request.requestId"
         :request="request"
+        :leases="leases"
+        :tenants="tenants"
+        :properties="properties"
         @update-status="(id, status) => emit('update-status', id, status)"
     />
+
   </div>
 
   <div v-else class="max-w-md mx-auto bg-white rounded-xl shadow-sm overflow-hidden p-8 text-center">

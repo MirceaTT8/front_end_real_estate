@@ -7,17 +7,19 @@ import 'swiper/css/pagination'
 import SwiperCore from 'swiper'
 import { Navigation, Pagination } from 'swiper/modules'
 import { setMaintenanceCost } from '@/services/maintenanceService.js'
+import { getTenantNameByLeaseId, getPropertyNameByLeaseId} from "@/utils/leaseNameUtils.js";
 
 SwiperCore.use([Navigation, Pagination])
 
 const emit = defineEmits(['update-status'])
 
-const { request } = defineProps({
-  request: {
-    type: Object,
-    required: true
-  }
-})
+const { request, leases, tenants, properties } = defineProps({
+  request: Object,
+  leases: Array,
+  tenants: Array,
+  properties: Array
+});
+
 
 const statusDisplay = {
   PENDING: { bg: 'bg-amber-50', text: 'text-amber-800', emoji: '⏳', border: 'border-amber-200' },
@@ -72,19 +74,22 @@ const saveCost = async () => {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-all duration-200">
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-200">
     <div class="px-6 py-4 border-b relative" :class="statusDisplay[request.status].border">
-      <div class="flex justify-between items-center">
+      <div class="flex items-center justify-between mb-2">
         <div>
-          <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Request</span>
-          <h3 class="text-lg font-semibold text-gray-800">#{{ request.requestId }}</h3>
+          <p class="text-xs text-gray-500 uppercase">Request #{{ request.requestId }}</p>
+          <h3 class="text-lg font-semibold text-gray-800">Property: {{ getPropertyNameByLeaseId(request.leaseId, leases, properties) }}</h3>
+          <p class="text-sm text-gray-500">Tenant: {{ getTenantNameByLeaseId(request.leaseId, leases, tenants) }}</p>
         </div>
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold capitalize"
-              :class="[statusDisplay[request.status].bg, statusDisplay[request.status].text]">
-          <span class="text-sm">{{ statusDisplay[request.status].emoji }}</span>
+        <div
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold capitalize"
+            :class="[statusDisplay[request.status].bg, statusDisplay[request.status].text]">
+          {{ statusDisplay[request.status].emoji }}
           {{ request.status.replace('_', ' ') }}
-        </span>
+        </div>
       </div>
+
       <span v-if="isRecentlyUpdated(request.updatedAt)"
             class="absolute top-0 right-0 mt-2 mr-2 flex h-2 w-2">
         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -93,18 +98,10 @@ const saveCost = async () => {
     </div>
 
     <div class="px-6 py-4">
-      <div class="grid grid-cols-[auto,1fr] gap-y-3 gap-x-4 text-sm">
-        <span class="font-medium text-gray-500">Lease:</span>
-        <span class="text-gray-800 font-mono">{{ request.leaseId }}</span>
-
-        <span class="font-medium text-gray-500">Description:</span>
-        <span class="text-gray-800 whitespace-pre-line">{{ request.description }}</span>
-
-        <span class="font-medium text-gray-500">Submitted:</span>
-        <span class="text-gray-800">{{ formatDate(request.createdAt) }}</span>
-
-        <span class="font-medium text-gray-500">Last Updated:</span>
-        <span class="text-gray-800">{{ formatDate(request.updatedAt) }}</span>
+      <div class="grid gap-2 text-sm text-gray-700">
+        <div><span class="font-medium text-gray-500">Description:</span> {{ request.description }}</div>
+        <div><span class="font-medium text-gray-500">Submitted:</span> {{ formatDate(request.createdAt) }}</div>
+        <div><span class="font-medium text-gray-500">Last Updated:</span> {{ formatDate(request.updatedAt) }}</div>
       </div>
 
       <div v-if="request.imageUrls?.length" class="mt-6">
@@ -117,8 +114,7 @@ const saveCost = async () => {
               v-for="(imageId, index) in request.imageUrls"
               :key="index"
               @click="openSlider(index)"
-              class="block w-full aspect-square rounded-lg overflow-hidden border hover:shadow-md transition"
-          >
+              class="block w-full aspect-square rounded-md overflow-hidden border hover:shadow-md transition">
             <img
                 :src="`http://localhost:8080/image/${imageId}`"
                 :alt="`Attachment ${index + 1}`"
@@ -136,8 +132,7 @@ const saveCost = async () => {
         <select
             :value="request.status"
             @change="emit('update-status', request.requestId, $event.target.value)"
-            class="flex-1 py-2 px-3 border border-gray-300 rounded-md bg-white shadow-sm text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition"
-        >
+            class="flex-1 py-2 px-3 border border-gray-300 rounded-md bg-white shadow-sm text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition">
           <option value="PENDING">⏳ Pending</option>
           <option value="IN_PROGRESS">🔧 In Progress</option>
           <option value="COMPLETED">✅ Completed</option>
@@ -145,35 +140,36 @@ const saveCost = async () => {
         </select>
       </div>
 
-      <div v-if="request.status === 'COMPLETED'" class="flex flex-col gap-2">
+      <div v-if="request.status === 'COMPLETED'" class="space-y-2">
         <label class="text-sm text-gray-700 font-medium">Maintenance Cost</label>
 
-        <div v-if="!isCostSaved">
+        <div v-if="!isCostSaved" class="flex gap-2 items-center">
           <input
               v-model="cost"
               type="number"
               placeholder="Enter cost"
-              class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
               @click="saveCost"
               :disabled="isSaving"
-              class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition"
-          >
-            {{ isSaving ? 'Saving...' : 'Save Cost' }}
+              class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition">
+            {{ isSaving ? 'Saving...' : 'Save' }}
           </button>
-          <p v-if="saveError" class="text-red-500 text-sm">{{ saveError }}</p>
         </div>
 
         <div v-else class="text-sm text-green-700 font-medium">
           ✅ Cost saved: ${{ request.cost }}
         </div>
+
+        <p v-if="saveError" class="text-red-500 text-xs mt-1">{{ saveError }}</p>
       </div>
     </div>
 
     <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center">
       <div class="bg-white rounded-lg overflow-hidden w-full max-w-5xl shadow-lg relative">
-        <button @click="showModal = false" class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-xl font-bold z-10">&times;</button>
+        <button @click="showModal = false"
+                class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-xl font-bold z-10">&times;</button>
         <Swiper :initialSlide="activeIndex" :slidesPerView="1" navigation pagination class="h-[90vh]">
           <SwiperSlide v-for="(imageId, index) in request.imageUrls" :key="index">
             <img :src="`http://localhost:8080/image/${imageId}`" :alt="`Image ${index + 1}`" class="w-full h-full object-contain" />
