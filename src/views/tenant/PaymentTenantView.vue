@@ -157,9 +157,9 @@ onMounted(() => {
         <p class="text-3xl font-bold text-gray-800 my-2">
           {{ formatCurrency(currentBalance) }}
         </p>
-        <p class="text-gray-600 font-medium">
-          {{ currentBalance === 0 ? 'Rent paid for this month' : 'Due by the 5th of each month' }}
-        </p>
+<!--        <p class="text-gray-600 font-medium">-->
+<!--          {{ currentBalance === 0 ? 'Rent paid for this month' : 'Due by the 5th of each month' }}-->
+<!--        </p>-->
       </div>
 
       <PaymentHistory

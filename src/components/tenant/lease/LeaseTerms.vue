@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { formatDate } from '@/components/utils/formatters.js'
-import { isPaymentMadeThisCycle } from '@/services/paymentService.js'
+import { getLatestPaymentForLease } from '@/services/paymentService.js'
 
 const props = defineProps({
   lease: {
@@ -11,8 +11,8 @@ const props = defineProps({
 })
 
 const currentDate = new Date()
-const rentPaidThisMonth = ref(false)
 const loadingStatus = ref(true)
+const latestPayment = ref(null)
 
 const dueDay = new Date(props.lease.startDate).getDate()
 
@@ -23,22 +23,30 @@ const rentStatus = computed(() => {
 
   const dueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), dueDay)
 
-  return !rentPaidThisMonth.value && currentDate > dueDate
-      ? { status: 'overdue', class: 'text-red-500 font-semibold' }
-      : { status: 'current', class: 'text-green-600 font-semibold' }
-})
+  if (!latestPayment.value) {
+    return currentDate > dueDate
+        ? { status: 'overdue', class: 'text-red-500 font-semibold' }
+        : { status: 'unpaid', class: 'text-yellow-500 font-semibold' }
+  }
 
+  const paymentDate = new Date(latestPayment.value.paymentDate)
+
+  if (paymentDate <= dueDate) {
+    return { status: 'current', class: 'text-green-600 font-semibold' }
+  } else {
+    return { status: 'late', class: 'text-orange-500 font-semibold' }
+  }
+})
 
 onMounted(async () => {
   try {
-    rentPaidThisMonth.value = await isPaymentMadeThisCycle(props.lease.leaseId)
+    latestPayment.value = await getLatestPaymentForLease(props.lease.leaseId)
   } catch (err) {
-    console.warn('Could not check payment status:', err)
+    console.warn('Could not fetch latest payment:', err)
   } finally {
     loadingStatus.value = false
   }
 })
-
 </script>
 
 <template>
@@ -61,6 +69,7 @@ onMounted(async () => {
           {{ dueDay === 1 ? 'st' : dueDay === 2 ? 'nd' : dueDay === 3 ? 'rd' : 'th' }} of each month
         </p>
         <p :class="rentStatus.class">Status: {{ rentStatus.status }}</p>
+        <p v-if="latestPayment">Last Paid On: {{ formatDate(latestPayment.paymentDate) }}</p>
       </div>
     </div>
   </section>

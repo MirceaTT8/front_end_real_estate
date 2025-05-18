@@ -189,4 +189,20 @@ export const isPaymentMadeThisCycle = async (leaseId) => {
     }
 };
 
+export const getLatestPaymentForLease = async (leaseId) => {
+    try {
+        const response = await fetch(`${API}/lease/${leaseId}/latest-payment`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json(); // returns PaymentDTO with paymentDate
+    } catch (error) {
+        console.error(`Error fetching latest payment for lease ${leaseId}:`, error);
+        throw error;
+    }
+};
 

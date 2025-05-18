@@ -1,15 +1,18 @@
+
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import LogFilters from "@/components/admin/log/LogFilters.vue";
+import LogTable from "@/components/admin/log/LogTable.vue";
 import { fetchAllLogs } from '@/services/logsService'
 
-// Reactive state
 const logs = ref([])
 const loading = ref(false)
 const error = ref(null)
 const sortField = ref('createdAt')
 const sortDirection = ref('desc')
+const currentPage = ref(1)
+const pageSize = 20
 
-// Filters
 const filters = ref({
   actionType: '',
   entityType: '',
@@ -17,7 +20,6 @@ const filters = ref({
   dateRange: 'all'
 })
 
-// Computed properties
 const uniqueActionTypes = computed(() => {
   const actions = new Set()
   logs.value.forEach(log => actions.add(log.actionType))
@@ -38,22 +40,10 @@ const uniqueUserIds = computed(() => {
 
 const filteredLogs = computed(() => {
   return logs.value.filter(log => {
-    // Action Type filter
-    if (filters.value.actionType && log.actionType !== filters.value.actionType) {
-      return false
-    }
+    if (filters.value.actionType && log.actionType !== filters.value.actionType) return false
+    if (filters.value.entityType && log.entityType !== filters.value.entityType) return false
+    if (filters.value.userId && log.userId !== parseInt(filters.value.userId)) return false
 
-    // Entity Type filter
-    if (filters.value.entityType && log.entityType !== filters.value.entityType) {
-      return false
-    }
-
-    // User ID filter
-    if (filters.value.userId && log.userId !== parseInt(filters.value.userId)) {
-      return false
-    }
-
-    // Date Range filter
     const logDate = new Date(log.createdAt)
     const now = new Date()
 
@@ -74,50 +64,21 @@ const filteredLogs = computed(() => {
   })
 })
 
-const sortedLogs = computed(() => {
-  return [...logs.value].sort((a, b) => {
-    const fieldA = a[sortField.value]
-    const fieldB = b[sortField.value]
-
-    if (fieldA < fieldB) return sortDirection.value === 'asc' ? -1 : 1
-    if (fieldA > fieldB) return sortDirection.value === 'asc' ? 1 : -1
-    return 0
-  })
-})
-
 const sortedFilteredLogs = computed(() => {
   return [...filteredLogs.value].sort((a, b) => {
     const fieldA = a[sortField.value]
     const fieldB = b[sortField.value]
-
     if (fieldA < fieldB) return sortDirection.value === 'asc' ? -1 : 1
     if (fieldA > fieldB) return sortDirection.value === 'asc' ? 1 : -1
     return 0
   })
 })
 
-// Methods
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleString()
-}
-
-const formatDetails = (details) => {
-  try {
-    const parsed = JSON.parse(details)
-    return Object.entries(parsed)
-        .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
-        .join('; ')
-  } catch {
-    return details
-  }
-}
-
-const getActionClass = (actionType) => {
-  if (actionType.includes('CREATE')) return 'bg-green-500'
-  if (actionType.includes('UPDATE')) return 'bg-blue-500'
-  if (actionType.includes('DELETE')) return 'bg-red-500'
-  return 'bg-gray-500'
-}
+const totalPages = computed(() => Math.ceil(sortedFilteredLogs.value.length / pageSize))
+const paginatedLogs = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return sortedFilteredLogs.value.slice(start, start + pageSize)
+})
 
 const sortBy = (field) => {
   if (sortField.value === field) {
@@ -129,10 +90,8 @@ const sortBy = (field) => {
 }
 
 const applyFilters = () => {
-  // Filters are applied reactively through the computed property
-  // This method is here if you need to perform any additional actions when applying filters
+  currentPage.value = 1
 }
-
 const resetFilters = () => {
   filters.value = {
     actionType: '',
@@ -140,9 +99,9 @@ const resetFilters = () => {
     userId: '',
     dateRange: 'all'
   }
+  currentPage.value = 1
 }
 
-// Lifecycle hook
 onMounted(async () => {
   try {
     loading.value = true
@@ -156,21 +115,16 @@ onMounted(async () => {
 })
 </script>
 
+
 <template>
   <div class="container mx-auto px-4 py-6 max-w-7xl">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">Activity Logs</h1>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Activity Logs</h1>
 
-    <!-- Filters -->
-    <div class="bg-white p-4 rounded-lg shadow mb-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Action Type Filter -->
+    <LogFilters @reset="resetFilters" @apply="applyFilters">
+      <template #filters>
         <div>
           <label for="actionType" class="block text-sm font-medium text-gray-700 mb-1">Action Type</label>
-          <select
-              id="actionType"
-              v-model="filters.actionType"
-              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
+          <select id="actionType" v-model="filters.actionType" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">All Actions</option>
             <option v-for="action in uniqueActionTypes" :key="action" :value="action">
               {{ action }}
@@ -178,14 +132,9 @@ onMounted(async () => {
           </select>
         </div>
 
-        <!-- Entity Type Filter -->
         <div>
           <label for="entityType" class="block text-sm font-medium text-gray-700 mb-1">Entity Type</label>
-          <select
-              id="entityType"
-              v-model="filters.entityType"
-              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
+          <select id="entityType" v-model="filters.entityType" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">All Entities</option>
             <option v-for="entity in uniqueEntityTypes" :key="entity" :value="entity">
               {{ entity }}
@@ -193,14 +142,9 @@ onMounted(async () => {
           </select>
         </div>
 
-        <!-- User ID Filter -->
         <div>
           <label for="userId" class="block text-sm font-medium text-gray-700 mb-1">User ID</label>
-          <select
-              id="userId"
-              v-model="filters.userId"
-              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
+          <select id="userId" v-model="filters.userId" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">All Users</option>
             <option v-for="user in uniqueUserIds" :key="user" :value="user">
               {{ user }}
@@ -208,104 +152,30 @@ onMounted(async () => {
           </select>
         </div>
 
-        <!-- Date Range Filter -->
         <div>
           <label for="dateRange" class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-          <select
-              id="dateRange"
-              v-model="filters.dateRange"
-              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
+          <select id="dateRange" v-model="filters.dateRange" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="all">All Time</option>
             <option value="today">Today</option>
             <option value="week">This Week</option>
             <option value="month">This Month</option>
           </select>
         </div>
-      </div>
-      <div class="mt-4 flex justify-end">
-        <button
-            @click="resetFilters"
-            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 mr-2"
-        >
-          Reset Filters
-        </button>
-        <button
-            @click="applyFilters"
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Apply Filters
-        </button>
-      </div>
-    </div>
+      </template>
+    </LogFilters>
 
-    <!-- Logs Table -->
-    <div class="overflow-x-auto shadow-md rounded-lg">
-      <table v-if="filteredLogs.length > 0" class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-        <tr>
-          <th @click="sortBy('createdAt')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
-            Timestamp
-            <span v-if="sortField === 'createdAt'" class="ml-1">
-                {{ sortDirection === 'asc' ? '↑' : '↓' }}
-              </span>
-          </th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            User ID
-          </th>
-          <th @click="sortBy('actionType')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
-            Action
-            <span v-if="sortField === 'actionType'" class="ml-1">
-                {{ sortDirection === 'asc' ? '↑' : '↓' }}
-              </span>
-          </th>
-          <th @click="sortBy('entityType')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
-            Entity
-            <span v-if="sortField === 'entityType'" class="ml-1">
-                {{ sortDirection === 'asc' ? '↑' : '↓' }}
-              </span>
-          </th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Entity ID
-          </th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Details
-          </th>
-        </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-        <tr v-for="log in sortedFilteredLogs" :key="log.id" class="hover:bg-gray-50">
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ formatDate(log.createdAt) }}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ log.userId }}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm">
-              <span :class="getActionClass(log.actionType)" class="px-2 py-1 rounded-full text-xs font-semibold text-white">
-                {{ log.actionType }}
-              </span>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ log.entityType }}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ log.entityId }}
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-500">
-            <div v-if="log.details" class="max-w-xs overflow-hidden overflow-ellipsis">
-              {{ formatDetails(log.details) }}
-            </div>
-            <span v-else>-</span>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+    <LogTable :logs="paginatedLogs" @sort="sortBy" />
 
-      <div v-else class="text-center py-12 bg-white">
-        <p class="text-gray-500">No activity logs found matching your filters.</p>
-      </div>
+    <div v-if="totalPages > 1" class="flex justify-center mt-6 space-x-2">
+      <button
+          v-for="page in totalPages"
+          :key="page"
+          @click="currentPage = page"
+          class="px-4 py-2 rounded-md border text-sm font-medium"
+          :class="page === currentPage ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+      >
+        {{ page }}
+      </button>
     </div>
   </div>
 </template>
-

@@ -72,9 +72,9 @@ onMounted(async () => {
           <PaymentHistory :payments="payments" />
         </div>
 
-        <div class="bg-white shadow-sm rounded-xl p-4 sm:p-6">
-          <LeaseDocuments :lease="lease" />
-        </div>
+<!--        <div class="bg-white shadow-sm rounded-xl p-4 sm:p-6">-->
+<!--          <LeaseDocuments :lease="lease" />-->
+<!--        </div>-->
 
         <div class="bg-white shadow-sm rounded-xl p-4 sm:p-6">
           <LeaseNotes :lease="lease" />

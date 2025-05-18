@@ -36,6 +36,7 @@ const menuItems = {
     { label: 'System Logs', icon: 'pi pi-cog', route: '/admin/logs' },
     { label: 'Payment Management', icon: PrimeIcons.CHART_BAR, route: '/admin/payments' },
     { label: 'Maintenance Management', icon: 'pi pi-users', route: '/admin/maintenance' },
+    { label: 'Property Management', icon: PrimeIcons.HOME, route: '/admin/properties' },
   ]
 }
 
