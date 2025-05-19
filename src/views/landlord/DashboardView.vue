@@ -32,9 +32,11 @@ onMounted(() => {
     />
 
     <RecentActivity
+        v-if="store.activities && store.activities.length"
         :activities="store.activities"
         @view-all="store.showActivityModal = true"
     />
+
 
     <UpcomingDeadlines
         :calendar-events="store.calendarEvents"
