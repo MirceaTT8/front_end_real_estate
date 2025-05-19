@@ -47,7 +47,6 @@ const openSlider = (index) => {
   showModal.value = true
 }
 
-// Maintenance cost logic
 const cost = ref(request.cost || '')
 const isSaving = ref(false)
 const saveError = ref(null)
@@ -129,16 +128,28 @@ const saveCost = async () => {
     <div class="px-6 py-4 bg-gray-50 border-t space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center gap-3">
         <label class="text-sm font-medium text-gray-700 flex-shrink-0">Update status:</label>
+
+        <template v-if="['COMPLETED', 'CANCELLED'].includes(request.status)">
+    <span
+        class="text-sm text-gray-500 italic py-2 px-3 bg-gray-100 border border-gray-200 rounded-md"
+    >
+      Status locked: {{ request.status.replace('_', ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase()) }}
+    </span>
+        </template>
+
         <select
+            v-else
             :value="request.status"
             @change="emit('update-status', request.requestId, $event.target.value)"
-            class="flex-1 py-2 px-3 border border-gray-300 rounded-md bg-white shadow-sm text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition">
+            class="flex-1 py-2 px-3 border border-gray-300 rounded-md bg-white shadow-sm text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition"
+        >
           <option value="PENDING">⏳ Pending</option>
           <option value="IN_PROGRESS">🔧 In Progress</option>
           <option value="COMPLETED">✅ Completed</option>
           <option value="CANCELLED">❌ Cancelled</option>
         </select>
       </div>
+
 
       <div v-if="request.status === 'COMPLETED'" class="space-y-2">
         <label class="text-sm text-gray-700 font-medium">Maintenance Cost</label>
