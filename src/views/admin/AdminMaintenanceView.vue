@@ -1,53 +1,58 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useMaintenanceAdminStore } from '@/stores/adminMaintenanceStore.js'
+import MaintenanceFilters from '@/components/admin/maintenance/MaintenanceFilters.vue'
+import MaintenanceTable from '@/components/admin/maintenance/MaintenanceTable.vue'
+import MaintenanceImageModal from '@/components/admin/maintenance/MaintenanceImageModal.vue'
+import PaginationControls from "@/components/PaginationControls.vue";
+
+const store = useMaintenanceAdminStore()
+
+const showModal = ref(false)
+const modalImageIds = ref([])
+
+const openImageModal = (ids) => {
+  modalImageIds.value = ids
+  showModal.value = true
+}
+
+const updateFilters = (newFilters) => {
+  store.filters = newFilters
+}
+
+const sortBy = (field) => {
+  store.setSort(field)
+}
+
+onMounted(() => {
+  store.fetchRequests()
+})
+</script>
+
 <template>
   <div class="p-6">
     <h1 class="text-2xl font-bold mb-4">Maintenance Requests</h1>
 
-    <div v-if="loading" class="text-gray-500">Loading maintenance requests...</div>
-    <div v-else-if="requests.length === 0" class="text-gray-600">No maintenance requests found.</div>
+    <MaintenanceFilters :filters="store.filters" @update:filters="updateFilters" />
 
-    <table v-else class="min-w-full bg-white border border-gray-200 rounded shadow">
-      <thead class="bg-gray-100">
-      <tr>
-        <th class="px-4 py-2 text-left">Request ID</th>
-        <th class="px-4 py-2 text-left">Lease ID</th>
-        <th class="px-4 py-2 text-left">Description</th>
-        <th class="px-4 py-2 text-left">Status</th>
-        <th class="px-4 py-2 text-left">Created</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="request in requests" :key="request.id" class="border-t">
-        <td class="px-4 py-2">{{ request.id }}</td>
-        <td class="px-4 py-2">{{ request.leaseId }}</td>
-        <td class="px-4 py-2">{{ request.description }}</td>
-        <td class="px-4 py-2">{{ request.status }}</td>
-        <td class="px-4 py-2">{{ new Date(request.createdAt).toLocaleDateString() }}</td>
-      </tr>
-      </tbody>
-    </table>
+    <div v-if="store.loading" class="text-gray-500">Loading maintenance requests...</div>
+    <div v-else-if="store.filteredRequests.length === 0" class="text-gray-600">No maintenance requests match your filters.</div>
+
+    <MaintenanceTable
+        v-else
+        :requests="store.filteredRequests"
+        :sort-field="store.sortField"
+        :sort-direction="store.sortDirection"
+        @sort="sortBy"
+        @view-images="openImageModal"
+    />
+
+    <PaginationControls
+        :current-page="store.currentPage"
+        :total-pages="store.totalPages"
+        @update:currentPage="store.currentPage = $event"
+    />
+
+    <MaintenanceImageModal :images="modalImageIds" :show="showModal" @close="showModal = false" />
   </div>
 </template>
-
-<script setup>
-import { ref, onMounted } from 'vue'
-import { fetchAllMaintenanceRequests } from "@/services/maintenanceService.js";
-
-const loading = ref(true)
-const requests = ref([])
-
-onMounted(async () => {
-  try {
-    requests.value = await fetchAllMaintenanceRequests()
-  } catch (error) {
-    console.error('Failed to load maintenance requests:', error)
-  } finally {
-    loading.value = false
-  }
-})
-</script>
-
-<style scoped>
-th, td {
-  border-bottom: 1px solid #e5e7eb;
-}
-</style>

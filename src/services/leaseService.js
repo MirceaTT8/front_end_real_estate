@@ -2,6 +2,21 @@ import {BASE_URL} from "@/configs/config.js";
 
 const API = `${BASE_URL}/lease`;
 
+export const fetchAllLeases= async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch leases: ${response.status}`);
+    }
+
+    return await response.json();
+};
+
 export const fetchActiveLeasesByOwnerId = async (userId) => {
     try {
         const response = await fetch(`${API}/active/${userId}`, {

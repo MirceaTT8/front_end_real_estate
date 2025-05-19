@@ -32,11 +32,12 @@ const menuItems = {
   ],
   admin: [
     { label: 'Dashboard', icon: PrimeIcons.CHART_BAR, route: '/admin/dashboard' },
-    { label: 'User Management', icon: 'pi pi-users', route: '/admin/users' },
-    { label: 'System Logs', icon: 'pi pi-cog', route: '/admin/logs' },
-    { label: 'Payment Management', icon: PrimeIcons.CHART_BAR, route: '/admin/payments' },
-    { label: 'Maintenance Management', icon: 'pi pi-users', route: '/admin/maintenance' },
-    { label: 'Property Management', icon: PrimeIcons.HOME, route: '/admin/properties' },
+    { label: 'Users', icon: 'pi pi-users', route: '/admin/users' },
+    { label: 'Logs', icon: 'pi pi-cog', route: '/admin/logs' },
+    { label: 'Payments', icon: PrimeIcons.CHART_BAR, route: '/admin/payments' },
+    { label: 'Maintenances', icon: 'pi pi-users', route: '/admin/maintenance' },
+    { label: 'Properties', icon: PrimeIcons.HOME, route: '/admin/properties' },
+    { label: 'Leases', icon: PrimeIcons.FILE, route: '/admin/leases' },
   ]
 }
 

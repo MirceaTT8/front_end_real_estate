@@ -71,7 +71,7 @@ export const addProperty = async (propertyDTO, attachments) => {
 
 export const fetchPendingProperties = async () => {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${BASE_URL}/property/pending`, {
+    const response = await fetch(`${API}/pending`, {
         headers: {
             'Authorization': `Bearer ${token}`
         }
@@ -83,3 +83,19 @@ export const fetchPendingProperties = async () => {
 
     return await response.json();
 };
+
+export const fetchAllPropertiesAdmin = async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+};
+

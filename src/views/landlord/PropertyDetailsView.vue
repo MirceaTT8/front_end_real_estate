@@ -1,12 +1,10 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { fetchPropertyById } from '@/services/propertyService.js'
+import { useLandlordPropertyStore } from '@/stores/propertyStore.js'
 
 const route = useRoute()
-const property = ref(null)
-const loading = ref(true)
-const error = ref(null)
+const propertyStore = useLandlordPropertyStore()
 const currentImageIndex = ref(0)
 
 const statusColors = {
@@ -30,17 +28,16 @@ const prevImage = () => {
   currentImageIndex.value = (currentImageIndex.value - 1 + property.value.imageUrls.length) % property.value.imageUrls.length
 }
 
+const property = computed(() => propertyStore.selectedProperty)
+const loading = computed(() => propertyStore.loading)
+const error = computed(() => propertyStore.error)
+
 onMounted(async () => {
-  try {
-    const propertyId = Number(route.params.id)
-    property.value = await fetchPropertyById(propertyId)
-  } catch (err) {
-    error.value = err
-  } finally {
-    loading.value = false
-  }
+  const propertyId = Number(route.params.id)
+  await propertyStore.loadPropertyById(propertyId)
 })
 </script>
+
 <template>
   <div class="container mx-auto px-4 py-8 max-w-5xl">
     <router-link to="/landlord/properties" class="text-blue-600 hover:underline mb-6 inline-block">

@@ -1,10 +1,13 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { addProperty } from '@/services/propertyService.js'
-import PropertyFormFields from "@/components/landlord/property/property-add/PropertyFormFields.vue";
-import PropertyLocationMap from "@/components/landlord/property/property-add/PropertyLocationMap.vue";
+import { useLandlordPropertyStore } from '@/stores/propertyStore.js'
+import PropertyFormFields from '@/components/landlord/property/property-add/PropertyFormFields.vue'
+import PropertyLocationMap from '@/components/landlord/property/property-add/PropertyLocationMap.vue'
+
 const router = useRouter()
+const propertyStore = useLandlordPropertyStore()
+
 const form = ref({
   owner_id: 1,
   name: '',
@@ -69,7 +72,7 @@ const submitForm = async () => {
       latitude: parseFloat(form.value.latitude)
     }
 
-    await addProperty(payload, attachments.value)
+    await propertyStore.addProperty(payload, attachments.value)
     await router.push('/landlord/properties')
   } catch (error) {
     errorMessage.value = 'Failed to add property. Please try again.'

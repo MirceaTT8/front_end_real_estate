@@ -1,21 +1,15 @@
 <script setup>
-import {ref, onMounted, computed, watch, nextTick} from 'vue'
-import {fetchMyProperties} from '@/services/propertyService.js'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { useLandlordPropertyStore } from '@/stores/propertyStore.js'
+
 import PropertyFilters from '@/components/landlord/property/PropertyFilters.vue'
-import PropertyList from "@/components/landlord/property/PropertyList.vue"
-import PropertyMap from "@/components/landlord/property/PropertyMap.vue"
-import PropertyViewToggle from "@/components/landlord/property/PropertyViewToggle.vue"
+import PropertyList from '@/components/landlord/property/PropertyList.vue'
+import PropertyMap from '@/components/landlord/property/PropertyMap.vue'
+import PropertyViewToggle from '@/components/landlord/property/PropertyViewToggle.vue'
 
-const properties = ref([])
-const loading = ref(true)
-const error = ref(null)
+const store = useLandlordPropertyStore()
 const showMapView = ref(false)
-
-const filters = ref({
-  location: '',
-  type: '',
-  status: ''
-})
+const filters = ref({ location: '', type: '', status: '' })
 
 const filterOptions = {
   types: ['Apartment', 'House', 'Commercial', 'Land'],
@@ -23,7 +17,7 @@ const filterOptions = {
 }
 
 const filteredProperties = computed(() => {
-  return properties.value.filter(property => {
+  return store.properties.filter(property => {
     const matchesLocation = !filters.value.location ||
         property.address.toLowerCase().includes(filters.value.location.toLowerCase())
 
@@ -38,15 +32,10 @@ const filteredProperties = computed(() => {
 })
 
 const resetFilters = () => {
-  filters.value = {
-    location: '',
-    type: '',
-    status: ''
-  }
+  filters.value = { location: '', type: '', status: '' }
 }
 
 const isInternalUpdate = ref(false)
-
 const onFiltersUpdate = (newFilters) => {
   if (!isInternalUpdate.value) {
     filters.value = { ...newFilters }
@@ -54,20 +43,22 @@ const onFiltersUpdate = (newFilters) => {
 }
 
 const availableTypes = computed(() => {
-  const backendTypes = new Set(properties.value.map(p => p.type))
+  const backendTypes = new Set(store.properties.map(p => p.type))
   return filterOptions.types.filter(frontendType =>
-      backendTypes.has(frontendType.toUpperCase()))
+      backendTypes.has(frontendType.toUpperCase())
+  )
 })
 
 const availableStatuses = computed(() => {
-  const filteredByType = properties.value.filter(property => {
+  const filteredByType = store.properties.filter(property => {
     if (!filters.value.type) return true
     return property.type === filters.value.type.toUpperCase()
   })
 
   const backendStatuses = new Set(filteredByType.map(p => p.status))
   return filterOptions.statuses.filter(frontendStatus =>
-      backendStatuses.has(frontendStatus.toUpperCase()))
+      backendStatuses.has(frontendStatus.toUpperCase())
+  )
 })
 
 watch(() => filters.value.type, (newType, oldType) => {
@@ -81,14 +72,7 @@ watch(() => filters.value.type, (newType, oldType) => {
 })
 
 onMounted(async () => {
-  try {
-    properties.value = await fetchMyProperties()
-    console.log('Fetched properties:', properties.value)
-  } catch (err) {
-    error.value = err
-  } finally {
-    loading.value = false
-  }
+  await store.loadProperties()
 })
 </script>
 
@@ -117,8 +101,8 @@ onMounted(async () => {
     <PropertyList
         v-else
         :properties="filteredProperties"
-        :loading="loading"
-        :error="error"
+        :loading="store.loading"
+        :error="store.error"
     />
   </div>
 </template>
