@@ -1,3 +1,108 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useUserStore } from '@/stores/userStore'
+
+const userStore = useUserStore()
+
+const newUser = ref({
+  firstName: '',
+  lastName: '',
+  email: '',
+  role: '',
+  password: 'TempPassword123!'
+})
+const showUserDialog = ref(false)
+
+const resetNewUser = () => {
+  newUser.value = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    role: '',
+    password: 'TempPassword123!'
+  }
+}
+
+const saveNewUser = async () => {
+  try {
+    await userStore.addUser(newUser.value)
+    alert('User created successfully')
+    showUserDialog.value = false
+    resetNewUser()
+  } catch (error) {
+    alert('Failed to create user: ' + error.message)
+  }
+}
+
+const toggleUserSelection = (userId, event) => {
+  if (event.target.checked) {
+    userStore.selectedUsers.add(userId)
+  } else {
+    userStore.selectedUsers.delete(userId)
+  }
+}
+
+const toggleSelectAll = (event) => {
+  if (event.target.checked) {
+    userStore.users.forEach(user => userStore.selectedUsers.add(user.userId))
+  } else {
+    userStore.selectedUsers.clear()
+  }
+}
+
+const confirmDelete = (userId) => {
+  if (confirm('Are you sure you want to delete this user?')) {
+    deleteUserById(userId)
+  }
+}
+
+const deleteUserById = async (userId) => {
+  try {
+    await userStore.removeUser(userId)
+    alert('User deleted successfully')
+  } catch (error) {
+    alert('Failed to delete user: ' + error.message)
+  }
+}
+
+const toggleUserStatus = async (user) => {
+  const action = user.isActive ? 'deactivate' : 'activate'
+  const confirmMessage = `Are you sure you want to ${action} user ${user.firstName} ${user.lastName}?`
+
+  if (confirm(confirmMessage)) {
+    try {
+      await userStore.toggleStatus(user)
+      alert(`User ${action}d successfully`)
+    } catch (error) {
+      alert(`Failed to ${action} user: ${error.message}`)
+    }
+  }
+}
+
+const bulkToggleStatus = async (activate) => {
+  const action = activate ? 'activate' : 'deactivate'
+  const confirmMessage = `Are you sure you want to ${action} ${userStore.selectedUsers.size} selected user(s)?`
+
+  if (userStore.selectedUsers.size === 0) {
+    alert('Please select at least one user')
+    return
+  }
+
+  if (confirm(confirmMessage)) {
+    try {
+      await userStore.bulkToggleStatus(activate)
+      alert(`Successfully ${action}d users`)
+    } catch (error) {
+      alert(`Failed to ${action} users: ${error.message}`)
+    }
+  }
+}
+
+onMounted(() => {
+  userStore.loadUsers()
+})
+</script>
+
 <template>
   <div class="container mx-auto px-4 py-8">
     <!-- Header -->
@@ -132,111 +237,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref, onMounted } from 'vue'
-import { useUserStore } from '@/stores/userStore'
-
-const userStore = useUserStore()
-
-const newUser = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
-  role: '',
-  password: 'TempPassword123!'
-})
-const showUserDialog = ref(false)
-
-const resetNewUser = () => {
-  newUser.value = {
-    firstName: '',
-    lastName: '',
-    email: '',
-    role: '',
-    password: 'TempPassword123!'
-  }
-}
-
-const saveNewUser = async () => {
-  try {
-    await userStore.addUser(newUser.value)
-    alert('User created successfully')
-    showUserDialog.value = false
-    resetNewUser()
-  } catch (error) {
-    alert('Failed to create user: ' + error.message)
-  }
-}
-
-const toggleUserSelection = (userId, event) => {
-  if (event.target.checked) {
-    userStore.selectedUsers.add(userId)
-  } else {
-    userStore.selectedUsers.delete(userId)
-  }
-}
-
-const toggleSelectAll = (event) => {
-  if (event.target.checked) {
-    userStore.users.forEach(user => userStore.selectedUsers.add(user.userId))
-  } else {
-    userStore.selectedUsers.clear()
-  }
-}
-
-const confirmDelete = (userId) => {
-  if (confirm('Are you sure you want to delete this user?')) {
-    deleteUserById(userId)
-  }
-}
-
-const deleteUserById = async (userId) => {
-  try {
-    await userStore.removeUser(userId)
-    alert('User deleted successfully')
-  } catch (error) {
-    alert('Failed to delete user: ' + error.message)
-  }
-}
-
-const toggleUserStatus = async (user) => {
-  const action = user.isActive ? 'deactivate' : 'activate'
-  const confirmMessage = `Are you sure you want to ${action} user ${user.firstName} ${user.lastName}?`
-
-  if (confirm(confirmMessage)) {
-    try {
-      await userStore.toggleStatus(user)
-      alert(`User ${action}d successfully`)
-    } catch (error) {
-      alert(`Failed to ${action} user: ${error.message}`)
-    }
-  }
-}
-
-const bulkToggleStatus = async (activate) => {
-  const action = activate ? 'activate' : 'deactivate'
-  const confirmMessage = `Are you sure you want to ${action} ${userStore.selectedUsers.size} selected user(s)?`
-
-  if (userStore.selectedUsers.size === 0) {
-    alert('Please select at least one user')
-    return
-  }
-
-  if (confirm(confirmMessage)) {
-    try {
-      await userStore.bulkToggleStatus(activate)
-      alert(`Successfully ${action}d users`)
-    } catch (error) {
-      alert(`Failed to ${action} users: ${error.message}`)
-    }
-  }
-}
-
-onMounted(() => {
-  userStore.loadUsers()
-})
-</script>
 
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');

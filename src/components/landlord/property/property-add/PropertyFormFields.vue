@@ -94,26 +94,26 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="space-y-6 bg-white p-6 rounded-2xl shadow-md">
     <div>
-      <label class="block mb-1">Property Name *</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Property Name *</label>
       <input
           v-model="form.name"
           type="text"
           required
-          class="w-full p-2 border rounded"
+          class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
           :disabled="isLoading"
       >
     </div>
 
     <div>
-      <label class="block mb-1">Address *</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Address *</label>
       <input
           ref="autocompleteInput"
           v-model="form.address"
           type="text"
           required
-          class="w-full p-2 border rounded"
+          class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
           :disabled="isLoading"
           placeholder="Start typing an address..."
           id="autocomplete"
@@ -121,10 +121,10 @@ onUnmounted(() => {
     </div>
 
     <div>
-      <label class="block mb-1">Property Type *</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Property Type *</label>
       <select
           v-model="form.type"
-          class="w-full p-2 border rounded"
+          class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
           :disabled="isLoading"
           required
       >
@@ -135,21 +135,24 @@ onUnmounted(() => {
     </div>
 
     <div>
-      <label class="block mb-1">Monthly Rent ($) *</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Rent ($) *</label>
       <input
           v-model.number="form.rentAmount"
           type="number"
           min="0"
           step="0.01"
           required
-          class="w-full p-2 border rounded"
+          class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
           :disabled="isLoading"
       >
     </div>
 
-    <FileUploader
-        v-model="attachments"
-        :is-loading="isLoading"
-    />
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Attachments</label>
+      <FileUploader
+          v-model="attachments"
+          :is-loading="isLoading"
+      />
+    </div>
   </div>
 </template>

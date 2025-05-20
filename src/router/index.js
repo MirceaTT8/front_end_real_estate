@@ -25,7 +25,7 @@ const AdminPaymentsView = () => import('@/views/admin/AdminPaymentView.vue')
 const AdminMaintenanceView = () => import('@/views/admin/AdminMaintenanceView.vue')
 const AdminPropertyManagementView = () => import('@/views/admin/AdminPropertyView.vue')
 const AdminLeaseView = () => import('@/views/admin/AdminLeaseView.vue')
-
+const LandlordRatingsView = () => import ('@/views/admin/LandlordRatingsView.vue')
 import LogsView from "@/views/admin/LogsView.vue"
 
 const router = createRouter({
@@ -69,6 +69,8 @@ const router = createRouter({
         { path: '/admin/maintenance', name: 'AdminMaintenance', component: AdminMaintenanceView },
         { path: '/admin/properties', name: 'AdminPropertyManagement', component: AdminPropertyManagementView },
         { path: '/admin/leases', name: 'AdminLease', component: AdminLeaseView },
+        { path: '/admin/ratings', name: 'LandlordRatings', component: LandlordRatingsView }
+
 
     ]
 })

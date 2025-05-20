@@ -197,10 +197,12 @@ export const activateUser = async (userId) => {
 
 export const deactivateUser = async (userId) => {
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${API}/${userId}/deactivate`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             }
         })
 
@@ -209,12 +211,11 @@ export const deactivateUser = async (userId) => {
             throw new Error(errorData.message || 'User deactivation failed')
         }
 
-        // Only parse JSON if there's content
         const contentLength = response.headers.get('Content-Length')
         if (contentLength && parseInt(contentLength) > 0) {
             return await response.json()
         }
-        return { success: true } // Default success response
+        return { success: true }
     } catch (error) {
         console.error('Error deactivating user:', error)
         throw error

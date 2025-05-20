@@ -1,10 +1,66 @@
+<template>
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Add New Property</h1>
+
+    <form @submit.prevent="saveProperty">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Form Section -->
+        <div class="lg:col-span-2 space-y-6 bg-white p-6 rounded-2xl shadow border">
+          <PropertyFormFields v-model="form" v-model:attachments="attachments" :is-loading="isLoading" required />
+
+          <div>
+            <label class="block font-medium text-gray-700 mb-1">Property Images <span class="text-red-500">*</span></label>
+            <div class="border-2 border-dashed border-gray-300 rounded-md p-4 flex flex-col items-center text-gray-500 text-sm hover:border-blue-400 transition">
+              <i class="pi pi-images text-3xl mb-2"></i>
+              <p>Select or drag images here</p>
+              <input type="file" multiple required class="hidden" />
+            </div>
+            <p class="text-xs text-gray-400 mt-2">Upload JPEG or PNG up to 5MB each.</p>
+          </div>
+        </div>
+
+        <!-- Map Section -->
+        <div class="bg-white p-6 rounded-2xl shadow border h-fit">
+          <PropertyLocationMap
+              v-model:longitude="form.longitude"
+              v-model:latitude="form.latitude"
+              :is-loading="isLoading"
+              @map-click="handleMapClick"
+              @marker-dragged="handleMarkerDragged"
+              required
+          />
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end mt-8 gap-4">
+        <button
+            type="button"
+            @click="cancel"
+            class="px-5 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+            :disabled="isLoading"
+        >
+          Cancel
+        </button>
+        <button
+            type="submit"
+            class="px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 shadow transition disabled:bg-blue-300"
+            :disabled="isLoading"
+        >
+          <span v-if="isLoading">Saving...</span>
+          <span v-else>Save Property</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</template>
+
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLandlordPropertyStore } from '@/stores/propertyStore.js'
-import PropertyFormFields from '@/components/landlord/property/property-add/PropertyFormFields.vue'
-import PropertyLocationMap from '@/components/landlord/property/property-add/PropertyLocationMap.vue'
-
+import PropertyFormFields from "@/components/landlord/property/property-add/PropertyFormFields.vue";
+import PropertyLocationMap from "@/components/landlord/property/property-add/PropertyLocationMap.vue";
 const router = useRouter()
 const propertyStore = useLandlordPropertyStore()
 
@@ -55,7 +111,11 @@ const reverseGeocode = async (location) => {
   })
 }
 
-const submitForm = async () => {
+function cancel() {
+  router.push('/properties')
+}
+
+async function saveProperty() {
   try {
     isLoading.value = true
     errorMessage.value = ''
@@ -82,51 +142,3 @@ const submitForm = async () => {
   }
 }
 </script>
-
-<template>
-  <div class="max-w-3xl mx-auto p-4">
-    <h1 class="text-xl font-bold mb-6">Add New Property</h1>
-
-    <div v-if="errorMessage" class="mb-4 p-3 bg-red-100 text-red-700 rounded">
-      {{ errorMessage }}
-    </div>
-
-    <form @submit.prevent="submitForm" class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <PropertyFormFields
-            v-model="form"
-            v-model:attachments="attachments"
-            :is-loading="isLoading"
-            @location-selected="handleLocationSelected"
-        />
-
-        <PropertyLocationMap
-            v-model:longitude="form.longitude"
-            v-model:latitude="form.latitude"
-            :is-loading="isLoading"
-            @map-click="handleMapClick"
-            @marker-dragged="handleMarkerDragged"
-        />
-      </div>
-
-      <div class="flex justify-end gap-2 pt-4">
-        <button
-            type="button"
-            @click="router.push('/properties')"
-            class="px-4 py-2 border rounded"
-            :disabled="isLoading"
-        >
-          Cancel
-        </button>
-        <button
-            type="submit"
-            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
-            :disabled="isLoading"
-        >
-          <span v-if="isLoading">Saving...</span>
-          <span v-else>Save Property</span>
-        </button>
-      </div>
-    </form>
-  </div>
-</template>

@@ -241,5 +241,20 @@ export const createInvitation = async (leaseData) => {
     return await response.text()
 }
 
+export const fetchLeaseTrends = async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/dashboard/lease-trends`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch lease trends');
+    }
+
+    return await response.json();
+};
+
 
 

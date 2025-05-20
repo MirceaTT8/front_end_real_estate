@@ -69,7 +69,7 @@ onMounted(() => {
         <td class="px-4 py-2">{{ payment.paymentId }}</td>
         <td class="px-4 py-2">{{ payment.leaseId }}</td>
         <td class="px-4 py-2">${{ payment.amount.toFixed(2) }}</td>
-        <td class="px-4 py-2">{{ new Date(payment.date).toLocaleDateString() }}</td>
+        <td class="px-4 py-2">{{ new Date(payment.paymentDate).toLocaleDateString() }}</td>
         <td class="px-4 py-2">
             <span :class="statusColor(payment.status)" class="px-2 py-1 rounded text-white text-sm">
               {{ payment.status }}

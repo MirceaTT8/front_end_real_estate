@@ -29,6 +29,13 @@ onMounted(() => {
       </button>
     </section>
 
+    <router-link
+        to="/admin/ratings"
+        class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded"
+    >
+      View Landlord Ratings
+    </router-link>
+
     <LeaseTerminationModal
         :visible="store.showTerminateModal"
         :leases="store.pendingLeaseTerminations"
@@ -54,13 +61,6 @@ onMounted(() => {
         @update:visible="store.showPendingPropertiesModal = $event"
     />
 
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white p-6 rounded shadow" v-for="(value, key) in store.kpiMetrics" :key="key">
-        <p class="text-sm text-gray-500">{{ key }}</p>
-        <p class="text-2xl font-bold">{{ value }}</p>
-      </div>
-    </section>
-
     <section class="bg-white p-6 rounded shadow">
       <h2 class="text-lg font-semibold text-gray-700 mb-4">Lease Trends</h2>
       <div class="h-[300px]">
@@ -68,24 +68,5 @@ onMounted(() => {
       </div>
     </section>
 
-    <section class="bg-white p-6 rounded shadow">
-      <h2 class="text-lg font-semibold text-gray-700 mb-4">Top Rated Landlords</h2>
-      <ul class="divide-y">
-        <li v-for="landlord in store.landlordRatings" :key="landlord.name" class="py-2 flex justify-between">
-          <span>{{ landlord.name }}</span>
-          <span class="font-medium">⭐ {{ landlord.rating.toFixed(1) }}</span>
-        </li>
-      </ul>
-    </section>
-
-    <section class="bg-white p-6 rounded shadow">
-      <h2 class="text-lg font-semibold text-gray-700 mb-4">Recent Activity</h2>
-      <ul class="divide-y">
-        <li v-for="(activity, index) in store.recentActivities" :key="index" class="py-2">
-          <p class="text-gray-800">{{ activity.action }}</p>
-          <p class="text-sm text-gray-500">By {{ activity.user }} on {{ activity.date }}</p>
-        </li>
-      </ul>
-    </section>
   </div>
 </template>

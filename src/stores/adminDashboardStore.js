@@ -6,9 +6,11 @@ import {
     approveLeaseTermination,
     // rejectLeaseTermination,
     approveLease,
-    rejectLease
+    rejectLease,
+    fetchLeaseTrends
 } from '@/services/leaseService'
 import { fetchPendingProperties } from '@/services/propertyService'
+import {BASE_URL} from "@/configs/config.js";
 
 export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
     const showTerminateModal = ref(false)
@@ -25,19 +27,54 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
 
     const leaseChartData = ref({
         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-        datasets: [
-            {
-                label: 'New Leases',
-                backgroundColor: '#4F46E5',
-                data: [12, 19, 9, 14, 16]
-            },
-            {
-                label: 'Terminated Leases',
-                backgroundColor: '#F87171',
-                data: [3, 5, 2, 4, 1]
-            }
-        ]
     })
+
+    const fetchLeaseChartData = async () => {
+        try {
+            const leases = await fetchLeaseTrends()
+
+            const now = new Date()
+            const months = []
+            const leaseStartCounts = {}
+            const leaseEndCounts = {}
+
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now)
+                d.setMonth(d.getMonth() - i)
+                const key = d.toISOString().slice(0, 7)
+                months.push(key)
+                leaseStartCounts[key] = 0
+                leaseEndCounts[key] = 0
+            }
+
+            leases.forEach(l => {
+                const start = l.startDate?.slice(0, 7)
+                const end = l.terminationRequestedAt?.slice(0, 7)
+
+                if (leaseStartCounts[start] !== undefined) leaseStartCounts[start]++
+                if (leaseEndCounts[end] !== undefined) leaseEndCounts[end]++
+            })
+
+            leaseChartData.value = {
+                labels: months.map(m => new Date(m + '-01').toLocaleString(undefined, { month: 'short' })),
+                datasets: [
+                    {
+                        label: 'New Leases',
+                        backgroundColor: '#4F46E5',
+                        data: months.map(m => leaseStartCounts[m])
+                    },
+                    {
+                        label: 'Terminated Leases',
+                        backgroundColor: '#F87171',
+                        data: months.map(m => leaseEndCounts[m])
+                    }
+                ]
+            }
+        } catch (err) {
+            console.error('Failed to fetch lease trends:', err)
+        }
+    }
+
 
     const leaseChartOptions = ref({
         responsive: true,
@@ -56,6 +93,7 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
                 fetchLeaseTerminations(),
                 fetchLeaseApprovals(),
                 fetchProperties(),
+                fetchLeaseChartData(),
                 fetchMockAnalytics(),
                 fetchMockRatings(),
                 fetchMockActivity()
@@ -110,6 +148,21 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         ]
     }
 
+    const landlordRatingsDetailed = ref([])
+
+    const fetchLandlordRatings = async () => {
+        try {
+            const token = localStorage.getItem('token')
+            const res = await fetch(`${BASE_URL}/landlord-score`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            landlordRatingsDetailed.value = await res.json()
+        } catch (err) {
+            console.error('Failed to fetch landlord ratings', err)
+        }
+    }
+
+
     const openTerminationModal = async () => {
         showTerminateModal.value = true
         await fetchLeaseTerminations()
@@ -159,6 +212,7 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         leaseChartOptions,
         loading,
         initDashboard,
+        fetchLandlordRatings,
         openTerminationModal,
         openPendingLeasesModal,
         openPendingPropertiesModal,

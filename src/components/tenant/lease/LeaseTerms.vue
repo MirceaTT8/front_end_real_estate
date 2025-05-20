@@ -1,7 +1,6 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { formatDate } from '@/components/utils/formatters.js'
-import { getLatestPaymentForLease } from '@/services/paymentService.js'
 
 const props = defineProps({
   lease: {
@@ -10,43 +9,17 @@ const props = defineProps({
   }
 })
 
-const currentDate = new Date()
-const loadingStatus = ref(true)
-const latestPayment = ref(null)
-
 const dueDay = new Date(props.lease.startDate).getDate()
+const daySuffix = dueDay === 1 ? 'st' : dueDay === 2 ? 'nd' : dueDay === 3 ? 'rd' : 'th'
 
-const rentStatus = computed(() => {
-  if (loadingStatus.value) {
-    return { status: 'checking...', class: 'text-gray-500 italic' }
-  }
+console.log(props.lease)
 
-  const dueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), dueDay)
-
-  if (!latestPayment.value) {
-    return currentDate > dueDate
-        ? { status: 'overdue', class: 'text-red-500 font-semibold' }
-        : { status: 'unpaid', class: 'text-yellow-500 font-semibold' }
-  }
-
-  const paymentDate = new Date(latestPayment.value.paymentDate)
-
-  if (paymentDate <= dueDate) {
-    return { status: 'current', class: 'text-green-600 font-semibold' }
-  } else {
-    return { status: 'late', class: 'text-orange-500 font-semibold' }
-  }
-})
-
-onMounted(async () => {
-  try {
-    latestPayment.value = await getLatestPaymentForLease(props.lease.leaseId)
-  } catch (err) {
-    console.warn('Could not fetch latest payment:', err)
-  } finally {
-    loadingStatus.value = false
-  }
-})
+const rentClassMap = {
+  CURRENT: 'text-green-600 font-semibold',
+  OVERDUE: 'text-red-500 font-semibold',
+  UNPAID: 'text-yellow-500 font-semibold',
+  LATE: 'text-orange-500 font-semibold'
+}
 </script>
 
 <template>
@@ -64,12 +37,11 @@ onMounted(async () => {
       <div class="bg-white shadow rounded p-5">
         <h3 class="font-semibold text-gray-800 mb-2">Rent Information</h3>
         <p><strong>$</strong>{{ lease.monthlyRent.toFixed(2) }} per month</p>
-        <p>
-          Due on the {{ dueDay }}
-          {{ dueDay === 1 ? 'st' : dueDay === 2 ? 'nd' : dueDay === 3 ? 'rd' : 'th' }} of each month
+        <p>Due on the {{ dueDay }}{{ daySuffix }} of each month</p>
+        <p :class="rentClassMap[lease.rentStatus]">
+          Status: {{ lease.rentStatus?.toLowerCase() || 'unknown' }}
         </p>
-        <p :class="rentStatus.class">Status: {{ rentStatus.status }}</p>
-        <p v-if="latestPayment">Last Paid On: {{ formatDate(latestPayment.paymentDate) }}</p>
+        <p v-if="lease.latestPaymentDate">Last Paid On: {{ formatDate(lease.latestPaymentDate) }}</p>
       </div>
     </div>
   </section>
