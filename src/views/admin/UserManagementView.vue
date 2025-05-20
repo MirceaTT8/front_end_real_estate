@@ -104,49 +104,147 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-      <div class="flex items-center gap-3">
-        <span class="text-4xl">👥</span>
-        <h1 class="text-3xl font-semibold text-gray-800">User Management</h1>
+  <div class="max-w-7xl mx-auto px-6 py-10">
+    <!-- Header with gradient background -->
+    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-lg mb-8">
+      <div class="px-8 py-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div class="flex items-center gap-4">
+            <div class="bg-white/20 p-3 rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold text-white">User Management</h1>
+              <p class="text-purple-100 mt-1">Manage your system users and permissions</p>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto mt-4 md:mt-0">
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                  type="text"
+                  v-model="userStore.searchQuery"
+                  placeholder="Search users..."
+                  class="pl-10 pr-4 py-2 w-full sm:w-64 text-sm border border-white/30 bg-white/10 text-white placeholder-white/60 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-white/50"
+              >
+            </div>
+            <button
+                @click="showUserDialog = true"
+                class="flex items-center justify-center gap-2 px-4 py-2 bg-white text-indigo-700 text-sm font-medium rounded-xl hover:bg-indigo-50 transition-colors shadow-sm"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+              </svg>
+              Add User
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-        <input
-            type="text"
-            v-model="userStore.searchQuery"
-            placeholder="Search users..."
-            class="px-4 py-2 w-full sm:w-64 text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-        <button
-            @click="showUserDialog = true"
-            class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-        >
-          <i class="fas fa-user-plus"></i> Add User
-        </button>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center gap-4">
+          <div class="bg-indigo-100 p-3 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-gray-500 text-sm">Total Users</h3>
+            <p class="font-bold text-xl text-gray-800">{{ userStore.users.length || 0 }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center gap-4">
+          <div class="bg-green-100 p-3 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-gray-500 text-sm">Active Users</h3>
+            <p class="font-bold text-xl text-gray-800">{{ userStore.users.filter(u => u.isActive).length || 0 }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center gap-4">
+          <div class="bg-red-100 p-3 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-gray-500 text-sm">Inactive Users</h3>
+            <p class="font-bold text-xl text-gray-800">{{ userStore.users.filter(u => !u.isActive).length || 0 }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center gap-4">
+          <div class="bg-yellow-100 p-3 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-gray-500 text-sm">New This Month</h3>
+            <p class="font-bold text-xl text-gray-800">{{ userStore.recentUsers || 0 }}</p>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Loading -->
-    <div v-if="userStore.loading" class="text-center py-8 text-gray-500">
-      Loading users...
+    <div v-if="userStore.loading" class="bg-white rounded-xl shadow-md p-10">
+      <div class="flex flex-col items-center justify-center">
+        <svg class="animate-spin h-10 w-10 text-indigo-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-gray-500 text-lg">Loading users...</p>
+      </div>
     </div>
 
     <!-- User Table -->
     <div v-else class="bg-white shadow-xl rounded-xl overflow-hidden">
+      <div class="border-b border-gray-100 px-6 py-4">
+        <h2 class="text-lg font-semibold text-gray-800">User Directory</h2>
+        <p class="text-sm text-gray-500">Manage all system users from this panel</p>
+      </div>
+
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-100">
+          <thead class="bg-gray-50">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              <input type="checkbox" @change="toggleSelectAll" class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500">
+            <th class="px-6 py-4 text-left">
+              <div class="flex items-center">
+                <input
+                    type="checkbox"
+                    @change="toggleSelectAll"
+                    class="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                >
+                <span class="ml-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Select</span>
+              </div>
             </th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Name</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">First Name</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200 text-sm">
@@ -160,38 +258,55 @@ onMounted(() => {
                   type="checkbox"
                   :checked="userStore.selectedUsers.has(user.userId)"
                   @change="toggleUserSelection(user.userId, $event)"
-                  class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                  class="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
               >
             </td>
-            <td class="px-6 py-4 text-gray-500">{{ user.userId }}</td>
-            <td class="px-6 py-4 font-medium text-gray-900">{{ user.lastName }}</td>
-            <td class="px-6 py-4 font-medium text-gray-900">{{ user.firstName }}</td>
-            <td class="px-6 py-4 text-blue-600 hover:text-blue-800">
-              <a :href="`mailto:${user.email}`">{{ user.email }}</a>
-            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-gray-500 font-mono">{{ user.userId }}</td>
             <td class="px-6 py-4">
+              <div class="flex items-center">
+                <div class="h-10 w-10 flex-shrink-0 bg-indigo-100 rounded-full flex items-center justify-center">
+                  <span class="text-indigo-700 font-medium">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</span>
+                </div>
+                <div class="ml-4">
+                  <div class="font-medium text-gray-900">{{ user.firstName }} {{ user.lastName }}</div>
+                  <div class="text-gray-500 text-xs">{{ user.role || 'User' }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <a :href="`mailto:${user.email}`" class="text-indigo-600 hover:text-indigo-900 hover:underline">
+                {{ user.email }}
+              </a>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
                 <span
-                    class="px-3 py-1 rounded-full text-xs font-semibold"
-                    :class="user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-sm"
+                    :class="user.isActive
+                    ? 'bg-green-100 text-green-800 border border-green-200'
+                    : 'bg-red-100 text-red-800 border border-red-200'"
                     :title="user.isActive ? 'Click to deactivate' : 'Click to activate'"
                     @click="toggleUserStatus(user)"
                     style="cursor: pointer;"
                 >
+                  <span class="w-2 h-2 rounded-full mr-1.5" :class="user.isActive ? 'bg-green-500' : 'bg-red-500'"></span>
                   {{ user.isActive ? 'ACTIVE' : 'INACTIVE' }}
                 </span>
             </td>
-            <td class="px-6 py-4">
-              <div class="flex gap-3">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <div class="flex gap-2">
                 <button
                     @click="toggleUserStatus(user)"
-                    class="text-sm text-yellow-600 hover:text-yellow-800"
+                    class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   {{ user.isActive ? 'Deactivate' : 'Activate' }}
                 </button>
                 <button
                     @click="confirmDelete(user.userId)"
-                    class="text-sm text-red-600 hover:text-red-800"
+                    class="inline-flex items-center px-2.5 py-1.5 border border-red-300 text-xs font-medium rounded text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
                   Delete
                 </button>
               </div>
@@ -203,36 +318,79 @@ onMounted(() => {
 
       <!-- Bulk Actions -->
       <div v-if="userStore.selectedUsers.size > 0" class="bg-gray-50 px-6 py-4 flex flex-wrap gap-3 border-t border-gray-200">
+        <div class="flex items-center mr-2">
+          <span class="text-sm font-medium text-gray-700">{{ userStore.selectedUsers.size }} users selected</span>
+        </div>
         <button
             @click="bulkToggleStatus(true)"
-            class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
         >
-          Activate Selected
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          Activate
         </button>
         <button
             @click="bulkToggleStatus(false)"
-            class="px-4 py-2 bg-yellow-500 text-white text-sm rounded-lg hover:bg-yellow-600 transition-colors"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
         >
-          Deactivate Selected
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          Deactivate
         </button>
         <button
             @click="userStore.approveSelected"
-            class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
-          Approve Selected
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          Approve
         </button>
         <button
             @click="userStore.suspendSelected"
-            class="px-4 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 transition-colors"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
         >
-          Suspend Selected
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+          </svg>
+          Suspend
         </button>
         <button
             @click="confirmDelete([...userStore.selectedUsers][0])"
-            class="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
-          Delete Selected
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+          Delete
         </button>
+      </div>
+    </div>
+
+    <!-- Add User Modal (placeholder) -->
+    <!-- In a real implementation, you would add a proper modal component here -->
+    <!-- This is just to maintain the functionality reference from the original code -->
+    <div v-if="showUserDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+        <!-- Modal content would go here -->
+        <h2 class="text-xl font-bold mb-4">Add New User</h2>
+        <!-- Form fields would go here -->
+        <div class="flex justify-end gap-3 mt-6">
+          <button
+              @click="showUserDialog = false"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+              @click="saveNewUser"
+              class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            Save User
+          </button>
+        </div>
       </div>
     </div>
   </div>

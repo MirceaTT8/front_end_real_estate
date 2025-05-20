@@ -1,47 +1,172 @@
+<!-- LogTableRow.vue -->
 <template>
-  <tr class="hover:bg-gray-50">
-    <td class="px-6 py-3 whitespace-nowrap text-xs text-gray-600">{{ formatDate(log.createdAt) }}</td>
-    <td class="px-6 py-3 whitespace-nowrap text-xs text-gray-900">{{ log.userId }}</td>
-    <td class="px-6 py-3 whitespace-nowrap">
+  <tr class="hover:bg-gray-50 transition-colors">
+    <!-- Timestamp -->
+    <td class="px-6 py-4 whitespace-nowrap">
+      <div class="flex flex-col">
+        <span class="text-sm font-medium text-gray-900">{{ formatTime(log.createdAt) }}</span>
+        <span class="text-xs text-gray-500">{{ formatDate(log.createdAt) }}</span>
+      </div>
+    </td>
+
+    <!-- User ID -->
+    <td class="px-6 py-4 whitespace-nowrap">
+      <div class="flex items-center">
+        <div class="h-8 w-8 flex-shrink-0 mr-3">
+          <div class="h-full w-full rounded-full bg-gray-200 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div class="text-sm font-medium text-gray-900">{{ log.userId }}</div>
+          <div class="text-xs text-gray-500">{{ log.userEmail || 'user@example.com' }}</div>
+        </div>
+      </div>
+    </td>
+
+    <!-- Action -->
+    <td class="px-6 py-4 whitespace-nowrap">
       <span
-          class="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white"
-          :class="getActionColor(log.actionType)"
+          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+          :class="getActionStyles(log.actionType)"
       >
+        <span :class="getActionDotClass(log.actionType)" class="w-1.5 h-1.5 mr-1.5 rounded-full"></span>
         {{ log.actionType }}
       </span>
     </td>
-    <td class="px-6 py-3 whitespace-nowrap text-xs text-gray-700">{{ log.entityType }}</td>
-    <td class="px-6 py-3 whitespace-nowrap text-xs text-gray-700">{{ log.entityId }}</td>
-    <td class="px-6 py-3 text-xs whitespace-pre-wrap text-gray-500 max-w-xs truncate">
-      {{ log.details }}
+
+    <!-- Entity Type -->
+    <td class="px-6 py-4 whitespace-nowrap">
+      <div class="flex items-center">
+        <span class="mr-2" v-html="getEntityIcon(log.entityType)"></span>
+        <span class="text-sm text-gray-900">{{ log.entityType }}</span>
+      </div>
+    </td>
+
+    <!-- Entity ID -->
+    <td class="px-6 py-4 whitespace-nowrap">
+      <span class="text-sm font-mono bg-gray-100 text-gray-800 px-2.5 py-0.5 rounded">{{ log.entityId }}</span>
+    </td>
+
+    <!-- Details -->
+    <td class="px-6 py-4">
+      <div class="relative max-w-xs">
+        <div class="text-sm text-gray-500 truncate hover:text-clip" @click="showFullDetails = !showFullDetails">
+          {{ log.details }}
+        </div>
+
+        <!-- View Details Button -->
+        <button
+            @click="showFullDetails = !showFullDetails"
+            class="mt-1 inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
+        >
+          {{ showFullDetails ? 'Hide Details' : 'View Details' }}
+          <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-3.5 w-3.5 ml-1 transition-transform duration-200"
+              :class="showFullDetails ? 'rotate-180' : ''"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        <!-- Full Details Modal -->
+        <div
+            v-if="showFullDetails"
+            class="absolute z-10 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 p-4"
+        >
+          <div class="flex justify-between items-start mb-2">
+            <h3 class="text-sm font-semibold text-gray-900">Log Details</h3>
+            <button @click="showFullDetails = false" class="text-gray-400 hover:text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div class="text-xs text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 rounded-md font-mono">
+            {{ formatDetails(log.details) }}
+          </div>
+        </div>
+      </div>
     </td>
   </tr>
 </template>
 
-
 <script setup>
-const props = defineProps({ log: Object })
+import { ref } from 'vue';
+
+const props = defineProps({
+  log: {
+    type: Object,
+    required: true
+  }
+});
+
+const showFullDetails = ref(false);
 
 const formatDate = (timestamp) => {
-  const date = new Date(timestamp)
-  return date.toLocaleString()
-}
+  const date = new Date(timestamp);
+  return date.toLocaleDateString();
+};
 
-function getActionColor(actionType) {
-  if (actionType.includes('CREATE')) return 'bg-green-500'
-  if (actionType.includes('UPDATE')) return 'bg-blue-500'
-  if (actionType.includes('DELETE')) return 'bg-red-500'
-  return 'bg-gray-400'
-}
+const formatTime = (timestamp) => {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString();
+};
 
-function formatDetails(details) {
-  try {
-    const parsed = JSON.parse(details)
-    return Object.entries(parsed)
-        .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
-        .join('; ')
-  } catch {
-    return details
+const getActionStyles = (actionType) => {
+  if (actionType.includes('CREATE')) {
+    return 'bg-green-100 text-green-800 border border-green-200';
   }
-}
+  if (actionType.includes('UPDATE')) {
+    return 'bg-blue-100 text-blue-800 border border-blue-200';
+  }
+  if (actionType.includes('DELETE')) {
+    return 'bg-red-100 text-red-800 border border-red-200';
+  }
+  if (actionType.includes('VIEW')) {
+    return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+  }
+  return 'bg-gray-100 text-gray-800 border border-gray-200';
+};
+
+const getActionDotClass = (actionType) => {
+  if (actionType.includes('CREATE')) return 'bg-green-500';
+  if (actionType.includes('UPDATE')) return 'bg-blue-500';
+  if (actionType.includes('DELETE')) return 'bg-red-500';
+  if (actionType.includes('VIEW')) return 'bg-yellow-500';
+  return 'bg-gray-500';
+};
+
+const getEntityIcon = (entityType) => {
+  const iconMap = {
+    'User': '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>',
+    'Property': '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>',
+    'Lease': '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>',
+    'Payment': '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>'
+  };
+
+  return iconMap[entityType] || '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>';
+};
+
+const formatDetails = (details) => {
+  try {
+    const parsed = typeof details === 'string' ? JSON.parse(details) : details;
+    return JSON.stringify(parsed, null, 2);
+  } catch {
+    return details;
+  }
+};
 </script>
+
+<style scoped>
+.text-clip {
+  text-overflow: clip;
+  white-space: normal;
+}
+</style>
