@@ -42,7 +42,7 @@ const columns = [
       <td class="px-4 py-2">{{ request.leaseId }}</td>
       <td class="px-4 py-2">{{ request.description }}</td>
       <td class="px-4 py-2">{{ request.status }}</td>
-      <td class="px-4 py-2">${{ request.cost.toFixed(2) }}</td>
+      <td class="px-4 py-2">{{ request.cost != null ? `$${request.cost.toFixed(2)}` : '—' }}</td>
       <td class="px-4 py-2">{{ new Date(request.createdAt).toLocaleDateString() }}</td>
       <td class="px-4 py-2 text-green-600 font-medium">Good</td>
       <td class="px-4 py-2">

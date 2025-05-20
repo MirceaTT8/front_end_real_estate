@@ -206,3 +206,18 @@ export const getLatestPaymentForLease = async (leaseId) => {
     }
 };
 
+export const fetchPaymentsForLease = async (leaseId) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/lease/${leaseId}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch payments for lease ${leaseId}`);
+    }
+
+    return await response.json();
+};
+

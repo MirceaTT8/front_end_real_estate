@@ -22,7 +22,7 @@ const update = (key, value) => {
         <option value="PENDING">Pending</option>
         <option value="IN_PROGRESS">In Progress</option>
         <option value="COMPLETED">Completed</option>
-        <option value="FAILED">Failed</option>
+        <option value="CANCELLED">Cancelled</option>
       </select>
     </div>
 
