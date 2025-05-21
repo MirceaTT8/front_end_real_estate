@@ -1,7 +1,10 @@
 <script setup>
-import {ref, computed, onMounted, watch, onUnmounted} from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import FileUploader from '@/components/landlord/property/PropertyFileUploader.vue'
 
+/**
+ * Property types available for selection
+ */
 const propertyTypes = [
   { value: 'APARTMENT', label: 'Apartment' },
   { value: 'HOUSE', label: 'House' },
@@ -9,7 +12,11 @@ const propertyTypes = [
   { value: 'LAND', label: 'Land' }
 ]
 
-const emit = defineEmits(['update:modelValue', 'update:attachments', 'location-selected'])
+const emit = defineEmits([
+  'update:modelValue',
+  'update:attachments',
+  'location-selected'
+])
 
 const props = defineProps({
   isLoading: Boolean,
@@ -23,34 +30,34 @@ const props = defineProps({
   }
 })
 
+// Computed properties for two-way binding
 const form = computed({
-  get() {
-    return props.modelValue
-  },
-  set(value) {
-    emit('update:modelValue', value)
-  }
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value)
 })
 
 const attachments = computed({
-  get() {
-    return props.attachments
-  },
-  set(value) {
-    emit('update:attachments', value)
-  }
+  get: () => props.attachments,
+  set: (value) => emit('update:attachments', value)
 })
 
+// Google Maps autocomplete implementation
 const autocompleteInput = ref(null)
 const autocomplete = ref(null)
 
+/**
+ * Initializes Google Maps Places Autocomplete
+ * @returns {boolean} - Whether initialization was successful
+ */
 const initAutocomplete = () => {
-  if (!window.google || !window.google.maps || !window.google.maps.places) {
+  const googleApi = window.google
+
+  if (!googleApi?.maps?.places) {
     console.log('Google Maps API not ready yet')
     return false
   }
 
-  autocomplete.value = new google.maps.places.Autocomplete(
+  autocomplete.value = new googleApi.maps.places.Autocomplete(
       autocompleteInput.value,
       {
         types: ['address'],
@@ -61,8 +68,9 @@ const initAutocomplete = () => {
 
   autocomplete.value.addListener('place_changed', () => {
     const place = autocomplete.value.getPlace()
+
     if (!place.geometry) {
-      console.log('No details available for input: ' + place.name)
+      console.log(`No details available for input: ${place.name}`)
       return
     }
 
@@ -76,6 +84,7 @@ const initAutocomplete = () => {
   return true
 }
 
+// Component lifecycle hooks
 onMounted(() => {
   if (initAutocomplete()) return
 
@@ -95,19 +104,26 @@ onUnmounted(() => {
 
 <template>
   <div class="space-y-6 bg-white p-6 rounded-2xl shadow-md">
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Property Name *</label>
+    <!-- Property Name -->
+    <div class="form-group">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Property Name <span class="text-red-500">*</span>
+      </label>
       <input
           v-model="form.name"
           type="text"
           required
           class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
           :disabled="isLoading"
+          placeholder="Enter property name"
       >
     </div>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+    <!-- Address with Google Autocomplete -->
+    <div class="form-group">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Address <span class="text-red-500">*</span>
+      </label>
       <input
           ref="autocompleteInput"
           v-model="form.address"
@@ -120,22 +136,33 @@ onUnmounted(() => {
       >
     </div>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Property Type *</label>
+    <!-- Property Type -->
+    <div class="form-group">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Property Type <span class="text-red-500">*</span>
+      </label>
       <select
           v-model="form.type"
           class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
           :disabled="isLoading"
           required
       >
-        <option v-for="type in propertyTypes" :key="type.value" :value="type.value">
+        <option disabled value="">Select a property type</option>
+        <option
+            v-for="type in propertyTypes"
+            :key="type.value"
+            :value="type.value"
+        >
           {{ type.label }}
         </option>
       </select>
     </div>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Rent ($) *</label>
+    <!-- Monthly Rent -->
+    <div class="form-group">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Monthly Rent ($) <span class="text-red-500">*</span>
+      </label>
       <input
           v-model.number="form.rentAmount"
           type="number"
@@ -144,11 +171,15 @@ onUnmounted(() => {
           required
           class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
           :disabled="isLoading"
+          placeholder="0.00"
       >
     </div>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">Attachments</label>
+    <!-- File Attachments -->
+    <div class="form-group">
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Attachments
+      </label>
       <FileUploader
           v-model="attachments"
           :is-loading="isLoading"
@@ -156,3 +187,22 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.form-group {
+  @apply transition-all duration-200;
+}
+
+.form-group:hover label {
+  @apply text-blue-600;
+}
+
+/* Optional animation for form validation */
+input:invalid, select:invalid {
+  @apply border-red-300;
+}
+
+input:valid, select:valid {
+  @apply border-green-300;
+}
+</style>

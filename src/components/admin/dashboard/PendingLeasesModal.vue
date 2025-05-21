@@ -1,23 +1,133 @@
 <template>
-  <Dialog :visible="visible" modal header="Pending Lease Approvals" class="w-full max-w-2xl rounded-xl shadow-lg" @update:visible="$emit('update:visible', $event)">
-    <div v-if="loading" class="text-center py-6 text-gray-500">Loading lease approvals...</div>
-
-    <div v-else-if="leases.length > 0" class="space-y-4">
-      <div v-for="lease in leases" :key="lease.leaseId" class="p-4 border rounded bg-green-50 space-y-2">
-        <p class="font-semibold text-green-900">Tenant ID: {{ lease.tenantId }}</p>
-        <p class="text-sm text-gray-600">Property ID: {{ lease.propertyId }}</p>
-        <p class="text-sm text-gray-600">Start Date: {{ lease.startDate }}</p>
-        <p class="text-sm text-gray-600">Monthly Rent: ${{ lease.monthlyRent }}</p>
-
-        <div class="flex gap-2">
-          <button @click="$emit('approve', lease.leaseId)" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Approve</button>
-          <button @click="$emit('reject', lease.leaseId)" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">Reject</button>
-        </div>
+  <Dialog
+      :visible="visible"
+      modal
+      :header="false"
+      class="w-full max-w-2xl rounded-xl shadow-lg overflow-hidden"
+      @update:visible="$emit('update:visible', $event)"
+  >
+    <!-- Custom Header -->
+    <div class="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <h2 class="text-xl font-semibold text-white">Pending Lease Approvals</h2>
       </div>
+      <button
+          @click="$emit('update:visible', false)"
+          class="text-white/80 hover:text-white transition-colors focus:outline-none"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
     </div>
 
-    <div v-else class="text-center text-gray-600 py-8">
-      <p>No pending lease applications.</p>
+    <!-- Loading State -->
+    <div v-if="loading" class="flex flex-col items-center justify-center p-12">
+      <div class="w-12 h-12 border-4 border-gray-200 border-t-green-500 rounded-full animate-spin mb-4"></div>
+      <p class="text-gray-600">Loading lease applications...</p>
+    </div>
+
+    <!-- Content -->
+    <div v-else class="p-6">
+      <div v-if="leases.length > 0" class="space-y-5">
+        <div
+            v-for="lease in leases"
+            :key="lease.leaseId"
+            class="bg-white border border-green-200 rounded-lg overflow-hidden shadow-sm"
+        >
+          <!-- Lease Header -->
+          <div class="bg-green-50 px-5 py-3 border-b border-green-200 flex justify-between items-center">
+            <div class="flex items-center">
+              <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full mr-2">
+                New Application
+              </span>
+              <h3 class="font-semibold text-green-900">Lease #{{ lease.leaseId }}</h3>
+            </div>
+          </div>
+
+          <!-- Lease Details -->
+          <div class="p-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+              <!-- Tenant Info -->
+              <div class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-gray-500">Tenant ID</p>
+                  <p class="font-medium text-gray-900">{{ lease.tenantId }}</p>
+                </div>
+              </div>
+
+              <!-- Property Info -->
+              <div class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-gray-500">Property ID</p>
+                  <p class="font-medium text-gray-900">{{ lease.propertyId }}</p>
+                </div>
+              </div>
+
+              <!-- Start Date -->
+              <div class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-gray-500">Start Date</p>
+                  <p class="font-medium text-gray-900">{{ formatDate(lease.startDate) }}</p>
+                </div>
+              </div>
+
+              <!-- Monthly Rent -->
+              <div class="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-gray-500">Monthly Rent</p>
+                  <p class="font-medium text-gray-900">${{ lease.monthlyRent }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3 justify-end mt-6">
+              <button
+                  @click="$emit('reject', lease.leaseId)"
+                  class="px-4 py-2 bg-white hover:bg-gray-50 text-red-600 font-medium border border-red-600 rounded-lg transition-colors"
+              >
+                Reject
+              </button>
+              <button
+                  @click="$emit('approve', lease.leaseId)"
+                  class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Approve Lease
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div v-else class="text-center py-12">
+        <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-1">No Pending Leases</h3>
+        <p class="text-gray-500">There are no pending lease applications at this time.</p>
+      </div>
     </div>
   </Dialog>
 </template>
@@ -30,4 +140,11 @@ defineProps({
 })
 
 defineEmits(['update:visible', 'approve', 'reject'])
+
+// Format date to more readable format
+function formatDate(dateString) {
+  if (!dateString) return 'N/A';
+  const options = { year: 'numeric', month: 'short', day: 'numeric' };
+  return new Date(dateString).toLocaleDateString(undefined, options);
+}
 </script>

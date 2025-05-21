@@ -6,11 +6,6 @@ const props = defineProps({
   maintenanceCostThisMonth: Number
 })
 
-// Calculate % change (simulated data for demo)
-const rentChangePercent = 3.2;
-const occupancyChangePercent = 1.5;
-const maintenanceChangePercent = -2.8;
-
 // Format currency
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {
@@ -38,9 +33,8 @@ const formatCurrency = (amount) => {
         <div class="px-6 py-5 flex justify-between items-center">
           <div>
             <p class="text-sm text-green-700 font-medium">Collected Rent</p>
-            <div class="flex items-baseline mt-1">
+            <div class="mt-1">
               <p class="text-2xl font-bold text-gray-800">{{ formatCurrency(rentPaymentsLastMonth) }}</p>
-              <span class="ml-2 text-xs font-medium text-green-600">+{{ rentChangePercent }}%</span>
             </div>
             <p class="text-xs text-green-600 mt-1">Past 30 days</p>
           </div>
@@ -61,9 +55,8 @@ const formatCurrency = (amount) => {
         <div class="px-6 py-5 flex justify-between items-center">
           <div>
             <p class="text-sm text-purple-700 font-medium">Occupancy Rate</p>
-            <div class="flex items-baseline mt-1">
+            <div class="mt-1">
               <p class="text-2xl font-bold text-gray-800">{{ occupancyRate }}%</p>
-              <span class="ml-2 text-xs font-medium text-purple-600">+{{ occupancyChangePercent }}%</span>
             </div>
             <p class="text-xs text-purple-600 mt-1">{{ vacantUnits }} units available</p>
           </div>
@@ -84,9 +77,8 @@ const formatCurrency = (amount) => {
         <div class="px-6 py-5 flex justify-between items-center">
           <div>
             <p class="text-sm text-orange-700 font-medium">Maintenance Costs</p>
-            <div class="flex items-baseline mt-1">
+            <div class="mt-1">
               <p class="text-2xl font-bold text-gray-800">{{ formatCurrency(maintenanceCostThisMonth) }}</p>
-              <span class="ml-2 text-xs font-medium text-orange-600">{{ maintenanceChangePercent }}%</span>
             </div>
             <p class="text-xs text-orange-600 mt-1">Past 30 days</p>
           </div>

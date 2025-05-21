@@ -77,11 +77,103 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-8 max-w-6xl">
-    <h1 class="text-3xl font-semibold text-gray-800 mb-8">My Properties</h1>
+  <div class="max-w-7xl mx-auto px-6 py-10">
+    <!-- Header with gradient background -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg mb-8">
+      <div class="px-8 py-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div class="flex items-center gap-4">
+            <div class="bg-white/20 p-3 rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold text-white">My Properties</h1>
+              <p class="text-blue-100 mt-1">Manage your property portfolio</p>
+            </div>
+          </div>
 
+<!--          <div class="mt-4 md:mt-0">-->
+<!--            <button class="flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors shadow-sm font-medium">-->
+<!--              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">-->
+<!--                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />-->
+<!--              </svg>-->
+<!--              Add Property-->
+<!--            </button>-->
+<!--          </div>-->
+        </div>
+      </div>
+    </div>
+
+    <!-- Property Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Total Properties -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center gap-4">
+          <div class="bg-blue-100 p-3 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-gray-500 text-sm">Total Properties</h3>
+            <p class="font-bold text-xl text-gray-800">{{ store.properties.length }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Available Properties -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center gap-4">
+          <div class="bg-green-100 p-3 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-gray-500 text-sm">Available Properties</h3>
+            <p class="font-bold text-xl text-gray-800">{{ store.properties.filter(p => p.status === 'AVAILABLE').length }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rented Properties -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center gap-4">
+          <div class="bg-purple-100 p-3 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2m-6 9h6m-6 1a1 1 0 001 1h4a1 1 0 001-1v-1m-6-9a1 1 0 00-1 1v9a1 1 0 001 1h6a1 1 0 001-1V8a1 1 0 00-1-1h-6a1 1 0 00-1 1z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-gray-500 text-sm">Rented Properties</h3>
+            <p class="font-bold text-xl text-gray-800">{{ store.properties.filter(p => p.status === 'RENTED').length }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Maintenance -->
+<!--      <div class="bg-white rounded-xl shadow-md p-6">-->
+<!--        <div class="flex items-center gap-4">-->
+<!--          <div class="bg-orange-100 p-3 rounded-lg">-->
+<!--            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">-->
+<!--              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />-->
+<!--              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />-->
+<!--            </svg>-->
+<!--          </div>-->
+<!--          <div>-->
+<!--            <h3 class="text-gray-500 text-sm">Maintenance</h3>-->
+<!--            <p class="font-bold text-xl text-gray-800">{{ store.properties.filter(p => p.status === 'MAINTENANCE').length }}</p>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+    </div>
+
+    <!-- View Toggle -->
     <PropertyViewToggle v-model:showMap="showMapView" />
 
+    <!-- Filters -->
     <PropertyFilters
         :filters="filters"
         :filterOptions="{
@@ -93,11 +185,13 @@ onMounted(async () => {
         @reset="resetFilters"
     />
 
+    <!-- Map View -->
     <PropertyMap
         v-if="showMapView"
         :properties="filteredProperties"
     />
 
+    <!-- List View -->
     <PropertyList
         v-else
         :properties="filteredProperties"

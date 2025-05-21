@@ -26,36 +26,67 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto p-6">
-    <header class="flex justify-between items-center mb-8">
-      <h1 class="text-2xl font-bold text-gray-800">Payments</h1>
+  <div class="max-w-6xl mx-auto p-6 space-y-8">
+    <header class="flex justify-between items-center pb-6 border-b border-gray-200">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800">Payments</h1>
+        <p class="text-gray-500 mt-1">Manage and track all your property payments</p>
+      </div>
       <button
           @click="showManualModal = true"
-          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+          class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg transition-colors flex items-center font-medium shadow-sm"
       >
-        + Add Payment
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+        Add Payment
       </button>
     </header>
 
-    <div v-if="store.error" class="bg-red-100 border border-red-300 text-red-700 p-4 rounded mb-4">
-      {{ store.error }}
+    <div v-if="store.error" class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-sm">
+      <div class="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>{{ store.error }}</span>
+      </div>
     </div>
 
-    <PaymentSummaryCard :payments="store.filteredPayments" />
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+      <PaymentSummaryCard :payments="store.filteredPayments" />
+    </div>
 
-    <PaymentLeaseFilter
-        :payments="store.payments"
-        :leases="store.leases"
-        v-model:selectedLeaseId="store.selectedLeaseId"
-    />
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+        <div class="flex items-center mb-4 sm:mb-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          <h2 class="text-xl font-semibold text-gray-800">Filter Payments</h2>
+        </div>
 
-    <PaymentTable
-        :payments="store.filteredPayments"
-        :leases="store.leases"
-        :tenants="store.tenants"
-        :properties="store.properties"
-        :loading="store.loading"
-    />
+        <PaymentLeaseFilter
+            class="w-full sm:w-auto"
+            :payments="store.payments"
+            :leases="store.leases"
+            v-model:selectedLeaseId="store.selectedLeaseId"
+        />
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="p-6 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-800">Payment History</h2>
+        <p class="text-gray-500 text-sm mt-1">View and manage all transaction records</p>
+      </div>
+      <PaymentTable
+          :payments="store.filteredPayments"
+          :leases="store.leases"
+          :tenants="store.tenants"
+          :properties="store.properties"
+          :loading="store.loading"
+      />
+    </div>
 
     <PaymentManualModal
         v-if="showManualModal"
