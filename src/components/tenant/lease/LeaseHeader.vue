@@ -9,9 +9,6 @@
         <p class="text-blue-100 mt-0.5">
           <span class="opacity-80">Lease #:</span> {{ lease.leaseId }}
         </p>
-        <p class="text-blue-100 mt-0.5">
-          <span class="opacity-80">Next Payment Due:</span> {{ formatDate(nextPaymentDate) }}
-        </p>
       </div>
       <span
           class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium shadow-sm"
@@ -20,19 +17,6 @@
         <span :class="statusDot(lease.status)" class="h-2 w-2 mr-1.5 rounded-full"></span>
         {{ lease.status }}
       </span>
-    </div>
-
-    <div class="hidden sm:block mt-4">
-      <div class="h-1.5 bg-white/20 rounded-full overflow-hidden">
-        <div
-            class="h-full bg-white rounded-full"
-            :style="{ width: leaseProgress + '%' }"
-        ></div>
-      </div>
-      <div class="flex justify-between mt-2 text-xs text-blue-100">
-        <div>Start: {{ formatDate(lease.startDate) }}</div>
-        <div>End: {{ formatDate(lease.endDate) }}</div>
-      </div>
     </div>
   </div>
 </template>

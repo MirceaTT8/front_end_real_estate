@@ -61,21 +61,17 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
         const lease = tenantLeaseStore.lease
         if (!lease || !payments.value.length) return false
 
-        const startDate = new Date(lease.startDate)
         const today = new Date()
+        const currentMonth = today.getMonth()
+        const currentYear = today.getFullYear()
 
-        const monthsSinceStart = (today.getFullYear() - startDate.getFullYear()) * 12 +
-            (today.getMonth() - startDate.getMonth())
-
-        const cycleStart = new Date(startDate)
-        cycleStart.setMonth(startDate.getMonth() + monthsSinceStart)
-
-        const nextCycleStart = new Date(cycleStart)
-        nextCycleStart.setMonth(cycleStart.getMonth() + 1)
-
+        // Check if there's a completed payment in the current month
         return payments.value.some(payment => {
+            if (payment.status !== 'COMPLETED') return false
+
             const paymentDate = new Date(payment.paymentDate)
-            return payment.status === 'COMPLETED' && paymentDate >= cycleStart && paymentDate < nextCycleStart
+            return paymentDate.getMonth() === currentMonth &&
+                paymentDate.getFullYear() === currentYear
         })
     })
 
@@ -106,12 +102,13 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
         return await createStripeCheckoutSession(leaseId)
     }
 
-    // Next payment date calculation (matching LeaseTenantView logic)
+    // Next payment date calculation - rent due on the same day as lease start date
     const nextPaymentDate = computed(() => {
         const lease = tenantLeaseStore.lease
         if (!lease) return new Date()
 
         const startDate = new Date(lease.startDate)
+        const endDate = new Date(lease.endDate)
         const today = new Date()
 
         // Calculate the day of month that rent is due (same day as lease start)
@@ -119,9 +116,14 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
 
         let nextDate = new Date(today.getFullYear(), today.getMonth(), dueDayOfMonth)
 
-        // If today is past the due date for this month, next payment is next month
-        if (today.getDate() > dueDayOfMonth) {
+        // If we're past the due date for this month OR it's the due date and payment is already made
+        if (today.getDate() > dueDayOfMonth || (today.getDate() === dueDayOfMonth && hasPaidThisCycle.value)) {
             nextDate.setMonth(nextDate.getMonth() + 1)
+        }
+
+        // If the next payment date is after the lease ends, return null or lease end date
+        if (nextDate > endDate) {
+            return null // No more payments needed
         }
 
         return nextDate
@@ -129,9 +131,21 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
 
     // Days until next payment
     const daysUntilNextPayment = computed(() => {
+        const nextPayment = nextPaymentDate.value
+
+        // If no next payment (lease ended), return 0
+        if (!nextPayment) return 0
+
         const today = new Date()
-        const diffTime = Math.abs(nextPaymentDate.value - today)
-        return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+        // Reset time to start of day for accurate day calculation
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+        const nextPaymentStart = new Date(nextPayment.getFullYear(), nextPayment.getMonth(), nextPayment.getDate())
+
+        const diffTime = nextPaymentStart - todayStart
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+        return Math.max(0, diffDays) // Ensure we don't return negative days
     })
 
     return {

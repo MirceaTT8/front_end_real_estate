@@ -241,60 +241,6 @@ watch(() => tenantStore.lease, updatePaymentInfo, { immediate: true, deep: true 
             </div>
           </div>
         </div>
-
-        <!-- Quick Action Buttons -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-6">
-              <div class="flex items-center mb-4">
-                <div class="bg-blue-100 p-3 rounded-full mr-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                </div>
-                <h3 class="text-lg font-medium text-gray-900">Make a Payment</h3>
-              </div>
-              <p class="text-gray-600 mb-4">Make your monthly rent payment online quickly and securely.</p>
-              <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                Pay Now
-              </button>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-6">
-              <div class="flex items-center mb-4">
-                <div class="bg-green-100 p-3 rounded-full mr-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                  </svg>
-                </div>
-                <h3 class="text-lg font-medium text-gray-900">Submit Maintenance</h3>
-              </div>
-              <p class="text-gray-600 mb-4">Report any issues with your property and request maintenance.</p>
-              <button class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
-                Create Request
-              </button>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-6">
-              <div class="flex items-center mb-4">
-                <div class="bg-purple-100 p-3 rounded-full mr-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                  </svg>
-                </div>
-                <h3 class="text-lg font-medium text-gray-900">Contact Management</h3>
-              </div>
-              <p class="text-gray-600 mb-4">Have questions? Get in touch with your property management team.</p>
-              <button class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition-colors">
-                Send Message
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </template>
   </div>

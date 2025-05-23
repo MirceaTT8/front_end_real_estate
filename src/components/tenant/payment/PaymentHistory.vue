@@ -125,7 +125,6 @@ const downloadInvoice = (invoiceId) => {
         <div>Amount</div>
         <div>Method</div>
         <div>Status</div>
-        <div class="text-right">Invoice</div>
       </div>
 
       <!-- Main Three Payments -->
@@ -149,15 +148,6 @@ const downloadInvoice = (invoiceId) => {
             </div>
             <div class="flex justify-between items-center">
               <span class="text-base font-semibold text-gray-900">{{ formatCurrency(payment.amount) }}</span>
-              <button
-                  @click="downloadInvoice(payment.invoiceId)"
-                  class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                </svg>
-                Invoice
-              </button>
             </div>
             <div class="flex items-center">
               <span v-html="getPaymentMethodIcon(payment.paymentMethod)" class="mr-1.5"></span>
@@ -181,17 +171,6 @@ const downloadInvoice = (invoiceId) => {
                 <span :class="getStatusDotClasses(payment.status)" class="w-1.5 h-1.5 mr-1.5 rounded-full"></span>
                 {{ payment.status }}
               </span>
-            </div>
-            <div class="text-right">
-              <button
-                  @click="downloadInvoice(payment.invoiceId)"
-                  class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                </svg>
-                Download
-              </button>
             </div>
           </div>
         </div>
@@ -219,15 +198,6 @@ const downloadInvoice = (invoiceId) => {
             </div>
             <div class="flex justify-between items-center">
               <span class="text-base font-semibold text-gray-900">{{ formatCurrency(payment.amount) }}</span>
-              <button
-                  @click="downloadInvoice(payment.invoiceId)"
-                  class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                </svg>
-                Invoice
-              </button>
             </div>
             <div class="flex items-center">
               <span v-html="getPaymentMethodIcon(payment.paymentMethod)" class="mr-1.5"></span>
@@ -253,15 +223,6 @@ const downloadInvoice = (invoiceId) => {
               </span>
             </div>
             <div class="text-right">
-              <button
-                  @click="downloadInvoice(payment.invoiceId)"
-                  class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                </svg>
-                Download
-              </button>
             </div>
           </div>
         </div>

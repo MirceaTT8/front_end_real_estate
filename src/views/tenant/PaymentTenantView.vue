@@ -101,8 +101,14 @@ onMounted(() => {
               </div>
               <div>
                 <p class="text-sm text-white/80">Next Payment</p>
-                <p class="text-lg font-bold mt-1">{{ formatDate(paymentStore.nextPaymentDate) }}</p>
-                <p class="text-xs text-white/70">{{ paymentStore.daysUntilNextPayment }} days</p>
+                <p v-if="paymentStore.nextPaymentDate" class="text-lg font-bold mt-1">
+                  {{ formatDate(paymentStore.nextPaymentDate) }}
+                </p>
+                <p v-else class="text-lg font-bold mt-1">Lease Complete</p>
+                <p v-if="paymentStore.nextPaymentDate" class="text-xs text-white/70">
+                  {{ paymentStore.daysUntilNextPayment }} days
+                </p>
+                <p v-else class="text-xs text-white/70">No more payments</p>
               </div>
             </div>
           </div>
@@ -141,6 +147,26 @@ onMounted(() => {
     </div>
 
     <div v-else>
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <h2 class="text-lg font-semibold text-gray-800">Payment Summary</h2>
+        </div>
+        <div class="p-6">
+          <div
+              class="bg-white rounded-lg p-6 shadow-md border-l-4"
+              :class="paymentStore.currentBalance === 0 ? 'border-green-500' : 'border-orange-400'"
+          >
+            <h3 class="text-gray-500 text-sm font-medium">Rent Due</h3>
+            <p class="text-3xl font-bold text-gray-800 my-2">
+              {{ formatCurrency(paymentStore.currentBalance) }}
+            </p>
+            <p class="text-gray-600 font-medium">
+              {{ paymentStore.currentBalance === 0 ? 'Rent paid for this month' : 'Due by the 5th of each month' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100">
           <h2 class="text-lg font-semibold text-gray-800">Payment History</h2>
