@@ -178,25 +178,6 @@ onMounted(async () => {
 
       <div class="p-6">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <!-- Search -->
-          <div class="sm:col-span-2 space-y-2">
-            <label for="search" class="block text-sm font-medium text-gray-700">Search Properties</label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                  id="search"
-                  v-model="searchQuery"
-                  type="text"
-                  placeholder="Search by name, address or ID"
-                  class="block w-full pl-10 pr-3 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
-            </div>
-          </div>
-
           <!-- Status Filter -->
           <div class="space-y-2">
             <label for="status" class="block text-sm font-medium text-gray-700">Property Status</label>
@@ -222,6 +203,25 @@ onMounted(async () => {
                   <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                 </svg>
               </div>
+            </div>
+          </div>
+
+          <!-- Search -->
+          <div class="sm:col-span-2 space-y-2">
+            <label for="search" class="block text-sm font-medium text-gray-700">Search Properties</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                  id="search"
+                  v-model="searchQuery"
+                  type="text"
+                  placeholder="Search by name, address or ID"
+                  class="block w-full pl-10 pr-3 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
             </div>
           </div>
         </div>
@@ -324,10 +324,13 @@ onMounted(async () => {
               </div>
             </div>
 
-            <div class="flex justify-end space-x-2 pt-2">
-              <button class="text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors">View Details</button>
-              <button class="text-xs font-medium text-gray-600 hover:text-gray-800 transition-colors">Edit</button>
-            </div>
+            <router-link
+                :to="{ name: 'PropertyDetails', params: { id: property.propertyId } }"
+                class="text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              View Details
+            </router-link>
+
           </div>
         </div>
       </div>
@@ -336,5 +339,4 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* You can add any component-specific styles here */
 </style>

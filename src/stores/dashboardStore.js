@@ -18,9 +18,11 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
     const rentPaymentsLastMonth = ref(0)
     const maintenanceCostThisMonth = ref(0)
 
-    const activeRange = ref('3M')
+    const activeRange = ref('1M') // Start with smallest range by default
     const chartData = ref()
     const chartOptions = ref()
+
+    // Dynamic range options based on available data
     const rangeOptions = ref([
         { label: '1M', value: '1M', enabled: false },
         { label: '3M', value: '3M', enabled: false },
@@ -50,16 +52,68 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
         }
     })
 
-    const updateRangeAvailability = () => {
-        const monthsWithData = chartData.value?.labels?.length || 0
-        rangeOptions.value.forEach(r => {
-            const limit = { '1M': 1, '3M': 3, '6M': 6, '1Y': 12, '5Y': 60 }[r.value]
-            r.enabled = monthsWithData >= limit
+    // Helper function to get months with actual data
+    const getMonthsWithData = (payments, maintenance) => {
+        const monthsSet = new Set()
+
+        // Add months from payments
+        payments.forEach(payment => {
+            if (payment.paymentDate) {
+                const month = payment.paymentDate.slice(0, 7) // YYYY-MM format
+                monthsSet.add(month)
+            }
         })
 
-        const valid = rangeOptions.value.filter(r => r.enabled)
-        if (!valid.some(v => v.value === activeRange.value)) {
-            activeRange.value = valid.at(-1)?.value || '1M'
+        // Add months from maintenance (when completed)
+        maintenance.forEach(request => {
+            if (request.status === 'COMPLETED' && request.updatedAt) {
+                const month = request.updatedAt.slice(0, 7) // YYYY-MM format
+                monthsSet.add(month)
+            }
+        })
+
+        // Convert to sorted array
+        return Array.from(monthsSet).sort()
+    }
+
+    // Helper function to generate consecutive months from first data point to now
+    const generateConsecutiveMonths = (firstDataMonth) => {
+        const months = []
+        const start = new Date(firstDataMonth + '-01')
+        const now = new Date()
+
+        const current = new Date(start)
+        while (current <= now) {
+            months.push(current.toISOString().slice(0, 7))
+            current.setMonth(current.getMonth() + 1)
+        }
+
+        return months
+    }
+
+    const updateRangeAvailability = (payments, maintenance) => {
+        const monthsWithData = getMonthsWithData(payments, maintenance)
+
+        if (monthsWithData.length === 0) {
+            // No data available, disable all ranges
+            rangeOptions.value.forEach(r => r.enabled = false)
+            return
+        }
+
+        // Generate consecutive months from first data point to now
+        const consecutiveMonths = generateConsecutiveMonths(monthsWithData[0])
+        const totalMonths = consecutiveMonths.length
+
+        // Update range availability based on actual data span
+        rangeOptions.value.forEach(range => {
+            const limit = { '1M': 1, '3M': 3, '6M': 6, '1Y': 12, '5Y': 60 }[range.value]
+            range.enabled = totalMonths >= limit
+        })
+
+        // Set default active range to the smallest available range
+        const enabledRanges = rangeOptions.value.filter(r => r.enabled)
+        if (enabledRanges.length > 0 && !rangeOptions.value.find(r => r.value === activeRange.value)?.enabled) {
+            activeRange.value = enabledRanges[0].value
         }
     }
 
@@ -87,45 +141,67 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
         const leases = leaseStore.leases
         const properties = await fetchMyProperties()
 
-        // Financial chart data
-        const rentTotals = {}, maintenanceTotals = {}, months = []
-        const now = new Date()
-        for (let i = 5; i >= 0; i--) {
-            const d = new Date(now)
-            d.setMonth(d.getMonth() - i)
-            const key = d.toISOString().slice(0, 7)
-            months.push(key)
-            rentTotals[key] = 0
-            maintenanceTotals[key] = 0
+        // Get months with actual data
+        const monthsWithData = getMonthsWithData(payments, maintenance)
+
+        let months = []
+        let rentTotals = {}
+        let maintenanceTotals = {}
+
+        if (monthsWithData.length > 0) {
+            // Generate consecutive months from first data point to now
+            months = generateConsecutiveMonths(monthsWithData[0])
+
+            // Initialize totals for all months
+            months.forEach(month => {
+                rentTotals[month] = 0
+                maintenanceTotals[month] = 0
+            })
+
+            // Populate actual data
+            payments.forEach(p => {
+                const month = p.paymentDate?.slice(0, 7)
+                if (rentTotals[month] !== undefined) {
+                    rentTotals[month] += p.amount
+                }
+            })
+
+            maintenance.forEach(r => {
+                const month = r.updatedAt?.slice(0, 7)
+                if (r.status === 'COMPLETED' && maintenanceTotals[month] !== undefined) {
+                    maintenanceTotals[month] += r.cost || 0
+                }
+            })
         }
-
-        payments.forEach(p => {
-            const month = p.paymentDate?.slice(0, 7)
-            if (rentTotals[month] !== undefined) rentTotals[month] += p.amount
-        })
-
-        maintenance.forEach(r => {
-            const month = r.updatedAt?.slice(0, 7)
-            if (r.status === 'COMPLETED' && maintenanceTotals[month] !== undefined) {
-                maintenanceTotals[month] += r.cost || 0
-            }
-        })
 
         chartData.value = {
-            labels: months.map(m => new Date(m + '-01').toLocaleString(undefined, { month: 'short' })),
+            labels: months.map(m => new Date(m + '-01').toLocaleString(undefined, { month: 'short', year: 'numeric' })),
             datasets: [
-                { label: 'Rent Collection', data: months.map(m => rentTotals[m]), backgroundColor: '#4CAF50' },
-                { label: 'Maintenance Costs', data: months.map(m => maintenanceTotals[m]), backgroundColor: '#FF9800' }
+                { label: 'Rent Collection', data: months.map(m => rentTotals[m] || 0), backgroundColor: '#4CAF50' },
+                { label: 'Maintenance Costs', data: months.map(m => maintenanceTotals[m] || 0), backgroundColor: '#FF9800' }
             ]
         }
+
         chartOptions.value = {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom' } }
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString()
+                        }
+                    }
+                }
+            }
         }
-        updateRangeAvailability()
 
-        // Metrics
+        // Update range availability based on actual data
+        updateRangeAvailability(payments, maintenance)
+
+        // Calculate metrics (rest of your existing code)
         const total = properties.length
         const vacant = properties.filter(p => p.status === 'AVAILABLE').length
         const occupied = total - vacant
@@ -141,7 +217,7 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
             .filter(r => isInLast30Days(r.updatedAt) && r.status === 'COMPLETED')
             .reduce((sum, r) => sum + (r.cost || 0), 0)
 
-        // Events
+        // Events calculation (rest of your existing code)
         const events = []
 
         payments.forEach(p => {
@@ -170,6 +246,7 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
             }
         })
 
+        const now = new Date()
         leases.forEach(l => {
             if (l.endDate) {
                 const end = new Date(l.endDate)
@@ -189,8 +266,13 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
 
         calendarEvents.value = events
 
-        const logs = await fetchRecentLogs()
-        activities.value = formatActivityLogs(logs)
+        try {
+            const logs = await fetchRecentLogs()
+            activities.value = formatActivityLogs(logs)
+        } catch (error) {
+            console.warn('Could not load recent activities:', error)
+            activities.value = []
+        }
     }
 
     return {

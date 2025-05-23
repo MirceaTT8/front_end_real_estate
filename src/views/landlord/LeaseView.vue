@@ -38,21 +38,33 @@ const handleTerminate = (leaseId) => {
 
 <template>
   <div class="max-w-6xl mx-auto px-6 py-10 min-h-screen bg-gray-50">
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Lease Management</h1>
-        <p class="text-gray-500 mt-1">Manage all your property leases in one place</p>
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg mb-8">
+      <div class="px-8 py-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div class="flex items-center gap-4">
+            <div class="bg-white/20 p-3 rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold text-white">Lease Management</h1>
+              <p class="text-blue-100 mt-1">Manage all your property leases in one place</p>
+            </div>
+          </div>
+
+          <button
+              @click="showCreateModal = true"
+              class="bg-white/20 hover:bg-white/30 text-white px-5 py-2.5 rounded-lg transition-colors flex items-center gap-2 font-medium shadow-sm border border-white/20"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            Add New Lease
+          </button>
+        </div>
       </div>
-      <button
-          @click="showCreateModal = true"
-          class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg transition-colors shadow-sm flex items-center gap-2 font-medium"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-        </svg>
-        Add New Lease
-      </button>
-    </header>
+    </div>
 
     <LeaseCreateModal
         v-if="showCreateModal"
@@ -123,15 +135,6 @@ const handleTerminate = (leaseId) => {
             </div>
             <h3 class="text-xl font-semibold text-gray-800 mb-2">No leases found</h3>
             <p class="text-gray-600 mb-6">You don't have any {{ activeTab.toLowerCase() === 'all' ? '' : activeTab.toLowerCase() }} leases yet.</p>
-            <button
-                @click="showCreateModal = true"
-                class="bg-white hover:bg-gray-100 text-gray-800 px-5 py-2.5 rounded-lg transition-colors shadow-sm font-medium border border-gray-200 inline-flex items-center gap-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-              Create Your First Lease
-            </button>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue'
 import { usePaymentAdminStore } from '@/stores/adminPaymentStore.js'
+import { formatPaymentMethod } from '@/utils/paymentUtils.js'
 
 const store = usePaymentAdminStore()
 const showDetails = ref(null)
@@ -11,18 +12,16 @@ const totalAmount = computed(() => {
   return store.filteredPayments.reduce((sum, payment) => sum + payment.amount, 0).toFixed(2)
 })
 
-const completedAmount = computed(() => {
+const completedCount = computed(() => {
   return store.filteredPayments
       .filter(payment => payment.status === 'COMPLETED')
-      .reduce((sum, payment) => sum + payment.amount, 0)
-      .toFixed(2)
+      .length
 })
 
-const pendingAmount = computed(() => {
+const pendingCount = computed(() => {
   return store.filteredPayments
       .filter(payment => payment.status === 'PENDING')
-      .reduce((sum, payment) => sum + payment.amount, 0)
-      .toFixed(2)
+      .length
 })
 
 const statusColor = (status) => {
@@ -83,16 +82,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto mt-4 md:mt-0">
-            <button
-                class="flex items-center justify-center gap-2 px-4 py-2 bg-white text-green-700 text-sm font-medium rounded-xl hover:bg-green-50 transition-colors shadow-sm"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
-              Export Payments
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -122,7 +111,7 @@ onMounted(() => {
           </div>
           <div>
             <h3 class="text-gray-500 text-sm">Completed Payments</h3>
-            <p class="font-bold text-xl text-gray-800">{{ formatCurrency(completedAmount) }}</p>
+            <p class="font-bold text-xl text-gray-800">{{ completedCount }}</p>
           </div>
         </div>
       </div>
@@ -136,7 +125,7 @@ onMounted(() => {
           </div>
           <div>
             <h3 class="text-gray-500 text-sm">Pending Payments</h3>
-            <p class="font-bold text-xl text-gray-800">{{ formatCurrency(pendingAmount) }}</p>
+            <p class="font-bold text-xl text-gray-800">{{ pendingCount }}</p>
           </div>
         </div>
       </div>
@@ -242,6 +231,7 @@ onMounted(() => {
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment ID</th>
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Lease ID</th>
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Method</th>
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
             <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
@@ -262,6 +252,9 @@ onMounted(() => {
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-medium text-gray-900">{{ formatCurrency(payment.amount) }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-600">{{ formatPaymentMethod(payment.paymentMethod) }}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm text-gray-900">{{ new Date(payment.paymentDate).toLocaleDateString() }}</div>
@@ -290,11 +283,11 @@ onMounted(() => {
 
           <!-- Expandable detail row -->
           <tr v-for="payment in store.filteredPayments" :key="`detail-${payment.paymentId}`" v-show="showDetails === payment.paymentId">
-            <td colspan="6" class="px-6 py-4 bg-gray-50">
+            <td colspan="7" class="px-6 py-4 bg-gray-50">
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <h4 class="text-xs font-semibold text-gray-500 uppercase mb-1">Payment Method</h4>
-                  <p class="text-sm">{{ payment.paymentMethod || 'Credit Card' }}</p>
+                  <p class="text-sm">{{ formatPaymentMethod(payment.paymentMethod) || 'Credit Card' }}</p>
                 </div>
                 <div>
                   <h4 class="text-xs font-semibold text-gray-500 uppercase mb-1">Transaction ID</h4>

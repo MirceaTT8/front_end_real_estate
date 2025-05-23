@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useLandlordPropertyStore } from '@/stores/propertyStore.js'
 import PropertyFormFields from "@/components/landlord/property/property-add/PropertyFormFields.vue";
 import PropertyLocationMap from "@/components/landlord/property/property-add/PropertyLocationMap.vue";
+
 const router = useRouter()
 const propertyStore = useLandlordPropertyStore()
 
@@ -40,23 +41,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateWindowWidth)
 })
 
-const handleMapClick = (location) => {
-  form.value.longitude = location.lng
-  form.value.latitude = location.lat
-}
-
-const handleLocationSelected = async (location) => {
-  form.value.longitude = location.lng
-  form.value.latitude = location.lat
-  form.value.address = await reverseGeocode(location)
-}
-
-const handleMarkerDragged = async (location) => {
-  form.value.longitude = location.lng
-  form.value.latitude = location.lat
-  form.value.address = await reverseGeocode(location)
-}
-
+// Reverse geocoding function to get address from coordinates
 const reverseGeocode = async (location) => {
   if (!window.google) return form.value.address
 
@@ -70,6 +55,41 @@ const reverseGeocode = async (location) => {
       }
     })
   })
+}
+
+// Handle map click - update coordinates and reverse geocode to get address
+const handleMapClick = async (location) => {
+  form.value.longitude = location.lng
+  form.value.latitude = location.lat
+
+  // Update address field with reverse geocoded address
+  try {
+    const address = await reverseGeocode(location)
+    form.value.address = address
+  } catch (error) {
+    console.error('Reverse geocoding failed:', error)
+  }
+}
+
+// Handle address autocomplete selection - update coordinates
+const handleLocationSelected = (location) => {
+  form.value.longitude = location.lng
+  form.value.latitude = location.lat
+  // Address is already updated by the autocomplete in PropertyFormFields
+}
+
+// Handle marker dragging - update coordinates and address
+const handleMarkerDragged = async (location) => {
+  form.value.longitude = location.lng
+  form.value.latitude = location.lat
+
+  // Update address field with reverse geocoded address
+  try {
+    const address = await reverseGeocode(location)
+    form.value.address = address
+  } catch (error) {
+    console.error('Reverse geocoding failed:', error)
+  }
 }
 
 function cancel() {
@@ -93,7 +113,7 @@ async function saveProperty() {
       latitude: parseFloat(form.value.latitude)
     }
 
-    await propertyStore.addProperty(payload, attachments.value)
+    await propertyStore.createProperty(payload, attachments.value)
     await router.push('/landlord/properties')
   } catch (error) {
     errorMessage.value = 'Failed to add property. Please try again.'
@@ -105,7 +125,7 @@ async function saveProperty() {
 </script>
 
 <template>
-  <div class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen pb-16">
+  <div class="max-w-7xl mx-auto px-6 py-10">
     <!-- Header area with decorative elements -->
     <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg mb-8">
       <div class="px-8 py-6">
@@ -124,6 +144,7 @@ async function saveProperty() {
         </div>
       </div>
     </div>
+
     <!-- Main content -->
     <div class="max-w-6xl mx-auto px-6 py-8">
       <form @submit.prevent="saveProperty" class="relative">
@@ -189,29 +210,10 @@ async function saveProperty() {
                 v-model="form"
                 v-model:attachments="attachments"
                 :is-loading="isLoading"
+                @location-selected="handleLocationSelected"
                 required
             />
 
-            <div class="pt-4">
-              <label class="block font-medium text-gray-700 mb-2">
-                Property Images
-                <span class="text-red-500">*</span>
-              </label>
-              <div class="border-2 border-dashed border-gray-300 bg-gray-50 rounded-lg p-6 flex flex-col items-center text-gray-500 transition hover:border-blue-400 hover:bg-blue-50 group cursor-pointer">
-                <div class="mb-3 p-3 bg-blue-100 text-blue-600 rounded-full group-hover:bg-blue-200 transition-all">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <p class="font-medium text-gray-700 group-hover:text-blue-700">Select or drag images here</p>
-                <p class="text-sm text-gray-500 mt-1">Upload high-quality photos of your property</p>
-                <input type="file" multiple required class="hidden" />
-              </div>
-              <div class="flex justify-between items-center mt-2">
-                <p class="text-xs text-gray-500">Upload JPEG or PNG up to 5MB each</p>
-                <span class="text-xs font-medium text-blue-600">0 files selected</span>
-              </div>
-            </div>
           </div>
 
           <!-- Map Section (hidden on mobile if details tab is active) -->
@@ -244,6 +246,11 @@ async function saveProperty() {
             <div v-if="form.address" class="mt-4 p-3 bg-blue-50 rounded-md border border-blue-100">
               <p class="text-sm font-medium text-gray-700">Selected Address:</p>
               <p class="text-sm text-blue-700">{{ form.address }}</p>
+            </div>
+
+            <div v-if="form.longitude && form.latitude" class="mt-2 p-3 bg-green-50 rounded-md border border-green-100">
+              <p class="text-sm font-medium text-gray-700">Coordinates:</p>
+              <p class="text-sm text-green-700">{{ form.latitude.toFixed(6) }}, {{ form.longitude.toFixed(6) }}</p>
             </div>
           </div>
         </div>

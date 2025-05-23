@@ -8,13 +8,95 @@ import PendingPropertiesModal from '@/components/admin/dashboard/PendingProperti
 
 const store = useAdminDashboardStore()
 
+// Chart period state
+const chartPeriod = ref('monthly')
+
+// Toast notification states
+const showSuccessMessage = ref(false)
+const successMessage = ref('')
+const showErrorMessage = ref(false)
+const errorMessage = ref('')
+
 onMounted(() => {
   store.initDashboard()
 })
+
+// Function to change chart period
+const changeChartPeriod = async (period) => {
+  chartPeriod.value = period
+  await store.fetchLeaseChartData(period)
+}
+
+// Handle property approval
+const handleApproveProperty = async (propertyId) => {
+  const result = await store.approveProperty(propertyId)
+
+  if (result.success) {
+    successMessage.value = result.message
+    showSuccessMessage.value = true
+    setTimeout(() => {
+      showSuccessMessage.value = false
+    }, 3000)
+  } else {
+    errorMessage.value = result.message
+    showErrorMessage.value = true
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 5000)
+  }
+}
+
+// Handle property rejection
+const handleRejectProperty = async (propertyId) => {
+  const result = await store.rejectProperty(propertyId)
+
+  if (result.success) {
+    successMessage.value = result.message
+    showSuccessMessage.value = true
+    setTimeout(() => {
+      showSuccessMessage.value = false
+    }, 3000)
+  } else {
+    errorMessage.value = result.message
+    showErrorMessage.value = true
+    setTimeout(() => {
+      showErrorMessage.value = false
+    }, 5000)
+  }
+}
 </script>
 
 <template>
   <div class="max-w-7xl mx-auto px-6 py-10 space-y-8">
+    <!-- Success/Error Toast Messages -->
+    <div v-if="showSuccessMessage" class="fixed top-4 right-4 z-50">
+      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg flex items-center max-w-md">
+        <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ successMessage }}</span>
+        <button @click="showSuccessMessage = false" class="ml-3 text-green-500 hover:text-green-700">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div v-if="showErrorMessage" class="fixed top-4 right-4 z-50">
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg flex items-center max-w-md">
+        <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ errorMessage }}</span>
+        <button @click="showErrorMessage = false" class="ml-3 text-red-500 hover:text-red-700">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
     <!-- Header with dashboard title and subtle gradient background -->
     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg shadow-lg">
       <div class="px-8 py-6">
@@ -27,16 +109,24 @@ onMounted(() => {
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <!-- Terminate Leases Card -->
       <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg">
-        <div class="bg-red-100 px-6 py-4">
+        <div class="bg-red-100 px-6 py-4 flex justify-between items-center">
           <h3 class="text-red-800 font-semibold">Lease Termination</h3>
+          <span v-if="store.stats.pendingTerminations > 0"
+                class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[1.5rem] h-6 flex items-center justify-center">
+            {{ store.stats.pendingTerminations }}
+          </span>
         </div>
         <div class="p-6">
           <p class="text-gray-600 mb-4 text-sm">Manage and process lease termination requests</p>
           <button
               @click="store.openTerminationModal"
-              class="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-3 rounded-lg font-medium shadow-sm transition-all flex items-center justify-center gap-2"
+              class="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-3 rounded-lg font-medium shadow-sm transition-all flex items-center justify-center gap-2 relative"
           >
             <span>Terminate Leases</span>
+            <span v-if="store.stats.pendingTerminations > 0"
+                  class="bg-red-700 text-white text-xs font-bold px-2 py-1 rounded-full">
+              {{ store.stats.pendingTerminations }}
+            </span>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
               <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd" />
@@ -47,8 +137,12 @@ onMounted(() => {
 
       <!-- Accept Properties Card -->
       <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg">
-        <div class="bg-blue-100 px-6 py-4">
+        <div class="bg-blue-100 px-6 py-4 flex justify-between items-center">
           <h3 class="text-blue-800 font-semibold">Property Approvals</h3>
+          <span v-if="store.stats.pendingPropertiesCount > 0"
+                class="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[1.5rem] h-6 flex items-center justify-center">
+            {{ store.stats.pendingPropertiesCount }}
+          </span>
         </div>
         <div class="p-6">
           <p class="text-gray-600 mb-4 text-sm">Review and accept pending property listings</p>
@@ -57,6 +151,10 @@ onMounted(() => {
               class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-3 rounded-lg font-medium shadow-sm transition-all flex items-center justify-center gap-2"
           >
             <span>Accept Properties</span>
+            <span v-if="store.stats.pendingPropertiesCount > 0"
+                  class="bg-blue-700 text-white text-xs font-bold px-2 py-1 rounded-full">
+              {{ store.stats.pendingPropertiesCount }}
+            </span>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
             </svg>
@@ -66,8 +164,12 @@ onMounted(() => {
 
       <!-- Approve Leases Card -->
       <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg">
-        <div class="bg-green-100 px-6 py-4">
+        <div class="bg-green-100 px-6 py-4 flex justify-between items-center">
           <h3 class="text-green-800 font-semibold">Lease Approvals</h3>
+          <span v-if="store.stats.pendingLeases > 0"
+                class="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[1.5rem] h-6 flex items-center justify-center">
+            {{ store.stats.pendingLeases }}
+          </span>
         </div>
         <div class="p-6">
           <p class="text-gray-600 mb-4 text-sm">Review and approve pending lease requests</p>
@@ -76,69 +178,14 @@ onMounted(() => {
               class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-3 rounded-lg font-medium shadow-sm transition-all flex items-center justify-center gap-2"
           >
             <span>Approve Leases</span>
+            <span v-if="store.stats.pendingLeases > 0"
+                  class="bg-green-700 text-white text-xs font-bold px-2 py-1 rounded-full">
+              {{ store.stats.pendingLeases }}
+            </span>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
             </svg>
           </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Statistics Overview -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <div class="flex items-center gap-4">
-          <div class="bg-indigo-100 p-3 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-gray-500 text-sm">Active Leases</h3>
-            <p class="font-bold text-xl text-gray-800">{{ store.stats?.activeLeases || 0 }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <div class="flex items-center gap-4">
-          <div class="bg-yellow-100 p-3 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-gray-500 text-sm">Pending Approvals</h3>
-            <p class="font-bold text-xl text-gray-800">{{ store.stats?.pendingApprovals || 0 }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <div class="flex items-center gap-4">
-          <div class="bg-green-100 p-3 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-gray-500 text-sm">Monthly Revenue</h3>
-            <p class="font-bold text-xl text-gray-800">{{ store.stats?.monthlyRevenue || '$0' }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <div class="flex items-center gap-4">
-          <div class="bg-purple-100 p-3 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-gray-500 text-sm">Total Users</h3>
-            <p class="font-bold text-xl text-gray-800">{{ store.stats?.totalUsers || 0 }}</p>
-          </div>
         </div>
       </div>
     </div>
@@ -152,7 +199,7 @@ onMounted(() => {
         <p class="text-gray-600 mb-4">Access and manage landlord ratings and reviews</p>
         <router-link
             to="/admin/ratings"
-            class="inline-block bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white px-6 py-3 rounded-lg font-medium shadow-sm transition-all flex items-center gap-2"
+            class="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white px-6 py-3 rounded-lg font-medium shadow-sm transition-all"
         >
           <span>View Landlord Ratings</span>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -162,19 +209,63 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Chart Section with improved styling -->
+    <!-- Chart Section with functional period buttons -->
     <div class="bg-white rounded-xl shadow-md overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
         <h2 class="text-lg font-semibold text-gray-800">Lease Activity Trends</h2>
         <div class="flex gap-2">
-          <button class="px-3 py-1 text-xs rounded-full bg-indigo-100 text-indigo-700 font-medium">Monthly</button>
-          <button class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-500 font-medium">Quarterly</button>
-          <button class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-500 font-medium">Yearly</button>
+          <button
+              @click="changeChartPeriod('monthly')"
+              :class="[
+              'px-3 py-1 text-xs rounded-full font-medium transition-all duration-200',
+              chartPeriod === 'monthly'
+                ? 'bg-indigo-100 text-indigo-700 ring-2 ring-indigo-200'
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+            ]"
+          >
+            Monthly
+          </button>
+          <button
+              @click="changeChartPeriod('quarterly')"
+              :class="[
+              'px-3 py-1 text-xs rounded-full font-medium transition-all duration-200',
+              chartPeriod === 'quarterly'
+                ? 'bg-indigo-100 text-indigo-700 ring-2 ring-indigo-200'
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+            ]"
+          >
+            Quarterly
+          </button>
+          <button
+              @click="changeChartPeriod('yearly')"
+              :class="[
+              'px-3 py-1 text-xs rounded-full font-medium transition-all duration-200',
+              chartPeriod === 'yearly'
+                ? 'bg-indigo-100 text-indigo-700 ring-2 ring-indigo-200'
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+            ]"
+          >
+            Yearly
+          </button>
         </div>
       </div>
       <div class="p-6">
-        <div class="h-[400px]">
-          <Chart type="bar" :data="store.leaseChartData" :options="store.leaseChartOptions" class="w-full h-full" />
+        <div class="h-[400px] relative">
+          <!-- Loading state -->
+          <div v-if="store.chartLoading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+            <div class="flex items-center space-x-2">
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+              <span class="text-sm text-gray-600">Loading chart data...</span>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <Chart
+              type="bar"
+              :data="store.leaseChartData"
+              :options="store.leaseChartOptions"
+              class="w-full h-full"
+          />
         </div>
       </div>
     </div>
@@ -203,6 +294,8 @@ onMounted(() => {
         :properties="store.pendingProperties"
         :loading="store.loading"
         @update:visible="store.showPendingPropertiesModal = $event"
+        @approve-property="handleApproveProperty"
+        @reject-property="handleRejectProperty"
     />
   </div>
 </template>

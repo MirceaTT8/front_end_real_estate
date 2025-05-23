@@ -18,9 +18,17 @@ export const useLandlordPropertyStore = defineStore('landlordPropertyStore', () 
         loading.value = true
         error.value = null
         try {
-            properties.value = await fetchMyProperties()
+            console.log('Loading properties...') // Debug log
+            const result = await fetchMyProperties()
+            console.log('Fetched properties:', result) // Debug log
+
+            // Ensure we have an array
+            properties.value = Array.isArray(result) ? result : []
+            console.log('Properties set in store:', properties.value.length) // Debug log
         } catch (err) {
-            error.value = err.message || 'Failed to load properties'
+            console.error('Error loading properties:', err) // Debug log
+            error.value = err?.message || err?.toString() || 'Failed to load properties'
+            properties.value = [] // Reset to empty array on error
         } finally {
             loading.value = false
         }
@@ -30,9 +38,12 @@ export const useLandlordPropertyStore = defineStore('landlordPropertyStore', () 
         loading.value = true
         error.value = null
         try {
-            pendingProperties.value = await fetchPendingProperties()
+            const result = await fetchPendingProperties()
+            pendingProperties.value = Array.isArray(result) ? result : []
         } catch (err) {
-            error.value = err.message || 'Failed to load pending properties'
+            console.error('Error loading pending properties:', err)
+            error.value = err?.message || err?.toString() || 'Failed to load pending properties'
+            pendingProperties.value = []
         } finally {
             loading.value = false
         }
@@ -44,7 +55,9 @@ export const useLandlordPropertyStore = defineStore('landlordPropertyStore', () 
         try {
             selectedProperty.value = await fetchPropertyById(id)
         } catch (err) {
-            error.value = err.message || 'Failed to fetch property'
+            console.error('Error loading property by ID:', err)
+            error.value = err?.message || err?.toString() || 'Failed to fetch property'
+            selectedProperty.value = null
         } finally {
             loading.value = false
         }
@@ -55,10 +68,13 @@ export const useLandlordPropertyStore = defineStore('landlordPropertyStore', () 
         error.value = null
         try {
             const newProp = await addProperty(propertyDTO, attachments)
-            properties.value.unshift(newProp)
+            if (newProp) {
+                properties.value.unshift(newProp)
+            }
             return newProp
         } catch (err) {
-            error.value = err.message || 'Failed to create property'
+            console.error('Error creating property:', err)
+            error.value = err?.message || err?.toString() || 'Failed to create property'
             throw err
         } finally {
             loading.value = false

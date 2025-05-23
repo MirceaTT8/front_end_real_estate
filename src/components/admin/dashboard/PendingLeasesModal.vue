@@ -25,14 +25,14 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="flex flex-col items-center justify-center p-12">
+    <div v-if="loading" class="flex flex-col items-center justify-center p-12 bg-white min-h-[400px]">
       <div class="w-12 h-12 border-4 border-gray-200 border-t-green-500 rounded-full animate-spin mb-4"></div>
       <p class="text-gray-600">Loading lease applications...</p>
     </div>
 
     <!-- Content -->
-    <div v-else class="p-6">
-      <div v-if="leases.length > 0" class="space-y-5">
+    <div v-else class="bg-white min-h-[400px]">
+      <div v-if="leases.length > 0" class="p-6 space-y-5">
         <div
             v-for="lease in leases"
             :key="lease.leaseId"
@@ -118,15 +118,23 @@
         </div>
       </div>
 
-      <!-- Empty State -->
-      <div v-else class="text-center py-12">
-        <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <!-- Enhanced Empty State -->
+      <div v-else class="flex flex-col items-center justify-center px-8 py-16 bg-white text-center min-h-[400px]">
+        <!-- Icon Container -->
+        <div class="mx-auto w-24 h-24 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mb-6 shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-1">No Pending Leases</h3>
-        <p class="text-gray-500">There are no pending lease applications at this time.</p>
+
+        <!-- Content -->
+        <div class="max-w-sm">
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">Up to Date!</h3>
+          <p class="text-gray-600 mb-6 leading-relaxed">
+            No pending lease applications right now. New applications from prospective tenants will appear here for your approval.
+          </p>
+
+        </div>
       </div>
     </div>
   </Dialog>

@@ -171,10 +171,12 @@ export const updateUserRole = async (userId, role) => {
 };
 export const activateUser = async (userId) => {
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${API}/${userId}/activate`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             }
         })
 

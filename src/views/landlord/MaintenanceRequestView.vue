@@ -15,22 +15,24 @@ onMounted(async () => {
 
 <template>
   <div class="max-w-6xl mx-auto p-6 space-y-8">
-    <header class="flex justify-between items-center pb-6 border-b border-gray-200">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-800">Maintenance Requests</h1>
-        <p class="text-gray-500 mt-1">Manage property maintenance and repairs</p>
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg mb-8">
+      <div class="px-8 py-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div class="flex items-center gap-4">
+            <div class="bg-white/20 p-3 rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold text-white">Maintenance Requests</h1>
+              <p class="text-blue-100 mt-1">Manage property maintenance and repairs</p>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <!-- Optional - Add button here if needed -->
-      <button
-          @click="router.push('/maintenance/new')"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg transition-colors flex items-center font-medium shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
-        New Request
-      </button>
-    </header>
+    </div>
 
     <!-- Loading State -->
     <div v-if="store.loading" class="flex flex-col items-center justify-center p-12 bg-white rounded-xl shadow-md">

@@ -99,3 +99,20 @@ export const fetchAllPropertiesAdmin = async () => {
     return await response.json();
 };
 
+export const validateProperty = async (propertyId, status) => {
+    const token = localStorage.getItem('token');
+
+    const response = await fetch(`${API}/${propertyId}/validate?status=${status}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || `Failed to validate property ${propertyId}`);
+    }
+
+    return await response.text(); // The controller returns a simple string message
+};

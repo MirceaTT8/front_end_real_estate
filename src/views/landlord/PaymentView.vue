@@ -27,21 +27,33 @@ onMounted(() => {
 
 <template>
   <div class="max-w-6xl mx-auto p-6 space-y-8">
-    <header class="flex justify-between items-center pb-6 border-b border-gray-200">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-800">Payments</h1>
-        <p class="text-gray-500 mt-1">Manage and track all your property payments</p>
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg mb-8">
+      <div class="px-8 py-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div class="flex items-center gap-4">
+            <div class="bg-white/20 p-3 rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold text-white">Payments</h1>
+              <p class="text-blue-100 mt-1">Manage and track all your property payments</p>
+            </div>
+          </div>
+
+          <button
+              @click="showManualModal = true"
+              class="bg-white/20 hover:bg-white/30 text-white px-5 py-2.5 rounded-lg transition-colors flex items-center font-medium shadow-sm border border-white/20"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add Payment
+          </button>
+        </div>
       </div>
-      <button
-          @click="showManualModal = true"
-          class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg transition-colors flex items-center font-medium shadow-sm"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
-        Add Payment
-      </button>
-    </header>
+    </div>
 
     <div v-if="store.error" class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-sm">
       <div class="flex items-center">

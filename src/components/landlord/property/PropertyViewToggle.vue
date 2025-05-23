@@ -7,6 +7,17 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:showMap'])
+
+// Add debug logs
+const handleListView = () => {
+  console.log('Switching to list view')
+  emit('update:showMap', false)
+}
+
+const handleMapView = () => {
+  console.log('Switching to map view')
+  emit('update:showMap', true)
+}
 </script>
 
 <template>
@@ -16,7 +27,7 @@ const emit = defineEmits(['update:showMap'])
 
       <div class="flex bg-gray-100 p-1 rounded-lg">
         <button
-            @click="emit('update:showMap', false)"
+            @click="handleListView"
             :class="[
               'px-4 py-2 rounded-lg transition-all duration-200 font-medium',
               !showMap ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'
@@ -31,7 +42,7 @@ const emit = defineEmits(['update:showMap'])
         </button>
 
         <button
-            @click="emit('update:showMap', true)"
+            @click="handleMapView"
             :class="[
               'px-4 py-2 rounded-lg transition-all duration-200 font-medium',
               showMap ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-600 hover:text-gray-800'
