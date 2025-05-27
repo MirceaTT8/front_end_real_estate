@@ -8,7 +8,6 @@ const error = ref(null)
 const searchQuery = ref('')
 const selectedStatus = ref('ALL')
 
-// Computed properties for dashboard metrics
 const totalLeases = computed(() => leases.value.length)
 const activeLeases = computed(() => leases.value.filter(lease => lease.status === 'ACTIVE').length)
 const pendingLeases = computed(() => leases.value.filter(lease => lease.status === 'PENDING').length)
@@ -31,52 +30,36 @@ const filteredLeases = computed(() => {
         (lease.tenantId && lease.tenantId.toString().includes(searchQuery.value)) ||
         (lease.propertyId && lease.propertyId.toString().includes(searchQuery.value));
 
-    // Filter by status
     const matchesStatus = selectedStatus.value === 'ALL' || lease.status === selectedStatus.value;
 
     return matchesSearch && matchesStatus;
   });
 });
 
-// Status badge styling
 const getStatusStyle = (status) => {
   switch (status) {
     case 'ACTIVE':
       return 'bg-green-100 text-green-800 border border-green-200';
     case 'PENDING':
       return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
-    case 'EXPIRED':
-      return 'bg-red-100 text-red-800 border border-red-200';
     case 'TERMINATED':
       return 'bg-gray-100 text-gray-800 border border-gray-200';
-    case 'RENEWED':
-      return 'bg-blue-100 text-blue-800 border border-blue-200';
     default:
       return 'bg-gray-100 text-gray-800 border border-gray-200';
   }
 };
 
-// Dot indicator styling
 const getStatusDot = (status) => {
   switch (status) {
     case 'ACTIVE':
       return 'bg-green-500';
     case 'PENDING':
       return 'bg-yellow-500';
-    case 'EXPIRED':
-      return 'bg-red-500';
     case 'TERMINATED':
       return 'bg-gray-500';
-    case 'RENEWED':
-      return 'bg-blue-500';
     default:
       return 'bg-gray-500';
   }
-};
-
-// Format currency
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 };
 
 onMounted(async () => {
@@ -182,7 +165,6 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Filters and Search -->
     <div class="bg-white rounded-xl shadow-md overflow-hidden">
       <div class="border-b border-gray-100 px-6 py-4">
         <h2 class="text-lg font-semibold text-gray-800">Find Leases</h2>
@@ -191,7 +173,6 @@ onMounted(async () => {
 
       <div class="p-6">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <!-- Search -->
           <div class="sm:col-span-2 space-y-2">
             <label for="search" class="block text-sm font-medium text-gray-700">Search Leases</label>
             <div class="relative">
@@ -227,9 +208,7 @@ onMounted(async () => {
                 <option value="ALL">All Statuses</option>
                 <option value="ACTIVE">Active</option>
                 <option value="PENDING">Pending</option>
-                <option value="EXPIRED">Expired</option>
                 <option value="TERMINATED">Terminated</option>
-                <option value="RENEWED">Renewed</option>
               </select>
               <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                 <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -301,7 +280,6 @@ onMounted(async () => {
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Property</th>
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Duration</th>
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-100">
@@ -356,10 +334,10 @@ onMounted(async () => {
                   {{ lease.status }}
                 </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <button class="text-indigo-600 hover:text-indigo-900 mr-3">View</button>
-              <button class="text-gray-600 hover:text-gray-900">Edit</button>
-            </td>
+<!--            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">-->
+<!--              <button class="text-indigo-600 hover:text-indigo-900 mr-3">View</button>-->
+<!--              <button class="text-gray-600 hover:text-gray-900">Edit</button>-->
+<!--            </td>-->
           </tr>
           </tbody>
         </table>

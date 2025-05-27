@@ -19,7 +19,14 @@ const isLeaseActive = ref(true)
 const alreadyPaid = ref(false)
 const errorMsg = ref('')
 
-// Automatically set amount and validate lease on selection
+const availableLeases = computed(() =>
+    props.leases?.filter(l => l.status === 'ACTIVE' && l.terminationStatus !== 'APPROVED') || []
+)
+
+const hasAvailableLeases = computed(() => availableLeases.value.length > 0)
+
+const isLeaseSelected = computed(() => !!props.newPayment.leaseId)
+
 watch(
     () => props.newPayment.leaseId,
     async (leaseId) => {
@@ -87,7 +94,25 @@ const resolveTenantName = (leaseId) =>
 
       <!-- Modal Body -->
       <div class="p-6">
-        <form @submit.prevent="emit('submit', props.newPayment)">
+        <!-- No Leases Available Message -->
+        <div v-if="!hasAvailableLeases" class="text-center py-8">
+          <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No Active Leases Available</h3>
+          <p class="text-gray-500 text-sm mb-6">There are currently no active leases available for payment recording.</p>
+          <button
+              @click="emit('close')"
+              class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+          >
+            Close
+          </button>
+        </div>
+
+        <!-- Form (only shown when leases are available) -->
+        <form v-else @submit.prevent="emit('submit', props.newPayment)">
           <!-- Lease Selection -->
           <div class="mb-5">
             <label class="block text-sm font-medium text-gray-700 mb-2">Lease</label>
@@ -99,9 +124,7 @@ const resolveTenantName = (leaseId) =>
               >
                 <option value="" disabled selected>Select a lease</option>
                 <option
-                    v-for="lease in props.leases.filter(
-                      l => l.status === 'ACTIVE' && l.terminationStatus !== 'APPROVED'
-                    )"
+                    v-for="lease in availableLeases"
                     :key="lease.leaseId"
                     :value="lease.leaseId"
                 >
@@ -138,10 +161,18 @@ const resolveTenantName = (leaseId) =>
                   step="0.01"
                   required
                   readonly
-                  class="pl-7 block w-full px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm bg-gray-50 text-gray-700 cursor-not-allowed"
+                  :disabled="!isLeaseSelected"
+                  :class="[
+                    'pl-7 block w-full px-3 py-2.5 border rounded-lg shadow-sm',
+                    isLeaseSelected
+                      ? 'border-gray-300 bg-gray-50 text-gray-700 cursor-not-allowed'
+                      : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                  ]"
               />
             </div>
-            <p class="mt-1 text-xs text-gray-500">Automatically set based on the selected lease</p>
+            <p class="mt-1 text-xs text-gray-500">
+              {{ isLeaseSelected ? 'Automatically set based on the selected lease' : 'Select a lease to set the amount' }}
+            </p>
           </div>
 
           <!-- Payment Date -->
@@ -157,9 +188,16 @@ const resolveTenantName = (leaseId) =>
                   v-model="props.newPayment.paymentDate"
                   type="date"
                   required
-                  class="pl-10 block w-full px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  :disabled="!isLeaseSelected"
+                  :class="[
+                    'pl-10 block w-full px-3 py-2.5 border rounded-lg shadow-sm',
+                    isLeaseSelected
+                      ? 'border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-700'
+                      : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                  ]"
               />
             </div>
+            <p v-if="!isLeaseSelected" class="mt-1 text-xs text-gray-500">Select a lease to enable this field</p>
           </div>
 
           <!-- Payment Method -->
@@ -169,10 +207,17 @@ const resolveTenantName = (leaseId) =>
               <select
                   v-model="props.newPayment.paymentMethod"
                   required
-                  class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-700 appearance-none"
+                  :disabled="!isLeaseSelected"
+                  :class="[
+                    'block w-full pl-10 pr-10 py-2.5 border rounded-lg shadow-sm appearance-none',
+                    isLeaseSelected
+                      ? 'border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-700'
+                      : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                  ]"
               >
-                <option value="BANK_TRANSFER">Bank Transfer</option>
-                <option value="CASH">Cash</option>
+                <option value="" disabled selected>{{ isLeaseSelected ? 'Select payment method' : 'Select a lease first' }}</option>
+                <option v-if="isLeaseSelected" value="BANK_TRANSFER">Bank Transfer</option>
+                <option v-if="isLeaseSelected" value="CASH">Cash</option>
               </select>
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -185,6 +230,7 @@ const resolveTenantName = (leaseId) =>
                 </svg>
               </div>
             </div>
+            <p v-if="!isLeaseSelected" class="mt-1 text-xs text-gray-500">Select a lease to enable this field</p>
           </div>
 
           <!-- Action Buttons -->

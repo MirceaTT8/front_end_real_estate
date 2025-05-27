@@ -49,23 +49,15 @@ export const useLandlordRatingsStore = defineStore('landlordRatingsStore', () =>
         }
     }
 
-    /**
-     * Refresh ratings data
-     */
+
     const refreshRatings = async () => {
         await fetchRatings()
     }
 
-    /**
-     * Get a specific landlord by ID
-     * @param {number} landlordId
-     * @returns {Object|null}
-     */
     const getLandlordById = (landlordId) => {
         return landlordRatings.value.find(landlord => landlord.landlordId === landlordId) || null
     }
 
-    // Computed statistics
     const averageOverallScore = computed(() => {
         if (!landlordRatings.value || !landlordRatings.value.length) return 0
         const sum = landlordRatings.value.reduce((acc, landlord) => acc + (landlord.overallScore || 0), 0)

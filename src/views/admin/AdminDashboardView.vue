@@ -5,33 +5,43 @@ import Chart from 'primevue/chart'
 import LeaseTerminationModal from '@/components/admin/dashboard/LeaseTerminationModal.vue'
 import PendingLeasesModal from '@/components/admin/dashboard/PendingLeasesModal.vue'
 import PendingPropertiesModal from '@/components/admin/dashboard/PendingPropertiesModal.vue'
+import StatsCards from '@/components/admin/dashboard/StatsCards.vue'
 
 const store = useAdminDashboardStore()
-
 // Chart period state
 const chartPeriod = ref('monthly')
 
-// Toast notification states
 const showSuccessMessage = ref(false)
 const successMessage = ref('')
 const showErrorMessage = ref(false)
 const errorMessage = ref('')
+const statsLoading = ref(false)
 
-onMounted(() => {
-  store.initDashboard()
+onMounted(async () => {
+  statsLoading.value = true
+
+  try {
+    await Promise.all([
+      store.initDashboard(),
+    ])
+  } catch (error) {
+    console.error('Error loading dashboard data:', error)
+  } finally {
+    statsLoading.value = false
+  }
 })
 
-// Function to change chart period
 const changeChartPeriod = async (period) => {
   chartPeriod.value = period
   await store.fetchLeaseChartData(period)
 }
 
-// Handle property approval
 const handleApproveProperty = async (propertyId) => {
   const result = await store.approveProperty(propertyId)
 
   if (result.success) {
+    await propertyStore.loadProperties()
+
     successMessage.value = result.message
     showSuccessMessage.value = true
     setTimeout(() => {
@@ -51,6 +61,9 @@ const handleRejectProperty = async (propertyId) => {
   const result = await store.rejectProperty(propertyId)
 
   if (result.success) {
+    // Refresh property store to update stats
+    await propertyStore.loadProperties()
+
     successMessage.value = result.message
     showSuccessMessage.value = true
     setTimeout(() => {
@@ -104,6 +117,13 @@ const handleRejectProperty = async (propertyId) => {
         <p class="text-indigo-100 mt-1">Manage properties, leases and approvals</p>
       </div>
     </div>
+
+    <!-- Stats Cards Section -->
+    <StatsCards
+        :kpi-metrics="store.kpiMetrics"
+        :stats-data="store.statsData"
+        :loading="store.statsLoading"
+    />
 
     <!-- Action Cards Section -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">

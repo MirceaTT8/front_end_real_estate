@@ -9,7 +9,7 @@ const props = defineProps({
   chartOptions: Object
 })
 
-const activeTab = ref('income') // income or expenses
+const activeTab = ref('comparison') // comparison, income or expenses
 
 // Computed to show data availability information
 const dataAvailability = computed(() => {
@@ -37,7 +37,7 @@ const displayChartData = computed(() => {
           ds.label === 'Rent Collection'
       )
     }
-  } else {
+  } else if (activeTab.value === 'expenses') {
     // Show only maintenance costs data
     return {
       ...props.filteredChartData,
@@ -45,6 +45,9 @@ const displayChartData = computed(() => {
           ds.label === 'Maintenance Costs'
       )
     }
+  } else {
+    // Show both datasets for comparison
+    return props.filteredChartData
   }
 })
 </script>
@@ -103,8 +106,22 @@ const displayChartData = computed(() => {
         <div class="mb-4 border-b border-gray-200">
           <div class="flex -mb-px">
             <button
-                @click="activeTab = 'income'"
+                @click="activeTab = 'comparison'"
                 class="py-2 px-4 border-b-2 font-medium text-sm transition-colors"
+                :class="activeTab === 'comparison'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            >
+              <span class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                Comparison
+              </span>
+            </button>
+            <button
+                @click="activeTab = 'income'"
+                class="ml-8 py-2 px-4 border-b-2 font-medium text-sm transition-colors"
                 :class="activeTab === 'income'
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"

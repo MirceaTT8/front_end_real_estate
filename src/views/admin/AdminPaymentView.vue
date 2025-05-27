@@ -5,8 +5,6 @@ import { formatPaymentMethod } from '@/utils/paymentUtils.js'
 
 const store = usePaymentAdminStore()
 const showDetails = ref(null)
-const showRefundModal = ref(false)
-const selectedPayment = ref(null)
 
 const totalAmount = computed(() => {
   return store.filteredPayments.reduce((sum, payment) => sum + payment.amount, 0).toFixed(2)
@@ -29,7 +27,6 @@ const statusColor = (status) => {
     case 'COMPLETED': return 'bg-green-100 text-green-800 border border-green-200'
     case 'PENDING': return 'bg-yellow-100 text-yellow-800 border border-yellow-200'
     case 'FAILED': return 'bg-red-100 text-red-800 border border-red-200'
-    case 'REFUNDED': return 'bg-purple-100 text-purple-800 border border-purple-200'
     default: return 'bg-gray-100 text-gray-800 border border-gray-200'
   }
 }
@@ -39,24 +36,12 @@ const statusDotColor = (status) => {
     case 'COMPLETED': return 'bg-green-500'
     case 'PENDING': return 'bg-yellow-500'
     case 'FAILED': return 'bg-red-500'
-    case 'REFUNDED': return 'bg-purple-500'
     default: return 'bg-gray-500'
   }
 }
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
-}
-
-const selectPayment = (payment) => {
-  selectedPayment.value = payment
-  showRefundModal.value = true
-}
-
-const refundPayment = () => {
-  // Implement refund logic here
-  showRefundModal.value = false
-  selectedPayment.value = null
 }
 
 onMounted(() => {
@@ -158,7 +143,6 @@ onMounted(() => {
                 <option value="COMPLETED">Completed</option>
                 <option value="PENDING">Pending</option>
                 <option value="FAILED">Failed</option>
-                <option value="REFUNDED">Refunded</option>
               </select>
               <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                 <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -234,7 +218,6 @@ onMounted(() => {
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Method</th>
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-100">
@@ -269,16 +252,6 @@ onMounted(() => {
                   {{ payment.status }}
                 </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <button
-                  @click.stop="selectPayment(payment)"
-                  class="text-green-600 hover:text-green-900"
-                  :disabled="payment.status !== 'COMPLETED'"
-                  :class="{ 'opacity-50 cursor-not-allowed': payment.status !== 'COMPLETED' }"
-              >
-                Refund
-              </button>
-            </td>
           </tr>
 
           <!-- Expandable detail row -->
@@ -304,47 +277,7 @@ onMounted(() => {
         </table>
       </div>
     </div>
-
-    <!-- Refund Modal -->
-    <div v-if="showRefundModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
-        <div class="mb-4">
-          <h3 class="text-xl font-bold text-gray-900">Confirm Refund</h3>
-          <p class="text-gray-600 mt-1">Are you sure you want to issue a refund for this payment?</p>
-        </div>
-
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <div class="ml-3">
-              <p class="text-sm text-yellow-700">
-                This action cannot be undone. The amount of {{ selectedPayment ? formatCurrency(selectedPayment.amount) : '' }} will be returned to the customer.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-3">
-          <button
-              @click="showRefundModal = false"
-              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-              @click="refundPayment"
-              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-          >
-            Confirm Refund
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+ </div>
 </template>
 
 <style scoped>

@@ -4,7 +4,13 @@ const API = `${BASE_URL}/activity-log`;
 
 export const fetchAllLogs = async () => {
     try {
-        const response = await fetch(`${API}/all`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

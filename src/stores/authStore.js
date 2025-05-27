@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { jwtDecode } from 'jwt-decode'
-
 export const useAuthStore = defineStore('auth', {
     state: () => ({
         token: localStorage.getItem('token'),
@@ -13,6 +12,10 @@ export const useAuthStore = defineStore('auth', {
     actions: {
         initialize() {
             if (this.token) {
+                if (isTokenExpired(this.token)) {
+                    this.logout()
+                    return
+                }
                 try {
                     const decoded = jwtDecode(this.token)
                     const authorities = decoded.authorities || []
@@ -23,6 +26,9 @@ export const useAuthStore = defineStore('auth', {
             }
         },
         login(token) {
+            if (isTokenExpired(token)) {
+                throw new Error("Token is expired")
+            }
             this.token = token
             localStorage.setItem('token', token)
             this.initialize()
@@ -34,3 +40,12 @@ export const useAuthStore = defineStore('auth', {
         }
     }
 })
+
+function isTokenExpired(token) {
+    try {
+        const { exp } = jwtDecode(token)
+        return exp < Date.now() / 1000
+    } catch {
+        return true
+    }
+}

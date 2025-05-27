@@ -18,9 +18,10 @@ export const fetchMyProperties = async () => {
 
 export const fetchPropertyById = async (propertyId) => {
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${API}/${propertyId}`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${token}`
             }
         });
         if (!response.ok) {
@@ -103,7 +104,7 @@ export const validateProperty = async (propertyId, status) => {
     const token = localStorage.getItem('token');
 
     const response = await fetch(`${API}/${propertyId}/validate?status=${status}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
             'Authorization': `Bearer ${token}`
         }
@@ -114,5 +115,5 @@ export const validateProperty = async (propertyId, status) => {
         throw new Error(errorData || `Failed to validate property ${propertyId}`);
     }
 
-    return await response.text(); // The controller returns a simple string message
+    return await response.text();
 };

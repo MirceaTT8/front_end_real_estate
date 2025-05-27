@@ -13,7 +13,7 @@ const filters = ref({ location: '', type: '', status: '' })
 
 const filterOptions = {
   types: ['Apartment', 'House', 'Commercial', 'Land'],
-  statuses: ['Available', 'Rented', 'Maintenance']
+  statuses: ['Available', 'Rented', 'Inactive', 'Maintenance']
 }
 
 const filteredProperties = computed(() => {

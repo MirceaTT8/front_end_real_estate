@@ -1,80 +1,52 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { fetchAllPropertiesAdmin } from '@/services/propertyService'
+import { onMounted } from 'vue'
+import { useAdminPropertyStore } from '@/stores/adminPropertyStore'
 
-const properties = ref([])
-const loading = ref(true)
-const error = ref(null)
-const searchQuery = ref('')
-const selectedStatus = ref('ALL')
-
-// Computed properties for dashboard metrics
-const totalProperties = computed(() => properties.value.length)
-const activeProperties = computed(() => properties.value.filter(p => p.status === 'ACTIVE').length)
-const pendingProperties = computed(() => properties.value.filter(p => p.status === 'PENDING').length)
-const rentedProperties = computed(() => properties.value.filter(p => p.status === 'RENTED').length)
-
-// Computed property for filtered properties
-const filteredProperties = computed(() => {
-  return properties.value.filter(property => {
-    // Filter by search query
-    const matchesSearch = !searchQuery.value ||
-        property.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        property.address.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        property.propertyId.toString().includes(searchQuery.value);
-
-    // Filter by status
-    const matchesStatus = selectedStatus.value === 'ALL' || property.status === selectedStatus.value;
-
-    return matchesSearch && matchesStatus;
-  });
-});
+const store = useAdminPropertyStore()
 
 // Status badge styling
 const getStatusStyle = (status) => {
   switch (status) {
     case 'ACTIVE':
-      return 'bg-green-100 text-green-800 border border-green-200';
+      return 'bg-green-100 text-green-800 border border-green-200'
     case 'PENDING':
-      return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+      return 'bg-yellow-100 text-yellow-800 border border-yellow-200'
     case 'INACTIVE':
-      return 'bg-gray-100 text-gray-800 border border-gray-200';
+      return 'bg-gray-100 text-gray-800 border border-gray-200'
     case 'MAINTENANCE':
-      return 'bg-blue-100 text-blue-800 border border-blue-200';
+      return 'bg-blue-100 text-blue-800 border border-blue-200'
     case 'RENTED':
-      return 'bg-purple-100 text-purple-800 border border-purple-200';
+      return 'bg-purple-100 text-purple-800 border border-purple-200'
     default:
-      return 'bg-gray-100 text-gray-800 border border-gray-200';
+      return 'bg-gray-100 text-gray-800 border border-gray-200'
   }
-};
+}
 
 // Dot indicator styling
 const getStatusDot = (status) => {
   switch (status) {
     case 'ACTIVE':
-      return 'bg-green-500';
+      return 'bg-green-500'
     case 'PENDING':
-      return 'bg-yellow-500';
+      return 'bg-yellow-500'
     case 'INACTIVE':
-      return 'bg-gray-500';
+      return 'bg-gray-500'
     case 'MAINTENANCE':
-      return 'bg-blue-500';
+      return 'bg-blue-500'
     case 'RENTED':
-      return 'bg-purple-500';
+      return 'bg-purple-500'
     default:
-      return 'bg-gray-500';
+      return 'bg-gray-500'
   }
-};
+}
 
-onMounted(async () => {
-  try {
-    properties.value = await fetchAllPropertiesAdmin()
-  } catch (err) {
-    error.value = 'Failed to load properties.'
-    console.error(err)
-  } finally {
-    loading.value = false
-  }
+// Retry loading on error
+const retryLoading = async () => {
+  await store.loadProperties()
+}
+
+onMounted(() => {
+  store.loadProperties()
 })
 </script>
 
@@ -105,12 +77,22 @@ onMounted(async () => {
               </svg>
               Add Property
             </button>
+            <button
+                @click="store.refresh"
+                :disabled="store.loading"
+                class="flex items-center justify-center gap-2 px-4 py-2 bg-white/10 text-white text-sm font-medium rounded-xl hover:bg-white/20 transition-colors disabled:opacity-50"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Stats cards -->
+    <!-- Enhanced Stats cards with more metrics -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <div class="bg-white rounded-xl shadow-md p-6">
         <div class="flex items-center gap-4">
@@ -121,7 +103,8 @@ onMounted(async () => {
           </div>
           <div>
             <h3 class="text-gray-500 text-sm">Total Properties</h3>
-            <p class="font-bold text-xl text-gray-800">{{ totalProperties }}</p>
+            <p class="font-bold text-xl text-gray-800">{{ store.totalProperties }}</p>
+            <p class="text-xs text-gray-500">Portfolio size</p>
           </div>
         </div>
       </div>
@@ -135,7 +118,8 @@ onMounted(async () => {
           </div>
           <div>
             <h3 class="text-gray-500 text-sm">Active Properties</h3>
-            <p class="font-bold text-xl text-gray-800">{{ activeProperties }}</p>
+            <p class="font-bold text-xl text-gray-800">{{ store.activeProperties }}</p>
+            <p class="text-xs text-gray-500">{{ store.occupancyRate }}% occupancy rate</p>
           </div>
         </div>
       </div>
@@ -149,7 +133,8 @@ onMounted(async () => {
           </div>
           <div>
             <h3 class="text-gray-500 text-sm">Pending Properties</h3>
-            <p class="font-bold text-xl text-gray-800">{{ pendingProperties }}</p>
+            <p class="font-bold text-xl text-gray-800">{{ store.pendingProperties }}</p>
+            <p class="text-xs text-gray-500">Awaiting approval</p>
           </div>
         </div>
       </div>
@@ -158,12 +143,13 @@ onMounted(async () => {
         <div class="flex items-center gap-4">
           <div class="bg-purple-100 p-3 rounded-lg">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2m-6 9h6m-6 1a1 1 0 001 1h4a1 1 0 001-1v-1m-6-9a1 1 0 00-1 1v9a1 1 0 001 1h6a1 1 0 001-1V8a1 1 0 00-1-1h-6a1 1 0 00-1 1z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
             </svg>
           </div>
           <div>
-            <h3 class="text-gray-500 text-sm">Rented Properties</h3>
-            <p class="font-bold text-xl text-gray-800">{{ rentedProperties }}</p>
+            <h3 class="text-gray-500 text-sm">Average Rent</h3>
+            <p class="font-bold text-xl text-gray-800">${{ store.averageRent.toLocaleString() }}</p>
+            <p class="text-xs text-gray-500">Per month</p>
           </div>
         </div>
       </div>
@@ -171,9 +157,17 @@ onMounted(async () => {
 
     <!-- Filters and Search -->
     <div class="bg-white rounded-xl shadow-md overflow-hidden">
-      <div class="border-b border-gray-100 px-6 py-4">
-        <h2 class="text-lg font-semibold text-gray-800">Find Properties</h2>
-        <p class="text-sm text-gray-500">Search and filter your property portfolio</p>
+      <div class="border-b border-gray-100 px-6 py-4 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800">Find Properties</h2>
+          <p class="text-sm text-gray-500">Search and filter your property portfolio</p>
+        </div>
+        <button
+            @click="store.clearFilters"
+            class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+        >
+          Clear Filters
+        </button>
       </div>
 
       <div class="p-6">
@@ -189,14 +183,12 @@ onMounted(async () => {
               </div>
               <select
                   id="status"
-                  v-model="selectedStatus"
+                  v-model="store.selectedStatus"
                   class="block w-full pl-10 pr-10 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm appearance-none"
               >
-                <option value="ALL">All Statuses</option>
-                <option value="ACTIVE">Active</option>
-                <option value="PENDING">Pending</option>
-                <option value="INACTIVE">Inactive</option>
-                <option value="RENTED">Rented</option>
+                <option v-for="status in store.statuses" :key="status" :value="status">
+                  {{ status === 'ALL' ? 'All Statuses' : status }}
+                </option>
               </select>
               <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                 <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -217,7 +209,7 @@ onMounted(async () => {
               </div>
               <input
                   id="search"
-                  v-model="searchQuery"
+                  v-model="store.searchQuery"
                   type="text"
                   placeholder="Search by name, address or ID"
                   class="block w-full pl-10 pr-3 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -229,7 +221,7 @@ onMounted(async () => {
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="bg-white rounded-xl shadow-md p-10">
+    <div v-if="store.loading" class="bg-white rounded-xl shadow-md p-10">
       <div class="flex flex-col items-center justify-center">
         <svg class="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -240,7 +232,7 @@ onMounted(async () => {
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="bg-white rounded-xl shadow-md p-10">
+    <div v-else-if="store.error" class="bg-white rounded-xl shadow-md p-10">
       <div class="flex items-center justify-center">
         <div class="bg-red-100 border border-red-200 rounded-lg p-4 w-full max-w-2xl">
           <div class="flex">
@@ -250,8 +242,11 @@ onMounted(async () => {
               </svg>
             </div>
             <div class="ml-3">
-              <p class="text-sm text-red-700">{{ error }}</p>
-              <button class="mt-2 text-sm font-medium text-red-600 hover:text-red-500">
+              <p class="text-sm text-red-700">{{ store.error }}</p>
+              <button
+                  @click="retryLoading"
+                  class="mt-2 text-sm font-medium text-red-600 hover:text-red-500"
+              >
                 Try Again
               </button>
             </div>
@@ -261,13 +256,19 @@ onMounted(async () => {
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="filteredProperties.length === 0" class="bg-white rounded-xl shadow-md p-10">
+    <div v-else-if="store.filteredProperties.length === 0" class="bg-white rounded-xl shadow-md p-10">
       <div class="flex flex-col items-center justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
         <p class="text-gray-600 font-medium mb-1">No properties found</p>
         <p class="text-gray-500 text-sm">Try adjusting your filters or search criteria</p>
+        <button
+            @click="store.clearFilters"
+            class="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
+        >
+          Clear Filters
+        </button>
       </div>
     </div>
 
@@ -277,15 +278,31 @@ onMounted(async () => {
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
           <div>
             <h2 class="text-lg font-semibold text-gray-800">Property Directory</h2>
-            <p class="text-sm text-gray-500">{{ filteredProperties.length }} properties found</p>
+            <p class="text-sm text-gray-500">{{ store.filteredProperties.length }} properties found</p>
+          </div>
+          <div class="flex gap-2">
+            <button
+                v-if="store.selectedProperties.size > 0"
+                @click="store.bulkApproveProperties"
+                class="text-sm bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Approve Selected ({{ store.selectedProperties.size }})
+            </button>
+            <button
+                v-if="store.selectedProperties.size > 0"
+                @click="store.bulkRejectProperties"
+                class="text-sm bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Reject Selected ({{ store.selectedProperties.size }})
+            </button>
           </div>
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
-            v-for="property in filteredProperties"
-            :key="property.id"
+            v-for="property in store.filteredProperties"
+            :key="property.propertyId"
             class="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg"
         >
           <!-- Property Image/Placeholder -->
@@ -299,7 +316,7 @@ onMounted(async () => {
           <div class="p-6 space-y-4">
             <div>
               <div class="flex justify-between items-start mb-1">
-                <h2 class="text-lg font-semibold text-gray-800 leading-tight">{{ property.title }}</h2>
+                <h2 class="text-lg font-semibold text-gray-800 leading-tight">{{ property.name || property.title }}</h2>
                 <span
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                     :class="getStatusStyle(property.status)"
@@ -311,6 +328,7 @@ onMounted(async () => {
               <p class="text-sm text-gray-600">{{ property.address }}</p>
             </div>
 
+            <!-- Property metrics -->
             <div class="border-t border-gray-100 pt-4">
               <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -318,19 +336,55 @@ onMounted(async () => {
                   <p class="text-sm font-medium text-gray-700">{{ property.propertyId }}</p>
                 </div>
                 <div>
-                  <p class="text-xs text-gray-500">Units</p>
-                  <p class="text-sm font-medium text-gray-700">{{ property.unitCount || 0 }}</p>
+                  <p class="text-xs text-gray-500">Monthly Rent</p>
+                  <p class="text-sm font-medium text-gray-700">${{ property.rentAmount?.toLocaleString() || 'N/A' }}</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4 mt-3">
+                <div>
+                  <p class="text-xs text-gray-500">Type</p>
+                  <p class="text-sm font-medium text-gray-700">{{ property.type || 'N/A' }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">Validation Status</p>
+                  <p class="text-sm font-medium" :class="{
+                    'text-green-600': property.validationStatus === 'APPROVED',
+                    'text-yellow-600': property.validationStatus === 'PENDING',
+                    'text-red-600': property.validationStatus === 'REJECTED',
+                    'text-gray-600': !property.validationStatus
+                  }">
+                    {{ property.validationStatus || 'N/A' }}
+                  </p>
                 </div>
               </div>
             </div>
 
-            <router-link
-                :to="{ name: 'PropertyDetails', params: { id: property.propertyId } }"
-                class="text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              View Details
-            </router-link>
+            <!-- Actions -->
+            <div class="border-t border-gray-100 pt-4 space-y-2">
+              <!-- Approval buttons for pending properties -->
+              <div v-if="property.validationStatus === 'PENDING'" class="flex gap-2">
+                <button
+                    @click="store.approveProperty(property.propertyId)"
+                    class="flex-1 text-xs font-medium bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Approve
+                </button>
+                <button
+                    @click="store.rejectProperty(property.propertyId)"
+                    class="flex-1 text-xs font-medium bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Reject
+                </button>
+              </div>
 
+              <!-- View details link -->
+              <router-link
+                  :to="{ name: 'PropertyDetails', params: { id: property.propertyId } }"
+                  class="block text-center text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors py-2"
+              >
+                View Details
+              </router-link>
+            </div>
           </div>
         </div>
       </div>

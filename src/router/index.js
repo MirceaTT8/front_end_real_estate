@@ -88,11 +88,11 @@ router.beforeEach((to, from, next) => {
         try {
             const { authorities } = jwtDecode(token)
 
-            if (to.path.startsWith('/tenant') && !authorities.includes('ROLE_TENANT')) {
+            if (to.path.startsWith('/tenant') && !authorities.includes('ROLE_TENANT') && !authorities.includes('ROLE_ADMIN')) {
                 return next('/login')
             }
 
-            if (to.path.startsWith('/landlord') && !authorities.includes('ROLE_LANDLORD')) {
+            if (to.path.startsWith('/landlord') && !authorities.includes('ROLE_LANDLORD') && !authorities.includes('ROLE_ADMIN') ) {
                 return next('/login')
             }
 

@@ -91,25 +91,6 @@ export const deleteUser = async (userId) => {
     }
 };
 
-export const fetchRentCollected = async (ownerId, startDate, endDate) => {
-    try {
-        const params = new URLSearchParams({
-            start: startDate.toISOString().split('T')[0],
-            end: endDate.toISOString().split('T')[0]
-        });
-
-        const response = await fetch(`${API}/${ownerId}/rent-collected?${params}`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching rent collection:', error);
-        throw error;
-    }
-};
-
 export const approveUsers = async (userIds) => {
     try {
         const response = await fetch(`${API}/approve`, {
@@ -185,12 +166,11 @@ export const activateUser = async (userId) => {
             throw new Error(errorData.message || 'User activation failed')
         }
 
-        // Only parse JSON if there's content
         const contentLength = response.headers.get('Content-Length')
         if (contentLength && parseInt(contentLength) > 0) {
             return await response.json()
         }
-        return { success: true } // Default success response
+        return { success: true }
     } catch (error) {
         console.error('Error activating user:', error)
         throw error
