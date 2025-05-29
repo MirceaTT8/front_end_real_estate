@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { fetchMaintenanceRequestsByLease, addMaintenanceRequest } from '@/services/maintenanceService'
+import { fetchMaintenanceRequestsByLease, addMaintenanceRequest, markMaintenanceAsNotFixed } from '@/services/maintenanceService'
 import { useTenantLeaseStore} from "@/stores/leaseTenantStore.js";
 
 export const useMaintenanceTenantStore = defineStore('maintenanceTenantStore', () => {
@@ -48,11 +48,34 @@ export const useMaintenanceTenantStore = defineStore('maintenanceTenantStore', (
         }
     }
 
+    const markAsNotFixed = async (requestId) => {
+        loading.value = true;
+        error.value = null;
+
+        try {
+            const updatedRequest = await markMaintenanceAsNotFixed(requestId);
+
+            // Update the request in the local state
+            const index = requests.value.findIndex(req => req.requestId === requestId);
+            if (index !== -1) {
+                requests.value[index] = updatedRequest;
+            }
+
+            return updatedRequest;
+        } catch (err) {
+            error.value = err.message || 'Failed to mark maintenance as not fixed';
+            throw err;
+        } finally {
+            loading.value = false;
+        }
+    };
+
     return {
         requests,
         loading,
         error,
         fetchRequests,
         createRequest,
+        markAsNotFixed,
     }
 })

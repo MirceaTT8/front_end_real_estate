@@ -31,6 +31,18 @@ const submitRequest = async (newRequest) => {
   showCreateForm.value = false
 }
 
+// Handle feedback submission from maintenance cards
+const handleFeedbackSubmitted = async (feedbackData) => {
+  // Optionally refresh the data or show a success message
+  console.log('Feedback submitted:', feedbackData);
+
+  // You might want to show a toast notification here
+  // toast.success('Feedback submitted successfully');
+
+  // Optionally refresh the requests to get updated data
+  // await loadRequests();
+}
+
 onMounted(() => {
   loadRequests()
 })
@@ -135,6 +147,7 @@ onMounted(() => {
           :status-filter="statusFilter"
           @create-new="showCreateForm = true"
           @retry="loadRequests"
+          @feedback-submitted="handleFeedbackSubmitted"
       />
     </div>
   </div>

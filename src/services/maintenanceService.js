@@ -157,3 +157,25 @@ export const fetchAllMaintenanceRequests = async () => {
     }
 };
 
+export const markMaintenanceAsNotFixed = async (requestId) => {
+    try {
+        const token = localStorage.getItem('token')
+        const response = await fetch(`${API}/${requestId}/mark-not-fixed`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to mark maintenance as not fixed: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error marking maintenance as not fixed:', error);
+        throw error;
+    }
+};
+

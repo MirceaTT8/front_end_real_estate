@@ -20,7 +20,7 @@ defineProps({
   }
 })
 
-defineEmits(['create-new', 'retry'])
+const emit = defineEmits(['create-new', 'retry', 'feedback-submitted'])
 
 const getStatusLabel = (status) => {
   switch(status) {
@@ -30,6 +30,11 @@ const getStatusLabel = (status) => {
     case 'ALL': return 'All';
     default: return status;
   }
+}
+
+// Handle feedback submission from maintenance cards and pass it up to parent
+const handleFeedbackSubmitted = (feedbackData) => {
+  emit('feedback-submitted', feedbackData)
 }
 </script>
 
@@ -114,6 +119,7 @@ const getStatusLabel = (status) => {
         v-for="request in requests"
         :key="request.requestId"
         :request="request"
+        @feedback-submitted="handleFeedbackSubmitted"
     />
   </div>
 </template>

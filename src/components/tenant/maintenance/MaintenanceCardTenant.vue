@@ -5,10 +5,13 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
+import { useMaintenanceTenantStore } from "@/stores/leaseMaintenanceTenantStore.js";
 
 const showModal = ref(false);
 const activeIndex = ref(0);
 const isExpanded = ref(false);
+
+const maintenanceStore = useMaintenanceTenantStore();
 
 const openSlider = (index) => {
   activeIndex.value = index;
@@ -21,6 +24,39 @@ const props = defineProps({
     required: true
   }
 });
+
+// Track if user has responded
+const userFixedResponse = ref(props.request.is_fixed ?? null);
+const hasSubmittedResponse = ref(props.request.is_fixed !== null);
+
+const submitFixedStatus = async (isFixed) => {
+  try {
+    if (isFixed) {
+      // For "Yes, it's fixed" - optionally call confirm endpoint
+      // await maintenanceStore.confirmAsFixed(props.request.requestId);
+      userFixedResponse.value = true;
+      hasSubmittedResponse.value = true;
+    } else {
+      // For "No, still needs work" - call the store method
+      await maintenanceStore.markAsNotFixed(props.request.requestId);
+
+      userFixedResponse.value = false;
+      hasSubmittedResponse.value = true;
+
+      // Emit event to parent component
+      emit('feedback-submitted', {
+        requestId: props.request.requestId,
+        isFixed: false
+      });
+    }
+  } catch (error) {
+    console.error('Failed to submit feedback:', error);
+    // Show error message to user
+    alert('Failed to submit feedback. Please try again.');
+  }
+};
+
+const emit = defineEmits(['feedback-submitted']);
 
 // Status label/color mapping
 const statusDisplay = {
@@ -59,17 +95,6 @@ const statusDisplay = {
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleString();
 };
-
-// Track if user has responded
-const userFixedResponse = ref(props.request.is_fixed ?? null);
-const hasSubmittedResponse = ref(props.request.is_fixed !== null);
-
-const submitFixedStatus = () => {
-  // In real usage, you'd send this to the backend
-  hasSubmittedResponse.value = true;
-  // Optionally show a toast or emit an event
-};
-
 
 const getRequestTypeIcon = (type) => {
 // Icons for different maintenance types
@@ -208,14 +233,6 @@ const getRequestTypeIcon = (type) => {
         </div>
 
         <div class="space-y-2">
-          <div v-if="request.status === 'COMPLETED'" class="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span class="font-medium">Resolution Time:</span>
-            <span class="ml-1">{{ request.resolution_time }} days</span>
-          </div>
-
           <div class="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -227,43 +244,61 @@ const getRequestTypeIcon = (type) => {
       </div>
     </div>
 
-    <!-- Is Issue Fixed Section -->
+    <!-- Enhanced Feedback Section -->
     <div v-if="request.status === 'COMPLETED'" class="px-6 py-4 bg-gray-50 border-t border-gray-100">
-      <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+      <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        Is the issue fixed?
+        Was this maintenance issue resolved to your satisfaction?
       </h4>
 
+      <!-- Initial Response Buttons -->
       <div v-if="!hasSubmittedResponse" class="flex gap-3 items-center">
         <button
-            @click="userFixedResponse = true; submitFixedStatus()"
+            @click="submitFixedStatus(true)"
             class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex items-center"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
-          Yes
+          Yes, it's fixed
         </button>
         <button
-            @click="userFixedResponse = false; submitFixedStatus()"
-            class="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex items-center"
+            @click="submitFixedStatus(false)"
+            class="bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex items-center"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
-          No
+          No, still needs work
         </button>
       </div>
 
-      <div v-else class="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800 flex items-start">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-        </svg>
-        <div>
-          <p class="font-medium">You responded: <span class="font-bold">{{ userFixedResponse ? 'Yes' : 'No' }}</span></p>
-          <p class="text-xs mt-1">{{ userFixedResponse ? 'Great! Your issue has been resolved.' : 'An admin will contact you shortly.' }}</p>
+      <!-- Response Confirmation -->
+      <div v-if="hasSubmittedResponse" class="space-y-3">
+        <!-- Positive Response -->
+        <div v-if="userFixedResponse" class="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800 flex items-start">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          <div>
+            <p class="font-medium">✅ Issue Resolved Successfully</p>
+            <p class="text-xs mt-1">Thank you for confirming the maintenance work was completed satisfactorily.</p>
+          </div>
+        </div>
+
+        <!-- Negative Response -->
+        <div v-else class="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm text-orange-800">
+          <div class="flex items-start">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <div class="flex-1">
+              <p class="font-medium">⚠️ Marked as Not Fixed</p>
+              <p class="text-xs mt-1">The request has been reopened. Your property manager will be notified and will contact you within 24 hours to address the remaining issues.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -14,3 +14,8 @@ export function formatTimeAgo(timestamp) {
     if (days === 1) return 'yesterday'
     return `${days} day${days > 1 ? 's' : ''} ago`
 }
+
+export const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' }
+    return new Date(dateString).toLocaleDateString(undefined, options)
+}

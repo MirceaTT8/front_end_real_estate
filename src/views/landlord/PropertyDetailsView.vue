@@ -255,16 +255,8 @@ onMounted(async () => {
                 </svg>
               </button>
 
-              <!-- Image Counter & Status Badge -->
-              <div class="absolute top-6 left-6 right-6 flex justify-between items-start">
-                <!-- Status Badge -->
-                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white font-semibold shadow-lg backdrop-blur-sm"
-                     :class="statusColors[property.status]?.badge">
-                  <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                  {{ property.status.toLowerCase() }}
-                </div>
-
-                <!-- Image Counter -->
+              <!-- Image Counter -->
+              <div class="absolute top-6 right-6">
                 <div v-if="property.imageUrls?.length > 1" class="bg-black/70 text-white px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm">
                   {{ currentImageIndex + 1 }} / {{ property.imageUrls.length }}
                 </div>
@@ -306,7 +298,16 @@ onMounted(async () => {
           <!-- Property Title & Price -->
           <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
             <div class="space-y-4">
-              <h1 class="text-4xl font-bold text-gray-900 leading-tight">{{ property.name }}</h1>
+              <div class="flex items-center gap-4 mb-2">
+                <h1 class="text-4xl font-bold text-gray-900 leading-tight">{{ property.name }}</h1>
+                <!-- Status Badge -->
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium shadow-sm border"
+                     :class="statusColors[property.status]?.badge">
+                  <div class="w-2 h-2 rounded-full"
+                       :class="statusColors[property.status]?.dot"></div>
+                  {{ property.status.toLowerCase() }}
+                </div>
+              </div>
               <div class="flex items-center gap-2 text-gray-600">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -343,22 +344,22 @@ onMounted(async () => {
             </div>
 
             <!-- Additional lease details if available -->
-            <div v-if="leaseDetails" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div v-if="leaseDetails.startDate" class="flex justify-between">
-                <span class="font-medium text-blue-800">Lease Start:</span>
-                <span class="text-blue-700 font-semibold">{{ formatDate(leaseDetails.startDate) }}</span>
+            <div v-if="leaseDetails" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+              <div v-if="leaseDetails.startDate">
+                <span class="block font-medium text-blue-800">Lease Start</span>
+                <span class="text-lg text-blue-900 font-semibold">{{ formatDate(leaseDetails.startDate) }}</span>
               </div>
-              <div v-if="leaseDetails.endDate" class="flex justify-between">
-                <span class="font-medium text-blue-800">Lease End:</span>
-                <span class="text-blue-700 font-semibold">{{ formatDate(leaseDetails.endDate) }}</span>
+              <div v-if="leaseDetails.endDate">
+                <span class="block font-medium text-blue-800">Lease End</span>
+                <span class="text-lg text-blue-900 font-semibold">{{ formatDate(leaseDetails.endDate) }}</span>
               </div>
-              <div v-if="leaseDetails.monthlyRent" class="flex justify-between">
-                <span class="font-medium text-blue-800">Monthly Rent:</span>
-                <span class="text-emerald-600 font-bold">{{ formatCurrency(leaseDetails.monthlyRent) }}</span>
+              <div v-if="leaseDetails.monthlyRent">
+                <span class="block font-medium text-blue-800">Monthly Rent</span>
+                <span class="text-xl text-emerald-600 font-bold">{{ formatCurrency(leaseDetails.monthlyRent) }}</span>
               </div>
-              <div v-if="leaseDetails.securityDeposit" class="flex justify-between">
-                <span class="font-medium text-blue-800">Security Deposit:</span>
-                <span class="text-blue-700 font-semibold">{{ formatCurrency(leaseDetails.securityDeposit) }}</span>
+              <div v-if="leaseDetails.securityDeposit">
+                <span class="block font-medium text-blue-800">Security Deposit</span>
+                <span class="text-lg text-blue-900 font-semibold">{{ formatCurrency(leaseDetails.securityDeposit) }}</span>
               </div>
             </div>
           </div>

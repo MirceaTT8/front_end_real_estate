@@ -16,6 +16,7 @@ const columns = [
   { label: 'Lease ID', key: 'leaseId' },
   { label: 'Description', key: 'description' },
   { label: 'Status', key: 'status' },
+  { label: 'Is Fixed', key: 'isFixed' },
   { label: 'Cost', key: 'cost' },
   { label: 'Created', key: 'createdAt' }
 ]
@@ -52,6 +53,37 @@ const statusDotColor = (status) => {
       return 'bg-red-400'
     default:
       return 'bg-gray-400'
+  }
+}
+
+// Is Fixed styling functions
+const isFixedColor = (isFixed) => {
+  if (isFixed === null || isFixed === undefined) {
+    return 'bg-gray-100 text-gray-600'
+  } else if (isFixed === true) {
+    return 'bg-green-100 text-green-800'
+  } else {
+    return 'bg-orange-100 text-orange-800'
+  }
+}
+
+const isFixedDotColor = (isFixed) => {
+  if (isFixed === null || isFixed === undefined) {
+    return 'bg-gray-400'
+  } else if (isFixed === true) {
+    return 'bg-green-500'
+  } else {
+    return 'bg-orange-500'
+  }
+}
+
+const isFixedLabel = (isFixed) => {
+  if (isFixed === null || isFixed === undefined) {
+    return 'No Response'
+  } else if (isFixed === true) {
+    return 'Fixed'
+  } else {
+    return 'Not Fixed'
   }
 }
 
@@ -109,6 +141,15 @@ const formatCurrency = (amount) => {
             </span>
         </td>
         <td class="px-6 py-4 whitespace-nowrap">
+          <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+              :class="isFixedColor(request.isFixed)"
+          >
+            <span :class="isFixedDotColor(request.isFixed)" class="w-1.5 h-1.5 mr-1.5 rounded-full"></span>
+            {{ isFixedLabel(request.isFixed) }}
+          </span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
           <div class="text-sm font-medium text-gray-900">
             {{ formatCurrency(request.cost) }}
           </div>
@@ -146,55 +187,32 @@ const formatCurrency = (amount) => {
               <p class="text-sm text-gray-900">{{ request.description }}</p>
             </div>
 
-            <!-- Additional Details Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <h4 class="text-xs font-semibold text-gray-500 uppercase mb-1">Category</h4>
-                <p class="text-sm">{{ request.category || 'General Maintenance' }}</p>
-              </div>
-              <div>
-                <h4 class="text-xs font-semibold text-gray-500 uppercase mb-1">Assigned To</h4>
-                <p class="text-sm">{{ request.assignedTo || 'Unassigned' }}</p>
-              </div>
-              <div>
-                <h4 class="text-xs font-semibold text-gray-500 uppercase mb-1">Estimated Completion</h4>
-                <p class="text-sm">{{ request.estimatedCompletion || 'TBD' }}</p>
-              </div>
-            </div>
-
-            <!-- Contact Information -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 class="text-xs font-semibold text-gray-500 uppercase mb-1">Tenant Contact</h4>
-                <p class="text-sm">{{ request.tenantPhone || 'Not provided' }}</p>
-              </div>
-              <div>
-                <h4 class="text-xs font-semibold text-gray-500 uppercase mb-1">Property Address</h4>
-                <p class="text-sm">{{ request.propertyAddress || 'Address not available' }}</p>
-              </div>
-            </div>
-
-            <!-- Notes and Updates -->
-            <div v-if="request.notes || request.updates">
-              <h4 class="text-xs font-semibold text-gray-500 uppercase mb-1">Notes & Updates</h4>
+            <!-- Tenant Feedback Section -->
+            <div v-if="request.status === 'COMPLETED'">
+              <h4 class="text-xs font-semibold text-gray-500 uppercase mb-1">Tenant Feedback</h4>
               <div class="bg-white p-3 rounded border">
-                <p class="text-sm">{{ request.notes || request.updates || 'No additional notes' }}</p>
-              </div>
-            </div>
-
-            <!-- Images Section -->
-            <div v-if="request.imageUrls?.length">
-              <h4 class="text-xs font-semibold text-gray-500 uppercase mb-2">Attached Images</h4>
-              <div class="flex gap-2">
-                <button
-                    @click="emit('view-images', request.imageUrls)"
-                    class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                >
-                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                  </svg>
-                  View All Images ({{ request.imageUrls.length }})
-                </button>
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-sm font-medium">Issue Resolution Status:</span>
+                  <span
+                      class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                      :class="isFixedColor(request.isFixed)"
+                  >
+                    <span :class="isFixedDotColor(request.isFixed)" class="w-1.5 h-1.5 mr-1.5 rounded-full"></span>
+                    {{ isFixedLabel(request.isFixed) }}
+                  </span>
+                </div>
+                <div v-if="request.tenantFeedbackDate" class="text-xs text-gray-500 mb-1">
+                  Feedback submitted: {{ new Date(request.tenantFeedbackDate).toLocaleDateString() }}
+                </div>
+                <div v-if="request.tenantFeedback" class="text-sm text-gray-700 italic">
+                  "{{ request.tenantFeedback }}"
+                </div>
+                <div v-else-if="request.isFixed === false" class="text-sm text-gray-500 italic">
+                  Tenant marked as not fixed - no additional feedback provided
+                </div>
+                <div v-else-if="request.isFixed === null" class="text-sm text-gray-500 italic">
+                  Awaiting tenant feedback
+                </div>
               </div>
             </div>
           </div>

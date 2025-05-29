@@ -23,28 +23,28 @@ const getStatusColor = (value) => {
 
 <template>
   <div class="relative inline-block text-left">
-    <div>
-      <button
-          type="button"
-          class="inline-flex justify-between items-center w-48 rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
-          id="menu-button"
-          aria-expanded="true"
-          aria-haspopup="true"
-      >
-        <span>
-          <span
-              class="inline-block w-2 h-2 rounded-full mr-2"
-              :class="getStatusColor(modelValue).includes('yellow') ? 'bg-yellow-500' :
-                   getStatusColor(modelValue).includes('blue') ? 'bg-blue-500' :
-                   getStatusColor(modelValue).includes('green') ? 'bg-green-500' : 'bg-gray-500'"
-          ></span>
-          {{ statusOptions.find(opt => opt.value === modelValue)?.label || 'Filter' }}
-        </span>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 -mr-1" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-        </svg>
-      </button>
-    </div>
+<!--    <div>-->
+<!--      <button-->
+<!--          type="button"-->
+<!--          class="inline-flex justify-between items-center w-48 rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"-->
+<!--          id="menu-button"-->
+<!--          aria-expanded="true"-->
+<!--          aria-haspopup="true"-->
+<!--      >-->
+<!--        <span>-->
+<!--          <span-->
+<!--              class="inline-block w-2 h-2 rounded-full mr-2"-->
+<!--              :class="getStatusColor(modelValue).includes('yellow') ? 'bg-yellow-500' :-->
+<!--                   getStatusColor(modelValue).includes('blue') ? 'bg-blue-500' :-->
+<!--                   getStatusColor(modelValue).includes('green') ? 'bg-green-500' : 'bg-gray-500'"-->
+<!--          ></span>-->
+<!--          {{ statusOptions.find(opt => opt.value === modelValue)?.label || 'Filter' }}-->
+<!--        </span>-->
+<!--        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 -mr-1" viewBox="0 0 20 20" fill="currentColor">-->
+<!--          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />-->
+<!--        </svg>-->
+<!--      </button>-->
+<!--    </div>-->
 
     <div
         class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none z-10"

@@ -97,9 +97,9 @@
 <script setup>
 import { computed } from 'vue'
 
-// Props
+// Props - change 'stats' to 'statsData'
 const props = defineProps({
-  stats: {
+  statsData: {  // Changed from 'stats' to 'statsData'
     type: Object,
     default: () => ({
       totalUsers: 0,
@@ -116,7 +116,10 @@ const props = defineProps({
   }
 })
 
-// Methods
+// Create a computed property for easier access
+const stats = computed(() => props.statsData)
+
+// Methods stay the same
 const getUrgencyColor = (urgentCount) => {
   if (!urgentCount || urgentCount === 0) {
     return 'bg-gray-100 text-gray-600'

@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, computed, watch, onUnmounted } from 'vue'
-import { useTenantLeaseStore} from "@/stores/leaseTenantStore.js";
+import { useTenantLeaseStore } from "@/stores/leaseTenantStore.js"
+import { usePaymentTenantStore } from "@/stores/paymentTenantStore.js" // Import the correct store
 
 import LeaseHeader from '@/components/tenant/lease/LeaseHeader.vue'
 import LeasePropertyDetails from '@/components/tenant/lease/LeasePropertyDetails.vue'
@@ -12,62 +13,11 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import NoLeaseMessage from '@/components/tenant/lease/NoLeaseMessage.vue'
 
 const tenantStore = useTenantLeaseStore()
+const paymentStore = usePaymentTenantStore() // Use the correct store
 const activeTab = ref('overview')
 
 // Initialize dates for Next Payment card
 const today = ref(new Date())
-const nextPaymentDate = ref(null)
-const daysUntilNextPayment = ref(0)
-
-// Function to calculate next payment date
-const calculateNextPaymentDate = () => {
-  if (!tenantStore.lease?.startDate) {
-    return new Date();
-  }
-
-  const startDate = new Date(tenantStore.lease.startDate);
-  const paymentDay = startDate.getDate();
-
-  // Get today's date
-  const currentDate = new Date();
-
-  // Calculate next payment date
-  let nextDate;
-
-  // If today's date is past the payment day for this month, next payment is next month
-  if (currentDate.getDate() >= paymentDay) {
-    nextDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, paymentDay);
-  } else {
-    // Otherwise next payment is this month
-    nextDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), paymentDay);
-  }
-
-  return nextDate;
-}
-
-// Function to calculate days until next payment
-const calculateDaysUntil = () => {
-  const currDate = new Date();
-  const paymentDate = nextPaymentDate.value;
-
-  if (!paymentDate) return 0;
-
-  // Reset time portion for accurate day calculation
-  currDate.setHours(0, 0, 0, 0);
-  const tempDate = new Date(paymentDate);
-  tempDate.setHours(0, 0, 0, 0);
-
-  const diffTime = Math.abs(tempDate - currDate);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  return diffDays;
-}
-
-// Function to update payment information
-const updatePaymentInfo = () => {
-  nextPaymentDate.value = calculateNextPaymentDate();
-  daysUntilNextPayment.value = calculateDaysUntil();
-}
 
 // Function to format currency values
 const formatCurrency = (amount) => {
@@ -75,26 +25,29 @@ const formatCurrency = (amount) => {
     style: 'currency',
     currency: 'USD',
     maximumFractionDigits: 0
-  }).format(amount);
+  }).format(amount)
 }
 
-onMounted(() => {
-  tenantStore.loadTenantLeaseData();
+onMounted(async () => {
+  await tenantStore.loadTenantLeaseData()
+  await paymentStore.fetchPayments() // Use fetchPayments method from paymentTenantStore
 
   // Set up interval to update the date every minute
   const interval = setInterval(() => {
-    today.value = new Date();
-    updatePaymentInfo();
-  }, 60000);
+    today.value = new Date()
+  }, 60000)
 
-  // Clean up interval when component is unmounted
-  onUnmounted(() => {
-    clearInterval(interval);
-  });
+  // Store interval reference for cleanup
+  window.dateUpdateInterval = interval
 })
 
-// Watch for changes to the lease data
-watch(() => tenantStore.lease, updatePaymentInfo, { immediate: true, deep: true });
+// Clean up interval when component is unmounted
+onUnmounted(() => {
+  if (window.dateUpdateInterval) {
+    clearInterval(window.dateUpdateInterval)
+    window.dateUpdateInterval = null
+  }
+})
 </script>
 
 <template>
@@ -111,7 +64,12 @@ watch(() => tenantStore.lease, updatePaymentInfo, { immediate: true, deep: true 
         <!-- Main Header with Gradient Background -->
         <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-md overflow-hidden">
           <div class="px-6 py-8 sm:px-8">
-            <LeaseHeader :lease="tenantStore.lease" />
+            <LeaseHeader
+                v-if="tenantStore.lease && !paymentStore.loading"
+                :lease="tenantStore.lease"
+                :nextPaymentDate="paymentStore.nextPaymentDate"
+                :daysUntilNextPayment="paymentStore.daysUntilNextPayment"
+            />
 
             <!-- Quick Stats Cards -->
             <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -140,8 +98,8 @@ watch(() => tenantStore.lease, updatePaymentInfo, { immediate: true, deep: true 
                   </div>
                   <div>
                     <p class="text-sm text-white/80">Next Payment</p>
-                    <p class="text-2xl font-bold mt-1">{{ daysUntilNextPayment }} days</p>
-                    <p class="text-xs mt-1 text-white/70">{{ nextPaymentDate ? nextPaymentDate.toLocaleDateString() : 'Calculating...' }}</p>
+                    <p class="text-2xl font-bold mt-1">{{ paymentStore.daysUntilNextPayment }} days</p>
+                    <p class="text-xs mt-1 text-white/70">{{ paymentStore.nextPaymentDate ? paymentStore.nextPaymentDate.toLocaleDateString() : 'Calculating...' }}</p>
                   </div>
                 </div>
               </div>

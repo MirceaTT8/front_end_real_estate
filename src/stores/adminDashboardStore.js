@@ -4,12 +4,13 @@ import {
     fetchPendingLeaseTerminations,
     fetchPendingLeases,
     approveLeaseTermination,
-    // rejectLeaseTermination,
     approveLease,
     rejectLease,
     fetchLeaseTrends
 } from '@/services/leaseService'
-import { fetchPendingProperties, validateProperty } from '@/services/propertyService'
+import { fetchAllPropertiesAdmin, fetchPendingProperties, validateProperty } from '@/services/propertyService'
+import { fetchAllUsers } from '@/services/userService.js'
+import { fetchAllMaintenanceRequests } from '@/services/maintenanceService.js'
 import {BASE_URL} from "@/configs/config.js";
 
 export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
@@ -25,6 +26,15 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
     const recentActivities = ref([])
     const landlordRatings = ref([])
     const kpiMetrics = ref({})
+    const statsData = ref({
+        totalUsers: 0,
+        userGrowth: 0,
+        totalProperties: 0,
+        propertyGrowth: 0,
+        maintenanceRequests: 0,
+        urgentRequests: 0
+    })
+    const statsLoading = ref(false)
 
     // Computed stats that include pending counts
     const stats = computed(() => ({
@@ -218,6 +228,32 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         }
     }
 
+    const fetchStatsData = async () => {
+        statsLoading.value = true
+        try {
+            // Fetch all counts in parallel using your existing functions
+            const [usersCount, propertiesCount, maintenanceCount] = await Promise.all([
+                fetchUsersCount(),
+                fetchPropertiesCount(),
+                fetchMaintenanceRequestsCount()
+            ])
+
+            // Update statsData with the actual counts
+            statsData.value = {
+                totalUsers: usersCount,
+                userGrowth: 0, // You can calculate this if you have historical data
+                totalProperties: propertiesCount,
+                propertyGrowth: 0, // You can calculate this if you have historical data
+                maintenanceRequests: maintenanceCount,
+                urgentRequests: 0 // You'll need to implement urgent count logic
+            }
+        } catch (error) {
+            console.error('Failed to fetch stats data:', error)
+        } finally {
+            statsLoading.value = false
+        }
+    }
+
     const leaseChartOptions = ref({
         responsive: true,
         maintainAspectRatio: false,
@@ -302,6 +338,7 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
                 fetchProperties(),
                 fetchLeaseChartData('monthly'), // Default to monthly
                 fetchMockAnalytics(),
+                fetchStatsData(),
                 fetchMockRatings(),
                 fetchMockActivity()
             ])
@@ -314,6 +351,21 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
 
     const fetchLeaseTerminations = async () => {
         pendingLeaseTerminations.value = await fetchPendingLeaseTerminations()
+    }
+
+    const fetchUsersCount = async () => {
+        const usersCount = await fetchAllUsers();
+        return usersCount.length;
+    }
+
+    const fetchPropertiesCount = async () => {
+        const propertiesCount = await fetchAllPropertiesAdmin()
+        return propertiesCount.length
+    }
+
+    const fetchMaintenanceRequestsCount = async () => {
+        const maintenanceRequests = await fetchAllMaintenanceRequests()
+        return maintenanceRequests.length
     }
 
     const fetchLeaseApprovals = async () => {
@@ -432,6 +484,9 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
     return {
         showTerminateModal,
         showPendingLeasesModal,
+        statsData,
+        fetchStatsData,
+        statsLoading,
         showPendingPropertiesModal,
         pendingLeaseTerminations,
         pendingLeaseApprovals,

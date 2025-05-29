@@ -99,6 +99,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import {formatDate} from "@/utils/dateUtils.js";
 
 const props = defineProps({
   log: {
@@ -108,11 +109,6 @@ const props = defineProps({
 });
 
 const showFullDetails = ref(false);
-
-const formatDate = (timestamp) => {
-  const date = new Date(timestamp);
-  return date.toLocaleDateString();
-};
 
 const formatTime = (timestamp) => {
   const date = new Date(timestamp);

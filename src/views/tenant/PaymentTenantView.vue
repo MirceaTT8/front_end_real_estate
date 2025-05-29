@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { usePaymentTenantStore } from "@/stores/paymentTenantStore.js";
 import { loadStripe } from "@stripe/stripe-js";
+import {formatDate} from "@/utils/dateUtils.js";
 const stripePromise = loadStripe('pk_test_51MMELpFqC40RfDoFO6Jg3gMWPzmE16VwhlDkBdaa5DlTHn7s7jtjok0zsiLT3x4v2h8TB6nTEgtg9552gtGCGsYn00Qg9p6wT4')
 import PaymentHistory from "@/components/tenant/payment/PaymentHistory.vue";
 
@@ -12,14 +13,6 @@ const paymentForm = ref({
   amount: 0,
   paymentMethod: 'CREDIT_CARD'
 })
-
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {

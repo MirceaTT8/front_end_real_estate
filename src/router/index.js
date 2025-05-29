@@ -27,6 +27,7 @@ const AdminPropertyManagementView = () => import('@/views/admin/AdminPropertyVie
 const AdminLeaseView = () => import('@/views/admin/AdminLeaseView.vue')
 const LandlordRatingsView = () => import ('@/views/admin/LandlordRatingsView.vue')
 import LogsView from "@/views/admin/LogsView.vue"
+import TenantRatingsView from "@/views/admin/TenantRatingsView.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -69,7 +70,8 @@ const router = createRouter({
         { path: '/admin/maintenance', name: 'AdminMaintenance', component: AdminMaintenanceView },
         { path: '/admin/properties', name: 'AdminPropertyManagement', component: AdminPropertyManagementView },
         { path: '/admin/leases', name: 'AdminLease', component: AdminLeaseView },
-        { path: '/admin/ratings', name: 'LandlordRatings', component: LandlordRatingsView }
+        { path: '/admin/ratings', name: 'LandlordRatings', component: LandlordRatingsView },
+        { path: '/admin/tenant-ratings', name: 'TenantRatings', component: TenantRatingsView },
 
 
     ]
