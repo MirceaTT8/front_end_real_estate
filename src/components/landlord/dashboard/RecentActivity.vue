@@ -8,12 +8,8 @@ const props = defineProps({
 
 const emit = defineEmits(['view-all'])
 
-// Get appropriate icon based on activity type
 const getActivityIcon = (activity) => {
-  // Use emoji from the activity data if available
-  if (activity.icon) return activity.icon;
 
-  // Otherwise determine icon based on description
   const description = activity.description.toLowerCase();
 
   if (description.includes('payment') || description.includes('paid')) {
@@ -29,15 +25,12 @@ const getActivityIcon = (activity) => {
   }
 }
 
-// Format relative time (e.g., "2 hours ago")
 const formatRelativeTime = (timeString) => {
-  // In a real app, implement actual relative time formatting
   return timeString;
 }
 
-// Get avatar initial from name if present in description
 const getInitial = (description) => {
-  const nameMatch = description.match(/\b([A-Z][a-z]+)\b/); // Match capitalized words
+  const nameMatch = description.match(/\b([A-Z][a-z]+)\b/);
   return nameMatch ? nameMatch[1].charAt(0) : '?';
 }
 </script>

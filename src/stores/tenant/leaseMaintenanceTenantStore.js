@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { fetchMaintenanceRequestsByLease, addMaintenanceRequest, markMaintenanceAsNotFixed } from '@/services/maintenanceService'
-import { useTenantLeaseStore} from "@/stores/leaseTenantStore.js";
+import { fetchMaintenanceRequestsByLease, addMaintenanceRequest, markMaintenanceAsNotFixed } from '@/services/maintenanceService.js'
+import { useTenantLeaseStore} from "@/stores/tenant/leaseTenantStore.js";
 
 export const useMaintenanceTenantStore = defineStore('maintenanceTenantStore', () => {
     const requests = ref([])
@@ -55,7 +55,6 @@ export const useMaintenanceTenantStore = defineStore('maintenanceTenantStore', (
         try {
             const updatedRequest = await markMaintenanceAsNotFixed(requestId);
 
-            // Update the request in the local state
             const index = requests.value.findIndex(req => req.requestId === requestId);
             if (index !== -1) {
                 requests.value[index] = updatedRequest;

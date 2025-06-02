@@ -17,7 +17,6 @@ const filteredRequests = computed(() => {
   return props.requests.filter(req => req.status === props.selectedStatus);
 });
 
-// Status mapping for display and styling
 const statusMap = {
   'PENDING': { label: 'pending', icon: '⏳' },
   'IN_PROGRESS': { label: 'in progress', icon: '🔧' },
@@ -26,7 +25,6 @@ const statusMap = {
   'all': { label: '', icon: '📋' }
 };
 
-// Get the appropriate status label and icon
 const getStatusInfo = (status) => {
   return statusMap[status] || { label: status.toLowerCase().replace('_', ' '), icon: '🔧' };
 };

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { fetchAllLogs } from '@/services/logsService'
+import { fetchAllLogs } from '@/services/logsService.js'
 import { usePagination } from "@/composables/usePagination.js";
 
 export const useLogStore = defineStore('logStore', () => {
@@ -30,7 +30,6 @@ export const useLogStore = defineStore('logStore', () => {
         }
     }
 
-    // Computed properties for stats
     const totalLogs = computed(() => logs.value.length)
 
     const errorCount = computed(() => {
@@ -80,7 +79,6 @@ export const useLogStore = defineStore('logStore', () => {
             if (log.userId) users.add(log.userId)
         })
         return Array.from(users).sort((a, b) => {
-            // Handle both string and number user IDs
             const aNum = parseInt(a)
             const bNum = parseInt(b)
             if (!isNaN(aNum) && !isNaN(bNum)) {
@@ -92,17 +90,14 @@ export const useLogStore = defineStore('logStore', () => {
 
     const filteredLogs = computed(() => {
         return logs.value.filter(log => {
-            // Action type filter
             if (filters.value.actionType && log.actionType !== filters.value.actionType) {
                 return false
             }
 
-            // Entity type filter
             if (filters.value.entityType && log.entityType !== filters.value.entityType) {
                 return false
             }
 
-            // User ID filter
             if (filters.value.userId) {
                 const filterUserId = filters.value.userId.toString()
                 const logUserId = log.userId?.toString()
@@ -111,7 +106,6 @@ export const useLogStore = defineStore('logStore', () => {
                 }
             }
 
-            // Date range filter
             if (filters.value.dateRange !== 'all') {
                 const logDate = new Date(log.createdAt)
                 const now = new Date()
@@ -143,13 +137,11 @@ export const useLogStore = defineStore('logStore', () => {
             let fieldA = a[sortField.value]
             let fieldB = b[sortField.value]
 
-            // Handle date sorting
             if (sortField.value === 'createdAt') {
                 fieldA = new Date(fieldA)
                 fieldB = new Date(fieldB)
             }
 
-            // Handle null/undefined values
             if (fieldA == null && fieldB == null) return 0
             if (fieldA == null) return sortDirection.value === 'asc' ? -1 : 1
             if (fieldB == null) return sortDirection.value === 'asc' ? 1 : -1
@@ -163,7 +155,6 @@ export const useLogStore = defineStore('logStore', () => {
     const { currentPage, totalPages, paginatedItems: paginatedLogs, resetPagination } =
         usePagination(sortedFilteredLogs, 20)
 
-    // Computed property for pagination logic
     const middlePages = computed(() => {
         const current = currentPage.value
         const total = totalPages.value
@@ -223,7 +214,6 @@ export const useLogStore = defineStore('logStore', () => {
     }
 
     return {
-        // State
         logs,
         loading,
         error,
@@ -232,24 +222,20 @@ export const useLogStore = defineStore('logStore', () => {
         sortField,
         sortDirection,
 
-        // Computed stats
         totalLogs,
         errorCount,
         warningCount,
         infoCount,
 
-        // Computed filter options
         uniqueActionTypes,
         uniqueEntityTypes,
         uniqueUserIds,
 
-        // Computed data
         filteredLogs,
         paginatedLogs,
         totalPages,
         middlePages,
 
-        // Actions
         fetchLogs,
         sortBy,
         applyFilters,

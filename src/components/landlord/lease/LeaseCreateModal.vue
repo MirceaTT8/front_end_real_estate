@@ -1,4 +1,3 @@
-<!-- LeaseCreateModal Component -->
 <script setup>
 import {onMounted, ref} from 'vue'
 import { createInvitation } from '@/services/leaseService.js'

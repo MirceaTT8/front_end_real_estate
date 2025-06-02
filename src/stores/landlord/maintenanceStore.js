@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { fetchMaintenanceRequestsByLoggedInOwner, setStatus } from '@/services/maintenanceService'
-import { fetchMyLeases } from '@/services/leaseService'
-import { fetchUserById } from '@/services/userService'
-import { fetchPropertyById } from '@/services/propertyService'
+import { fetchMaintenanceRequestsByLoggedInOwner, setStatus } from '@/services/maintenanceService.js'
+import { fetchMyLeases } from '@/services/leaseService.js'
+import { fetchUserById } from '@/services/userService.js'
+import { fetchPropertyById } from '@/services/propertyService.js'
 
 export const useMaintenanceLandlordStore = defineStore('maintenanceLandlordStore', () => {
     const requests = ref([])

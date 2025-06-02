@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, computed, onUnmounted } from 'vue'
-import { useTenantLeaseStore } from "@/stores/leaseTenantStore.js"
-import { usePaymentTenantStore } from "@/stores/paymentTenantStore.js"
+import { useTenantLeaseStore } from "@/stores/tenant/leaseTenantStore.js"
+import { usePaymentTenantStore } from "@/stores/tenant/paymentTenantStore.js"
 
 import LeaseHeader from '@/components/tenant/lease/LeaseHeader.vue'
 import LeasePropertyDetails from '@/components/tenant/lease/LeasePropertyDetails.vue'

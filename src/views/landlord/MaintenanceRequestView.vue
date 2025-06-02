@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useMaintenanceLandlordStore } from "@/stores/maintenanceStore.js";
+import { useMaintenanceLandlordStore } from "@/stores/landlord/maintenanceStore.js";
 import MaintenanceStatusFilter from '@/components/landlord/maintenance/MaintenanceStatusFilter.vue'
 import MaintenanceListLandlord from '@/components/landlord/maintenance/MaintenanceListLandlord.vue'
 

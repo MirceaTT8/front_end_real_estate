@@ -1,17 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { fetchAllLandlordScores } from '../services/landlordScoreService.js'
+import { fetchAllLandlordScores } from '../../services/landlordScoreService.js'
 
 export const useLandlordRatingsStore = defineStore('landlordRatingsStore', () => {
     const landlordRatings = ref([])
     const loading = ref(false)
     const error = ref(null)
 
-    /**
-     * Transform API data to match the expected format
-     * @param {Array} apiData - Raw data from API
-     * @returns {Array} Transformed data
-     */
     const transformApiData = (apiData) => {
         return apiData.map(item => ({
             id: item.landlordId,
@@ -30,9 +25,6 @@ export const useLandlordRatingsStore = defineStore('landlordRatingsStore', () =>
         }))
     }
 
-    /**
-     * Fetch landlord ratings from API
-     */
     const fetchRatings = async () => {
         loading.value = true
         error.value = null
@@ -113,7 +105,6 @@ export const useLandlordRatingsStore = defineStore('landlordRatingsStore', () =>
         return landlordRatings.value.reduce((acc, landlord) => acc + (landlord.totalProperties || 0), 0)
     })
 
-    // Landlords by rating category
     const excellentLandlords = computed(() => {
         if (!landlordRatings.value) return []
         return landlordRatings.value.filter(landlord => (landlord.overallScore || 0) >= 4.5)
@@ -140,7 +131,6 @@ export const useLandlordRatingsStore = defineStore('landlordRatingsStore', () =>
         return landlordRatings.value.filter(landlord => (landlord.overallScore || 0) < 2.5)
     })
 
-    // Sorted landlords (for table display)
     const getSortedLandlords = (sortBy = 'overallScore', direction = 'desc') => {
         if (!landlordRatings.value) return []
 
@@ -157,18 +147,15 @@ export const useLandlordRatingsStore = defineStore('landlordRatingsStore', () =>
     }
 
     return {
-        // State
         landlordRatings,
         loading,
         error,
 
-        // Actions
         fetchRatings,
         refreshRatings,
         getSortedLandlords,
         getLandlordById,
 
-        // Computed statistics
         averageOverallScore,
         topRatedLandlord,
         totalLandlords,
@@ -180,7 +167,6 @@ export const useLandlordRatingsStore = defineStore('landlordRatingsStore', () =>
         totalActiveLeases,
         totalProperties,
 
-        // Rating categories
         excellentLandlords,
         goodLandlords,
         averageLandlords,

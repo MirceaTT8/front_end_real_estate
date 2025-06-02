@@ -1,8 +1,8 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useLandlordPropertyStore } from '@/stores/propertyStore.js'
-import { useLeaseStore } from "@/stores/leaseStore.js"
+import { useLandlordPropertyStore } from '@/stores/landlord/propertyStore.js'
+import { useLeaseStore } from "@/stores/landlord/leaseStore.js"
 import { getTenantNameByLeaseId } from '@/utils/leaseNameUtils.js'
 
 const route = useRoute()
@@ -12,16 +12,13 @@ const currentImageIndex = ref(0)
 const isImageModalOpen = ref(false)
 const imageLoadError = ref(false)
 
-// Force high-quality image URL with cache busting and quality parameters
 const getHighQualityImageUrl = (imageId, forceRefresh = false) => {
   const baseUrl = `http://localhost:8080/image/${imageId}`
   const params = new URLSearchParams()
 
-  // Add quality hints (backend might respect these)
   params.append('quality', '100')
   params.append('format', 'original')
 
-  // Cache busting for force refresh
   if (forceRefresh) {
     params.append('t', Date.now().toString())
   }
@@ -29,9 +26,7 @@ const getHighQualityImageUrl = (imageId, forceRefresh = false) => {
   return `${baseUrl}?${params.toString()}`
 }
 
-// Alternative: Try different API endpoints that might exist
 const getAlternativeImageUrl = (imageId) => {
-  // Try different possible endpoints
   const alternatives = [
     `http://localhost:8080/api/images/${imageId}`,
     `http://localhost:8080/images/${imageId}/original`,

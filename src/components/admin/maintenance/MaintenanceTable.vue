@@ -21,7 +21,6 @@ const columns = [
   { label: 'Created', key: 'createdAt' }
 ]
 
-// Status styling functions
 const statusColor = (status) => {
   switch (status?.toLowerCase()) {
     case 'pending':
@@ -56,7 +55,6 @@ const statusDotColor = (status) => {
   }
 }
 
-// Is Fixed styling functions
 const isFixedColor = (isFixed) => {
   if (isFixed === null || isFixed === undefined) {
     return 'bg-gray-100 text-gray-600'

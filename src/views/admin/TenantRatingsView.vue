@@ -1,12 +1,11 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue'
-import { useTenantRatingsStore } from '@/stores/adminTenantRatingsStore.js'
+import { useTenantRatingsStore } from '@/stores/admin/adminTenantRatingsStore.js'
 
 const store = useTenantRatingsStore()
 const sortBy = ref('overallScore')
 const sortDirection = ref('desc')
 
-// Sorting functionality
 const toggleSort = (column) => {
   if (sortBy.value === column) {
     sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
@@ -16,12 +15,10 @@ const toggleSort = (column) => {
   }
 }
 
-// Get sorted tenants using store method
 const sortedTenants = computed(() => {
   return store.getSortedTenants(sortBy.value, sortDirection.value)
 })
 
-// Score color function based on rating value
 const getScoreColor = (score) => {
   if (score >= 4.5) return 'text-green-600'
   if (score >= 3.5) return 'text-blue-600'
@@ -29,14 +26,12 @@ const getScoreColor = (score) => {
   return 'text-red-600'
 }
 
-// Payment history color function
 const getPaymentHistoryColor = (history) => {
   if (history === 'Excellent' || history === 'Good') return 'text-green-600'
   if (history === 'Fair') return 'text-yellow-600'
   return 'text-red-600'
 }
 
-// Format date helper
 const formatDate = (dateString) => {
   if (!dateString) return 'N/A'
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -46,7 +41,6 @@ const formatDate = (dateString) => {
   })
 }
 
-// Refresh data
 const handleRefresh = async () => {
   await store.refreshRatings()
 }

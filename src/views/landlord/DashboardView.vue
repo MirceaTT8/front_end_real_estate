@@ -1,6 +1,6 @@
 <script setup>
 import {onMounted, onUnmounted, ref} from 'vue'
-import { useLandlordDashboardStore } from "@/stores/dashboardStore.js";
+import { useLandlordDashboardStore } from "@/stores/landlord/dashboardStore.js";
 import MonthlySummary from '@/components/landlord/dashboard/MonthlySummary.vue'
 import RecentActivity from '@/components/landlord/dashboard/RecentActivity.vue'
 import UpcomingDeadlines from '@/components/landlord/dashboard/UpcomingDeadlines.vue'
@@ -11,7 +11,6 @@ import CalendarModal from '@/components/landlord/dashboard/CalendarModal.vue'
 const store = useLandlordDashboardStore()
 const currentTime = ref(new Date())
 
-// Format date for display
 const formatDate = (date) => {
   return date.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -24,12 +23,10 @@ const formatDate = (date) => {
 onMounted(() => {
   store.initDashboard()
 
-  // Update time every minute
   const timeInterval = setInterval(() => {
     currentTime.value = new Date()
   }, 60000)
 
-  // Clear interval on component unmount
   onUnmounted(() => {
     clearInterval(timeInterval)
   })

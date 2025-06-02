@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue'
-import { usePaymentAdminStore } from '@/stores/adminPaymentStore.js'
+import { usePaymentAdminStore } from '@/stores/admin/adminPaymentStore.js'
 import { formatPaymentMethod } from '@/utils/paymentUtils.js'
 
 const store = usePaymentAdminStore()

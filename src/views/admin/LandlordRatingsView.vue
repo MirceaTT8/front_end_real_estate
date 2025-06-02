@@ -1,12 +1,11 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue'
-import { useLandlordRatingsStore } from '@/stores/adminLandlordRatingsStore.js'
+import { useLandlordRatingsStore } from '@/stores/admin/adminLandlordRatingsStore.js'
 
 const store = useLandlordRatingsStore()
 const sortBy = ref('overallScore')
 const sortDirection = ref('desc')
 
-// Sorting functionality
 const toggleSort = (column) => {
   if (sortBy.value === column) {
     sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
@@ -16,12 +15,10 @@ const toggleSort = (column) => {
   }
 }
 
-// Get sorted landlords using store method
 const sortedLandlords = computed(() => {
   return store.getSortedLandlords(sortBy.value, sortDirection.value)
 })
 
-// Score color function based on rating value
 const getScoreColor = (score) => {
   if (score >= 4.5) return 'text-green-600'
   if (score >= 3.5) return 'text-blue-600'
@@ -29,7 +26,6 @@ const getScoreColor = (score) => {
   return 'text-red-600'
 }
 
-// Format date helper
 const formatDate = (dateString) => {
   if (!dateString) return 'N/A'
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -39,7 +35,6 @@ const formatDate = (dateString) => {
   })
 }
 
-// Refresh data
 const handleRefresh = async () => {
   await store.refreshRatings()
 }

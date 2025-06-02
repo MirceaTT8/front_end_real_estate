@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { formatActivityLogs } from '@/utils/formatActivityLog'
-import { fetchRecentLogs } from '@/services/logsService'
-import { fetchMyProperties } from '@/services/propertyService'
-import { usePaymentLandlordStore } from './paymentStore'
-import { useMaintenanceLandlordStore } from './maintenanceStore'
-import { useLeaseStore } from './leaseStore'
+import { formatActivityLogs } from '@/utils/formatActivityLog.js'
+import { fetchRecentLogs } from '@/services/logsService.js'
+import { fetchMyProperties } from '@/services/propertyService.js'
+import { usePaymentLandlordStore } from './paymentStore.js'
+import { useMaintenanceLandlordStore } from './maintenanceStore.js'
+import { useLeaseStore } from './leaseStore.js'
 
 export const useLandlordDashboardStore = defineStore('landlordDashboardStore', () => {
     const showActivityModal = ref(false)
@@ -18,11 +18,10 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
     const rentPaymentsLastMonth = ref(0)
     const maintenanceCostThisMonth = ref(0)
 
-    const activeRange = ref('1M') // Start with smallest range by default
+    const activeRange = ref('1M')
     const chartData = ref()
     const chartOptions = ref()
 
-    // Dynamic range options based on available data
     const rangeOptions = ref([
         { label: '1M', value: '1M', enabled: false },
         { label: '3M', value: '3M', enabled: false },
@@ -52,31 +51,26 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
         }
     })
 
-    // Helper function to get months with actual data
     const getMonthsWithData = (payments, maintenance) => {
         const monthsSet = new Set()
 
-        // Add months from payments
         payments.forEach(payment => {
             if (payment.paymentDate) {
-                const month = payment.paymentDate.slice(0, 7) // YYYY-MM format
+                const month = payment.paymentDate.slice(0, 7)
                 monthsSet.add(month)
             }
         })
 
-        // Add months from maintenance (when completed)
         maintenance.forEach(request => {
             if (request.status === 'COMPLETED' && request.updatedAt) {
-                const month = request.updatedAt.slice(0, 7) // YYYY-MM format
+                const month = request.updatedAt.slice(0, 7)
                 monthsSet.add(month)
             }
         })
 
-        // Convert to sorted array
         return Array.from(monthsSet).sort()
     }
 
-    // Helper function to generate consecutive months from first data point to now
     const generateConsecutiveMonths = (firstDataMonth) => {
         const months = []
         const start = new Date(firstDataMonth + '-01')
@@ -95,22 +89,18 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
         const monthsWithData = getMonthsWithData(payments, maintenance)
 
         if (monthsWithData.length === 0) {
-            // No data available, disable all ranges
             rangeOptions.value.forEach(r => r.enabled = false)
             return
         }
 
-        // Generate consecutive months from first data point to now
         const consecutiveMonths = generateConsecutiveMonths(monthsWithData[0])
         const totalMonths = consecutiveMonths.length
 
-        // Update range availability based on actual data span
         rangeOptions.value.forEach(range => {
             const limit = { '1M': 1, '3M': 3, '6M': 6, '1Y': 12, '5Y': 60 }[range.value]
             range.enabled = totalMonths >= limit
         })
 
-        // Set default active range to the smallest available range
         const enabledRanges = rangeOptions.value.filter(r => r.enabled)
         if (enabledRanges.length > 0 && !rangeOptions.value.find(r => r.value === activeRange.value)?.enabled) {
             activeRange.value = enabledRanges[0].value
@@ -149,16 +139,13 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
         let maintenanceTotals = {}
 
         if (monthsWithData.length > 0) {
-            // Generate consecutive months from first data point to now
             months = generateConsecutiveMonths(monthsWithData[0])
 
-            // Initialize totals for all months
             months.forEach(month => {
                 rentTotals[month] = 0
                 maintenanceTotals[month] = 0
             })
 
-            // Populate actual data
             payments.forEach(p => {
                 const month = p.paymentDate?.slice(0, 7)
                 if (rentTotals[month] !== undefined) {
@@ -198,10 +185,8 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
             }
         }
 
-        // Update range availability based on actual data
         updateRangeAvailability(payments, maintenance)
 
-        // Calculate metrics (rest of your existing code)
         const total = properties.length
         const vacant = properties.filter(p => p.status === 'AVAILABLE').length
         const occupied = total - vacant
@@ -217,7 +202,6 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
             .filter(r => isInLast30Days(r.updatedAt) && r.status === 'COMPLETED')
             .reduce((sum, r) => sum + (r.cost || 0), 0)
 
-        // Events calculation (rest of your existing code)
         const events = []
 
         payments.forEach(p => {

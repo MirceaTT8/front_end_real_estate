@@ -32,7 +32,6 @@ const login = async () => {
     const token = response.data.token;
     authStore.login(token, rememberMe.value);
 
-    // Use authStore's role to navigate accordingly
     switch (authStore.userRole) {
       case 'ROLE_LANDLORD':
         router.push('/landlord');

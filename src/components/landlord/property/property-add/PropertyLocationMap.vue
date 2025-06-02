@@ -10,14 +10,12 @@ const props = defineProps({
 
 const emit = defineEmits(['update:longitude', 'update:latitude', 'map-click', 'marker-dragged'])
 
-// Computed property for initial markers
 const initialMarkers = computed(() => {
   return props.longitude && props.latitude
       ? [{ lat: props.latitude, lng: props.longitude }]
       : []
 })
 
-// Computed property for coordinates display
 const coordinatesText = computed(() => {
   if (props.longitude && props.latitude) {
     return `${props.latitude.toFixed(6)}, ${props.longitude.toFixed(6)}`

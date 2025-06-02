@@ -1,5 +1,5 @@
 <script setup>
-import { useAdminDashboardStore } from '@/stores/adminDashboardStore.js'
+import { useAdminDashboardStore } from '@/stores/admin/adminDashboardStore.js'
 import { ref, onMounted } from 'vue'
 import Chart from 'primevue/chart'
 import LeaseTerminationModal from '@/components/admin/dashboard/LeaseTerminationModal.vue'
@@ -8,7 +8,6 @@ import PendingPropertiesModal from '@/components/admin/dashboard/PendingProperti
 import StatsCards from '@/components/admin/dashboard/StatsCards.vue'
 
 const store = useAdminDashboardStore()
-// Chart period state
 const chartPeriod = ref('monthly')
 
 const showSuccessMessage = ref(false)
@@ -56,12 +55,10 @@ const handleApproveProperty = async (propertyId) => {
   }
 }
 
-// Handle property rejection
 const handleRejectProperty = async (propertyId) => {
   const result = await store.rejectProperty(propertyId)
 
   if (result.success) {
-    // Refresh property store to update stats
     await propertyStore.loadProperties()
 
     successMessage.value = result.message

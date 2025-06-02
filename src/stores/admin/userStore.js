@@ -10,7 +10,7 @@ import {
     updateUserRole,
     activateUser,
     deactivateUser
-} from '@/services/userService'
+} from '@/services/userService.js'
 
 export const useUserStore = defineStore('userStore', () => {
     const users = ref([])

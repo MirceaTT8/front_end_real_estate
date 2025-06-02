@@ -1,4 +1,3 @@
-// composables/usePagination.js
 import { ref, computed } from 'vue'
 
 export function usePagination(itemsRef, pageSize = 10) {

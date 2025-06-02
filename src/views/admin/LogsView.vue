@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useLogStore } from '@/stores/logStore'
+import { useLogStore } from '@/stores/admin/logStore.js'
 import LogFilters from '@/components/admin/log/LogFilters.vue'
 import LogTable from '@/components/admin/log/LogTable.vue'
 
@@ -15,10 +15,6 @@ onMounted(async () => {
   }
 })
 
-const exportLogs = () => {
-  // This would be implemented based on your application's requirements
-  alert('Exporting logs...')
-}
 </script>
 
 <template>

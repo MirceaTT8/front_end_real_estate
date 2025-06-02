@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useMaintenanceAdminStore } from '@/stores/adminMaintenanceStore.js'
+import { useMaintenanceAdminStore } from '@/stores/admin/adminMaintenanceStore.js'
 import MaintenanceFilters from '@/components/admin/maintenance/MaintenanceFilters.vue'
 import MaintenanceTable from '@/components/admin/maintenance/MaintenanceTable.vue'
 import MaintenanceImageModal from '@/components/admin/maintenance/MaintenanceImageModal.vue'
@@ -11,7 +11,6 @@ const store = useMaintenanceAdminStore()
 const showModal = ref(false)
 const modalImageIds = ref([])
 
-// Analytics for dashboard cards
 const totalRequests = computed(() => store.filteredRequests.length)
 const pendingRequests = computed(() => store.filteredRequests.filter(req => req.status === 'PENDING').length)
 const urgentRequests = computed(() => store.filteredRequests.filter(req => req.priority === 'HIGH').length)

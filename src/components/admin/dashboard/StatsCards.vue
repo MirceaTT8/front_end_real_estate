@@ -1,3 +1,37 @@
+<script setup>
+import { computed } from 'vue'
+
+const props = defineProps({
+  statsData: {
+    type: Object,
+    default: () => ({
+      totalUsers: 0,
+      userGrowth: 0,
+      totalProperties: 0,
+      propertyGrowth: 0,
+      maintenanceRequests: 0,
+      urgentRequests: 0
+    })
+  },
+  loading: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const stats = computed(() => props.statsData)
+
+const getUrgencyColor = (urgentCount) => {
+  if (!urgentCount || urgentCount === 0) {
+    return 'bg-gray-100 text-gray-600'
+  } else if (urgentCount <= 5) {
+    return 'bg-yellow-100 text-yellow-700'
+  } else {
+    return 'bg-red-100 text-red-700'
+  }
+}
+</script>
+
 <template>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     <!-- Total Users Card -->
@@ -94,39 +128,3 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue'
-
-// Props - change 'stats' to 'statsData'
-const props = defineProps({
-  statsData: {  // Changed from 'stats' to 'statsData'
-    type: Object,
-    default: () => ({
-      totalUsers: 0,
-      userGrowth: 0,
-      totalProperties: 0,
-      propertyGrowth: 0,
-      maintenanceRequests: 0,
-      urgentRequests: 0
-    })
-  },
-  loading: {
-    type: Boolean,
-    default: false
-  }
-})
-
-// Create a computed property for easier access
-const stats = computed(() => props.statsData)
-
-// Methods stay the same
-const getUrgencyColor = (urgentCount) => {
-  if (!urgentCount || urgentCount === 0) {
-    return 'bg-gray-100 text-gray-600'
-  } else if (urgentCount <= 5) {
-    return 'bg-yellow-100 text-yellow-700'
-  } else {
-    return 'bg-red-100 text-red-700'
-  }
-}
-</script>

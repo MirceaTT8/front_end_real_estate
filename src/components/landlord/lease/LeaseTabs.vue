@@ -40,7 +40,6 @@ const tabColors = {
   }
 };
 
-// Fallback icon for any tab type not defined above
 const defaultIcon = 'M19 9l-7 7-7-7';
 
 const getTabIcon = (tabValue) => {

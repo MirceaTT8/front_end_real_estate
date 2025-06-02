@@ -4,7 +4,7 @@ import {
   getPropertyNameByLeaseId,
   getTenantNameByLeaseId
 } from '@/utils/leaseNameUtils.js'
-import { isPaymentMadeThisCycle } from '@/services/paymentService.js' // Adjust path as needed
+import { isPaymentMadeThisCycle } from '@/services/paymentService.js'
 
 const props = defineProps({
   leases: Array,

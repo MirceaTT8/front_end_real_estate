@@ -12,7 +12,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:selectedStatus']);
 
-// Map status values to display names and colors
 const statusMap = {
   PENDING: {
     label: 'Pending',

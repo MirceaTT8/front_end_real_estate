@@ -53,7 +53,6 @@ const addMarkers = () => {
   let hasValidMarkers = false
 
   props.properties.forEach(property => {
-    // Validate coordinates
     const lat = parseFloat(property.latitude)
     const lng = parseFloat(property.longitude)
 
@@ -68,7 +67,6 @@ const addMarkers = () => {
 
     const position = { lat, lng }
 
-    // Create marker
     const marker = new google.maps.Marker({
       position,
       map: map.value,
@@ -96,7 +94,6 @@ const addMarkers = () => {
   if (hasValidMarkers) {
     try {
       map.value.fitBounds(bounds)
-      // Add a small timeout to prevent uint32 error
       setTimeout(() => {
         if (markers.value.length === 1) {
           map.value.setZoom(14)

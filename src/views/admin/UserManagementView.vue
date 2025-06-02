@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useUserStore } from '@/stores/userStore'
+import { useUserStore } from '@/stores/admin/userStore.js'
 
 const userStore = useUserStore()
 
@@ -99,10 +99,8 @@ const bulkToggleStatus = async (activate) => {
   }
 }
 
-// Computed property for filtered users based on both status and search
 const filteredUsers = computed(() => {
   return userStore.filteredUsers.filter(user => {
-    // Filter by status
     if (statusFilter.value === 'ACTIVE' && !user.isActive) return false
     if (statusFilter.value === 'INACTIVE' && user.isActive) return false
     return true

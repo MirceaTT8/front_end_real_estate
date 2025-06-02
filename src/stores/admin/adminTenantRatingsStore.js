@@ -1,17 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { fetchAllTenantScores } from '../services/tenantScoreService.js'
+import { fetchAllTenantScores } from '../../services/tenantScoreService.js'
 
 export const useTenantRatingsStore = defineStore('tenantRatingsStore', () => {
     const tenantRatings = ref([])
     const loading = ref(false)
     const error = ref(null)
 
-    /**
-     * Transform API data to match the expected format
-     * @param {Array} apiData - Raw data from API (TenantStats entities)
-     * @returns {Array} Transformed data
-     */
     const transformApiData = (apiData) => {
         return apiData.map(item => ({
             id: item.tenantId,
@@ -34,9 +29,6 @@ export const useTenantRatingsStore = defineStore('tenantRatingsStore', () => {
         }))
     }
 
-    /**
-     * Fetch tenant ratings from API
-     */
     const fetchRatings = async () => {
         loading.value = true
         error.value = null
@@ -61,7 +53,6 @@ export const useTenantRatingsStore = defineStore('tenantRatingsStore', () => {
         return tenantRatings.value.find(tenant => tenant.tenantId === tenantId) || null
     }
 
-    // Computed statistics
     const averageOverallScore = computed(() => {
         if (!tenantRatings.value || !tenantRatings.value.length) return 0
         const sum = tenantRatings.value.reduce((acc, tenant) => acc + (tenant.overallScore || 0), 0)
@@ -143,7 +134,6 @@ export const useTenantRatingsStore = defineStore('tenantRatingsStore', () => {
         return tenantRatings.value.filter(tenant => (tenant.overallScore || 0) < 2.5)
     })
 
-    // Payment reliability categories
     const reliableTenants = computed(() => {
         if (!tenantRatings.value) return []
         return tenantRatings.value.filter(tenant => (tenant.paymentScore || 0) >= 4.0)
@@ -154,7 +144,6 @@ export const useTenantRatingsStore = defineStore('tenantRatingsStore', () => {
         return tenantRatings.value.filter(tenant => (tenant.paymentScore || 0) < 3.0)
     })
 
-    // Sorted tenants (for table display)
     const getSortedTenants = (sortBy = 'overallScore', direction = 'desc') => {
         if (!tenantRatings.value) return []
 
@@ -171,18 +160,15 @@ export const useTenantRatingsStore = defineStore('tenantRatingsStore', () => {
     }
 
     return {
-        // State
         tenantRatings,
         loading,
         error,
 
-        // Actions
         fetchRatings,
         refreshRatings,
         getSortedTenants,
         getTenantById,
 
-        // Computed statistics
         averageOverallScore,
         averagePaymentScore,
         averageFeedbackScore,
@@ -194,7 +180,6 @@ export const useTenantRatingsStore = defineStore('tenantRatingsStore', () => {
         totalActiveLeases,
         totalCompletedLeases,
 
-        // Rating categories
         excellentTenants,
         goodTenants,
         averageTenants,

@@ -5,9 +5,9 @@ import {
     fetchMyLease,
     fetchActiveTenantLease,
     checkTenantHasLease
-} from '@/services/leaseService'
-import { fetchPropertyById } from '@/services/propertyService'
-import { getPaymentsByLeaseId } from '@/services/paymentService'
+} from '@/services/leaseService.js'
+import { fetchPropertyById } from '@/services/propertyService.js'
+import { getPaymentsByLeaseId } from '@/services/paymentService.js'
 
 export const useTenantLeaseStore = defineStore('tenantLease', () => {
     const lease = ref(null)
@@ -15,12 +15,9 @@ export const useTenantLeaseStore = defineStore('tenantLease', () => {
     const payments = ref([])
     const loading = ref(false)
     const error = ref(null)
-    const hasLease = ref(null) // null = unknown, true = has lease, false = no lease
-
-    // Computed property to check if tenant has any lease record
+    const hasLease = ref(null)
     const tenantHasAnyLease = computed(() => hasLease.value)
 
-    // Computed property to check if tenant has active lease
     const tenantHasActiveLease = computed(() => lease.value !== null)
 
     const loadTenantLeaseData = async () => {
@@ -28,23 +25,19 @@ export const useTenantLeaseStore = defineStore('tenantLease', () => {
         error.value = null
 
         try {
-            // First check if tenant exists in the system with any lease
             const leaseExists = await checkTenantHasLease()
             hasLease.value = leaseExists
 
             if (!leaseExists) {
-                // Tenant has never had a lease
                 lease.value = null
                 property.value = null
                 payments.value = []
                 return
             }
 
-            // Try to get active lease
             const activeLeaseData = await fetchActiveTenantLease()
 
             if (!activeLeaseData) {
-                // Tenant had lease before but no active lease now
                 lease.value = null
                 property.value = null
                 payments.value = []
@@ -53,7 +46,6 @@ export const useTenantLeaseStore = defineStore('tenantLease', () => {
 
             lease.value = activeLeaseData
 
-            // Load related data if lease exists
             if (lease.value?.propertyId) {
                 property.value = await fetchPropertyById(lease.value.propertyId)
             }
@@ -66,7 +58,6 @@ export const useTenantLeaseStore = defineStore('tenantLease', () => {
             console.error('Error loading tenant lease data:', e)
             error.value = e.message || 'Failed to load tenant lease data.'
 
-            // Set defaults on error
             lease.value = null
             property.value = null
             payments.value = []
@@ -76,12 +67,10 @@ export const useTenantLeaseStore = defineStore('tenantLease', () => {
         }
     }
 
-    // Function to retry loading lease data
     const retryLoadLease = async () => {
         await loadTenantLeaseData()
     }
 
-    // Function to clear lease data (for logout, etc.)
     const clearLeaseData = () => {
         lease.value = null
         property.value = null

@@ -34,23 +34,6 @@ export const fetchActiveLeasesByOwnerId = async (userId) => {
     }
 };
 
-export const fetchLeaseId = async (leaseId) => {
-    try {
-        const response = await fetch(`${API}/${leaseId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching maintenance requests:', error);
-        throw error;
-    }
-};
-
 export const fetchMyLease = async () => {
     const token = localStorage.getItem('token');
     const response = await fetch(`${API}/user/me`, {
@@ -82,29 +65,6 @@ export const fetchMyLeases = async () => {
 
     const text = await response.text();
     return text ? JSON.parse(text) : [];
-}
-
-export const createLease = async (leaseData) => {
-    try {
-        console.log(leaseData);
-        const response = await fetch(`${API}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(leaseData)
-        })
-
-        if (!response.ok) {
-            const errorData = await response.json()
-            throw new Error(errorData.message || 'Lease creation failed')
-        }
-
-        return await response.json()
-    } catch (error) {
-        console.error('Error creating lease:', error)
-        throw error
-    }
 }
 
 export const approveLeaseTermination = async (leaseId) => {
@@ -206,24 +166,6 @@ export const requestLeaseTermination = async (leaseId) => {
     return text ? JSON.parse(text) : null;
 };
 
-export const decideLeaseTermination = async (leaseId, decision) => {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${API}/${leaseId}/terminate-decision?decision=${decision}`, {
-        method: 'PATCH',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to process lease termination decision');
-    }
-
-    const text = await response.text();
-    return text ? JSON.parse(text) : null;
-};
-
 export const createInvitation = async (leaseData) => {
     const response = await fetch(`${API}`, {
         method: 'POST',
@@ -256,9 +198,6 @@ export const fetchLeaseTrends = async () => {
     return await response.json();
 };
 
-// Add these functions to your leaseService.js
-
-// Function to get tenant's current active lease
 export const fetchActiveTenantLease = async () => {
     const token = localStorage.getItem('token');
     const response = await fetch(`${API}/tenant/active`, {
@@ -278,7 +217,6 @@ export const fetchActiveTenantLease = async () => {
     return text ? JSON.parse(text) : null;
 };
 
-// Function to check if tenant has any lease (active or inactive)
 export const checkTenantHasLease = async () => {
     const token = localStorage.getItem('token');
     const response = await fetch(`${API}/tenant/exists`, {
@@ -294,27 +232,6 @@ export const checkTenantHasLease = async () => {
     return await response.json(); // Should return boolean
 };
 
-// Function to request a new lease (if needed)
-export const requestTenantLease = async (propertyId, leaseData) => {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${API}/tenant/request`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-            propertyId,
-            ...leaseData
-        })
-    });
-
-    if (!response.ok) {
-        throw new Error(`Failed to request lease: ${response.status}`);
-    }
-
-    return await response.json();
-};
 
 
 

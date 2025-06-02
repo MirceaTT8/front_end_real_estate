@@ -2,9 +2,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import FileUploader from '@/components/landlord/property/PropertyFileUploader.vue'
 
-/**
- * Property types available for selection
- */
 const propertyTypes = [
   { value: 'APARTMENT', label: 'Apartment' },
   { value: 'HOUSE', label: 'House' },
@@ -30,7 +27,6 @@ const props = defineProps({
   }
 })
 
-// Computed properties for two-way binding
 const form = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
@@ -41,14 +37,9 @@ const attachments = computed({
   set: (value) => emit('update:attachments', value)
 })
 
-// Google Maps autocomplete implementation
 const autocompleteInput = ref(null)
 const autocomplete = ref(null)
 
-/**
- * Initializes Google Maps Places Autocomplete
- * @returns {boolean} - Whether initialization was successful
- */
 const initAutocomplete = () => {
   const googleApi = window.google
 
@@ -84,7 +75,6 @@ const initAutocomplete = () => {
   return true
 }
 
-// Component lifecycle hooks
 onMounted(() => {
   if (initAutocomplete()) return
 

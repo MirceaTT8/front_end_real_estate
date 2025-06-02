@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
-import { useLandlordPropertyStore } from '@/stores/propertyStore.js'
+import { useLandlordPropertyStore } from '@/stores/landlord/propertyStore.js'
 
 import PropertyFilters from '@/components/landlord/property/PropertyFilters.vue'
 import PropertyList from '@/components/landlord/property/PropertyList.vue'

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useLeaseStore } from '@/stores/leaseStore.js'
+import { useLeaseStore } from '@/stores/landlord/leaseStore.js'
 import LeaseList from '@/components/landlord/lease/LeaseList.vue';
 import LeaseSummaryCards from '@/components/landlord/lease/LeaseSummaryCards.vue';
 import LeaseTabs from '@/components/landlord/lease/LeaseTabs.vue';
@@ -40,7 +40,6 @@ const handleReviewSubmitted = () => {
   successMessage.value = 'Review submitted successfully!'
   showSuccessMessage.value = true
 
-  // Auto-hide success message after 5 seconds
   setTimeout(() => {
     showSuccessMessage.value = false
   }, 5000)

@@ -8,12 +8,10 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
-// Get appropriate icon based on activity type
 const getActivityIcon = (activity) => {
-  // Use emoji from the activity data if available
+
   if (activity.icon) return activity.icon;
 
-  // Otherwise determine icon based on description
   const description = activity.description.toLowerCase();
 
   if (description.includes('payment') || description.includes('paid')) {
@@ -44,13 +42,11 @@ const parseRelativeTime = (timeString) => {
   } else if (timeString === 'today') {
     return now;
   } else {
-    // Try to parse as regular date, fallback to now
     const parsed = new Date(timeString);
     return isNaN(parsed.getTime()) ? now : parsed;
   }
 }
 
-// Group activities by date and sort by recency
 const groupActivitiesByDate = () => {
   const groups = {};
 

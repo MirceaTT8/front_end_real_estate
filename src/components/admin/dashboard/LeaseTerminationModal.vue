@@ -1,3 +1,17 @@
+<script setup>
+
+import {formatDate} from "@/utils/dateUtils.js";
+
+defineProps({
+  visible: Boolean,
+  leases: Array,
+  loading: Boolean
+})
+
+defineEmits(['update:visible', 'approve', 'reject'])
+
+</script>
+
 <template>
   <Dialog
       :visible="visible"
@@ -129,17 +143,3 @@
     </div>
   </Dialog>
 </template>
-
-<script setup>
-
-import {formatDate} from "@/utils/dateUtils.js";
-
-defineProps({
-  visible: Boolean,
-  leases: Array,
-  loading: Boolean
-})
-
-defineEmits(['update:visible', 'approve', 'reject'])
-
-</script>

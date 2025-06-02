@@ -7,7 +7,6 @@ import router from '@/router/index.js'
 import PrimeVue from 'primevue/config'
 import { ToastService, Dialog } from 'primevue'
 import 'vue-cal/dist/vuecal.css'
-import { GOOGLE_API_KEY } from '@/configs/config.js'
 
 const app = createApp(App)
 

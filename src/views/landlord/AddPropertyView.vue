@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useLandlordPropertyStore } from '@/stores/propertyStore.js'
+import { useLandlordPropertyStore } from '@/stores/landlord/propertyStore.js'
 import PropertyFormFields from "@/components/landlord/property/property-add/PropertyFormFields.vue";
 import PropertyLocationMap from "@/components/landlord/property/property-add/PropertyLocationMap.vue";
 
@@ -22,26 +22,22 @@ const form = ref({
 const isLoading = ref(false)
 const errorMessage = ref('')
 const attachments = ref([])
-const activeTab = ref('details') // For tab navigation: 'details' or 'location'
-const windowWidth = ref(0) // Add reactive reference for window width
+const activeTab = ref('details')
+const windowWidth = ref(0)
 
-// Update window width on mount and resize
 const updateWindowWidth = () => {
   windowWidth.value = window.innerWidth
 }
 
-// Set up event listeners on component mount
 onMounted(() => {
-  updateWindowWidth() // Set initial value
+  updateWindowWidth()
   window.addEventListener('resize', updateWindowWidth)
 })
 
-// Clean up event listeners on component unmount
 onUnmounted(() => {
   window.removeEventListener('resize', updateWindowWidth)
 })
 
-// Reverse geocoding function to get address from coordinates
 const reverseGeocode = async (location) => {
   if (!window.google) return form.value.address
 
@@ -57,12 +53,10 @@ const reverseGeocode = async (location) => {
   })
 }
 
-// Handle map click - update coordinates and reverse geocode to get address
 const handleMapClick = async (location) => {
   form.value.longitude = location.lng
   form.value.latitude = location.lat
 
-  // Update address field with reverse geocoded address
   try {
     const address = await reverseGeocode(location)
     form.value.address = address
@@ -71,19 +65,16 @@ const handleMapClick = async (location) => {
   }
 }
 
-// Handle address autocomplete selection - update coordinates
 const handleLocationSelected = (location) => {
   form.value.longitude = location.lng
   form.value.latitude = location.lat
-  // Address is already updated by the autocomplete in PropertyFormFields
+
 }
 
-// Handle marker dragging - update coordinates and address
 const handleMarkerDragged = async (location) => {
   form.value.longitude = location.lng
   form.value.latitude = location.lat
 
-  // Update address field with reverse geocoded address
   try {
     const address = await reverseGeocode(location)
     form.value.address = address

@@ -1,10 +1,9 @@
 <script setup>
 import { onMounted } from 'vue'
-import { useAdminPropertyStore } from '@/stores/adminPropertyStore'
+import { useAdminPropertyStore } from '@/stores/admin/adminPropertyStore.js'
 
 const store = useAdminPropertyStore()
 
-// Status badge styling
 const getStatusStyle = (status) => {
   switch (status) {
     case 'ACTIVE':
@@ -22,7 +21,6 @@ const getStatusStyle = (status) => {
   }
 }
 
-// Dot indicator styling
 const getStatusDot = (status) => {
   switch (status) {
     case 'ACTIVE':
@@ -40,7 +38,6 @@ const getStatusDot = (status) => {
   }
 }
 
-// Retry loading on error
 const retryLoading = async () => {
   await store.loadProperties()
 }

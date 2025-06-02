@@ -47,18 +47,15 @@ const submitReview = async () => {
     loading.value = true
     error.value = ''
 
-    // ✅ Send only the data that matches your ReviewDTO
     const reviewData = {
-      // tenantId: not needed - backend gets it from authentication
       propertyId: props.lease.propertyId,
       leaseId: props.lease.leaseId,
-      // landlordId: not needed - backend gets it from property
       rating: form.value.rating,
       comment: form.value.comment.trim(),
-      displayName: `Tenant-${Date.now()}` // Generate a simple display name
+      displayName: `Tenant-${Date.now()}`
     }
 
-    console.log('Sending review data:', reviewData) // Debug log
+    console.log('Sending review data:', reviewData)
 
     await createReview(reviewData)
     emit('submitted')
@@ -74,7 +71,6 @@ const closeModal = () => {
   emit('close')
 }
 
-// Star rating component helpers
 const setRating = (field, rating) => {
   form.value[field] = rating
 }

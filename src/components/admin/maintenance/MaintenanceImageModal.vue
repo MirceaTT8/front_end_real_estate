@@ -1,3 +1,31 @@
+
+<script setup>
+import { ref, watch } from 'vue'
+
+const props = defineProps({
+  images: Array,
+  show: Boolean
+})
+
+defineEmits(['close'])
+
+const currentImageIndex = ref(0)
+
+const nextImage = () => {
+  if (!props.images?.length) return
+  currentImageIndex.value = (currentImageIndex.value + 1) % props.images.length
+}
+
+const prevImage = () => {
+  if (!props.images?.length) return
+  currentImageIndex.value = (currentImageIndex.value - 1 + props.images.length) % props.images.length
+}
+
+watch([() => props.show, () => props.images], () => {
+  currentImageIndex.value = 0
+})
+</script>
+
 <template>
   <div v-if="show" class="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center p-4">
     <div class="bg-white p-6 rounded-xl max-w-5xl w-full max-h-[90vh] overflow-hidden relative shadow-2xl">
@@ -76,34 +104,6 @@
   </div>
 </template>
 
-<script setup>
-import { ref, watch } from 'vue'
-
-const props = defineProps({
-  images: Array,
-  show: Boolean
-})
-
-defineEmits(['close'])
-
-const currentImageIndex = ref(0)
-
-// Navigation functions
-const nextImage = () => {
-  if (!props.images?.length) return
-  currentImageIndex.value = (currentImageIndex.value + 1) % props.images.length
-}
-
-const prevImage = () => {
-  if (!props.images?.length) return
-  currentImageIndex.value = (currentImageIndex.value - 1 + props.images.length) % props.images.length
-}
-
-// Reset to first image when modal opens or images change
-watch([() => props.show, () => props.images], () => {
-  currentImageIndex.value = 0
-})
-</script>
 
 <style scoped>
 /* Custom scrollbar for thumbnails */

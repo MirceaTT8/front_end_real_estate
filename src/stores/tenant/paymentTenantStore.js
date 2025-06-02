@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { fetchPaymentsForLease, createPayment, createStripeCheckoutSession } from '@/services/paymentService'
-import { useTenantLeaseStore } from "@/stores/leaseTenantStore.js";
+import { fetchPaymentsForLease, createPayment, createStripeCheckoutSession } from '@/services/paymentService.js'
+import { useTenantLeaseStore } from "@/stores/tenant/leaseTenantStore.js";
 
 export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
     const payments = ref([])
     const loading = ref(false)
     const error = ref(null)
-    const yearlyPayments = ref([]) // To store YTD payments specifically
+    const yearlyPayments = ref([])
 
     const tenantLeaseStore = useTenantLeaseStore()
 
@@ -79,12 +79,10 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
         return hasPaidThisCycle.value ? 0 : tenantLeaseStore.lease?.monthlyRent || 0
     })
 
-    // Total paid Year-to-Date
     const totalPaidYTD = computed(() => {
         return yearlyPayments.value.reduce((sum, payment) => sum + payment.amount, 0)
     })
 
-    // Payment history by month for the current year
     const paymentsByMonth = computed(() => {
         const months = Array(12).fill(0)
 
@@ -102,7 +100,6 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
         return await createStripeCheckoutSession(leaseId)
     }
 
-    // Next payment date calculation - rent due on the same day as lease start date
     const nextPaymentDate = computed(() => {
         const lease = tenantLeaseStore.lease
         if (!lease) return new Date()
@@ -111,41 +108,35 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
         const endDate = new Date(lease.endDate)
         const today = new Date()
 
-        // Calculate the day of month that rent is due (same day as lease start)
         const dueDayOfMonth = startDate.getDate()
 
         let nextDate = new Date(today.getFullYear(), today.getMonth(), dueDayOfMonth)
 
-        // If we're past the due date for this month OR it's the due date and payment is already made
         if (today.getDate() > dueDayOfMonth || (today.getDate() === dueDayOfMonth && hasPaidThisCycle.value)) {
             nextDate.setMonth(nextDate.getMonth() + 1)
         }
 
-        // If the next payment date is after the lease ends, return null or lease end date
         if (nextDate > endDate) {
-            return null // No more payments needed
+            return null
         }
 
         return nextDate
     })
 
-    // Days until next payment
     const daysUntilNextPayment = computed(() => {
         const nextPayment = nextPaymentDate.value
 
-        // If no next payment (lease ended), return 0
         if (!nextPayment) return 0
 
         const today = new Date()
 
-        // Reset time to start of day for accurate day calculation
         const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
         const nextPaymentStart = new Date(nextPayment.getFullYear(), nextPayment.getMonth(), nextPayment.getDate())
 
         const diffTime = nextPaymentStart - todayStart
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-        return Math.max(0, diffDays) // Ensure we don't return negative days
+        return Math.max(0, diffDays)
     })
 
     return {

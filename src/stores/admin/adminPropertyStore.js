@@ -5,7 +5,7 @@ import {
     fetchAllPropertiesAdmin,
     validateProperty,
     fetchPendingProperties
-} from '@/services/propertyService'
+} from '@/services/propertyService.js'
 
 export const useAdminPropertyStore = defineStore('adminPropertyStore', () => {
     const properties = ref([])
@@ -15,10 +15,8 @@ export const useAdminPropertyStore = defineStore('adminPropertyStore', () => {
     const searchQuery = ref('')
     const selectedStatus = ref('ALL')
 
-    // Available statuses for filtering
     const statuses = ['ALL', 'ACTIVE', 'PENDING', 'INACTIVE', 'RENTED', 'MAINTENANCE']
 
-    // Computed properties for dashboard metrics
     const totalProperties = computed(() => properties.value.length)
 
     const activeProperties = computed(() =>
@@ -41,23 +39,19 @@ export const useAdminPropertyStore = defineStore('adminPropertyStore', () => {
         properties.value.filter(p => p.status === 'MAINTENANCE').length
     )
 
-    // Computed property for filtered properties
     const filteredProperties = computed(() => {
         return properties.value.filter(property => {
-            // Filter by search query
             const matchesSearch = !searchQuery.value ||
                 property.name?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                 property.address?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                 property.propertyId?.toString().includes(searchQuery.value)
 
-            // Filter by status
             const matchesStatus = selectedStatus.value === 'ALL' || property.status === selectedStatus.value
 
             return matchesSearch && matchesStatus
         })
     })
 
-    // Average rent calculation
     const averageRent = computed(() => {
         if (properties.value.length === 0) return 0
         const totalRent = properties.value.reduce((sum, property) => {
@@ -66,22 +60,18 @@ export const useAdminPropertyStore = defineStore('adminPropertyStore', () => {
         return Math.round(totalRent / properties.value.length)
     })
 
-    // Total portfolio value (estimated)
     const totalPortfolioValue = computed(() => {
         return properties.value.reduce((sum, property) => {
-            // Estimate property value as 20x annual rent (rough calculation)
             const annualRent = (parseFloat(property.rentAmount) || 0) * 12
             return sum + (annualRent * 20)
         }, 0)
     })
 
-    // Occupancy rate
     const occupancyRate = computed(() => {
         if (totalProperties.value === 0) return 0
         return Math.round((rentedProperties.value / totalProperties.value) * 100)
     })
 
-    // Load all properties
     const loadProperties = async () => {
         loading.value = true
         error.value = null
@@ -95,7 +85,6 @@ export const useAdminPropertyStore = defineStore('adminPropertyStore', () => {
         }
     }
 
-    // Approve a property
     const approveProperty = async (propertyId) => {
         try {
             await validateProperty(propertyId, 'APPROVED')
@@ -112,11 +101,9 @@ export const useAdminPropertyStore = defineStore('adminPropertyStore', () => {
         }
     }
 
-    // Reject a property
     const rejectProperty = async (propertyId) => {
         try {
             await validateProperty(propertyId, 'REJECTED')
-            // Update the property in the local state
             const propertyIndex = properties.value.findIndex(p => p.propertyId === propertyId)
             if (propertyIndex !== -1) {
                 properties.value[propertyIndex].validationStatus = 'REJECTED'
@@ -129,17 +116,14 @@ export const useAdminPropertyStore = defineStore('adminPropertyStore', () => {
         }
     }
 
-    // Get property by ID
     const getPropertyById = (propertyId) => {
         return properties.value.find(p => p.propertyId === parseInt(propertyId))
     }
 
-    // Filter properties by status
     const getPropertiesByStatus = (status) => {
         return properties.value.filter(p => p.status === status)
     }
 
-    // Update property status locally (for real-time updates)
     const updatePropertyStatus = (propertyId, status, validationStatus = null) => {
         const propertyIndex = properties.value.findIndex(p => p.propertyId === propertyId)
         if (propertyIndex !== -1) {
@@ -150,7 +134,6 @@ export const useAdminPropertyStore = defineStore('adminPropertyStore', () => {
         }
     }
 
-    // Bulk operations
     const bulkApproveProperties = async () => {
         try {
             const promises = [...selectedProperties.value].map(propertyId =>
@@ -179,19 +162,16 @@ export const useAdminPropertyStore = defineStore('adminPropertyStore', () => {
         }
     }
 
-    // Clear filters
     const clearFilters = () => {
         searchQuery.value = ''
         selectedStatus.value = 'ALL'
     }
 
-    // Refresh data
     const refresh = async () => {
         await loadProperties()
     }
 
     return {
-        // State
         properties,
         selectedProperties,
         loading,
@@ -200,7 +180,6 @@ export const useAdminPropertyStore = defineStore('adminPropertyStore', () => {
         selectedStatus,
         statuses,
 
-        // Computed properties - metrics
         totalProperties,
         activeProperties,
         pendingProperties,
@@ -211,10 +190,8 @@ export const useAdminPropertyStore = defineStore('adminPropertyStore', () => {
         totalPortfolioValue,
         occupancyRate,
 
-        // Computed properties - filtered data
         filteredProperties,
 
-        // Actions
         loadProperties,
         approveProperty,
         rejectProperty,

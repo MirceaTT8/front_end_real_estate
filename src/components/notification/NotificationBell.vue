@@ -113,7 +113,6 @@ const sortedNotifications = computed(() => {
   return [...notifications.value].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 });
 
-// Group notifications by date
 const groupedNotifications = computed(() => {
   const groups = {};
   const today = new Date().setHours(0, 0, 0, 0);
@@ -141,7 +140,6 @@ const groupedNotifications = computed(() => {
   return groups;
 });
 
-// Get notification icon based on type
 const getNotificationIcon = (notification) => {
   const type = notification.type?.toLowerCase() || '';
 
@@ -154,7 +152,6 @@ const getNotificationIcon = (notification) => {
   return 'pi pi-bell';
 };
 
-// Get notification color based on type
 const getNotificationColor = (notification) => {
   const type = notification.type?.toLowerCase() || '';
 

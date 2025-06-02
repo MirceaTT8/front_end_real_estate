@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getAllPayments } from '@/services/paymentService'
+import { getAllPayments } from '@/services/paymentService.js'
 
 export const usePaymentAdminStore = defineStore('paymentAdmin', () => {
     const payments = ref([])

@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { fetchMyLeases } from '@/services/leaseService'
-import { fetchUserById } from '@/services/userService'
-import { fetchPropertyById } from '@/services/propertyService'
+import { fetchMyLeases } from '@/services/leaseService.js'
+import { fetchUserById } from '@/services/userService.js'
+import { fetchPropertyById } from '@/services/propertyService.js'
 
 export const useLeaseStore = defineStore('leaseStore', () => {
     const leases = ref([])

@@ -1,4 +1,3 @@
-// src/services/reviewService.js
 import { BASE_URL } from "@/configs/config.js";
 
 const API = `${BASE_URL}/review`;

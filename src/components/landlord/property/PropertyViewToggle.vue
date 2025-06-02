@@ -8,7 +8,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:showMap'])
 
-// Add debug logs
 const handleListView = () => {
   console.log('Switching to list view')
   emit('update:showMap', false)

@@ -47,18 +47,6 @@ const cancelEditing = () => {
   isEditing.value = false;
 };
 
-// Calculate user's initials for the avatar
-const userInitials = computed(() => {
-  if (user.firstName && user.lastName) {
-    return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
-  } else if (user.firstName) {
-    return user.firstName.charAt(0).toUpperCase();
-  } else if (user.email) {
-    return user.email.charAt(0).toUpperCase();
-  }
-  return 'U';
-});
-
 onMounted(fetchUserData);
 </script>
 

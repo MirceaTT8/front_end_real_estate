@@ -3,17 +3,17 @@ import { ref, computed } from 'vue'
 import {
     fetchPaymentsForOwner,
     createPayment
-} from '@/services/paymentService'
+} from '@/services/paymentService.js'
 import {
     fetchMyLeases
-} from '@/services/leaseService'
+} from '@/services/leaseService.js'
 import {
     fetchAllUsers,
     fetchUserById
-} from '@/services/userService'
+} from '@/services/userService.js'
 import {
     fetchPropertyById
-} from '@/services/propertyService'
+} from '@/services/propertyService.js'
 
 export const usePaymentLandlordStore = defineStore('paymentLandlordStore', () => {
     const payments = ref([])

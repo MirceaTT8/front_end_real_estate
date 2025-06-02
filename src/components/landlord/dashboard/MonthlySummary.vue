@@ -6,7 +6,6 @@ const props = defineProps({
   maintenanceCostThisMonth: Number
 })
 
-// Format currency
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

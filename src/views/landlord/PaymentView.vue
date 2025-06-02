@@ -1,6 +1,6 @@
 <script setup>
 import {onMounted, ref} from 'vue'
-import { usePaymentLandlordStore } from "@/stores/paymentStore.js";
+import { usePaymentLandlordStore } from "@/stores/landlord/paymentStore.js";
 import PaymentSummaryCard from '@/components/landlord/payment/PaymentSummaryCard.vue'
 import PaymentTable from '@/components/landlord/payment/PaymentTable.vue'
 import PaymentManualModal from '@/components/landlord/payment/PaymentManualModal.vue'

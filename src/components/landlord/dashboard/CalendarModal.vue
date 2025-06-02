@@ -7,15 +7,12 @@ const props = defineProps({
   calendarEvents: Array
 })
 
-// Track selected event
 const selectedEvent = ref(null)
 
-// Select an event to see details
 const selectEvent = (event) => {
   selectedEvent.value = event;
 }
 
-// Get color classes based on event class
 const getEventColor = (eventClass) => {
   switch (eventClass) {
     case 'payment-event':
@@ -49,7 +46,6 @@ const getEventColor = (eventClass) => {
   }
 }
 
-// Format date for display
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
@@ -60,7 +56,6 @@ const formatDate = (dateString) => {
   });
 }
 
-// Format time for display
 const formatTime = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleTimeString('en-US', {
@@ -69,7 +64,6 @@ const formatTime = (dateString) => {
   });
 }
 
-// Get icon based on event class
 const getEventIcon = (eventClass) => {
   switch (eventClass) {
     case 'payment-event':

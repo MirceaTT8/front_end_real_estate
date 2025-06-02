@@ -20,7 +20,6 @@ const { request, leases, tenants, properties } = defineProps({
   properties: Array
 });
 
-// Enhanced status configurations with beautiful styling
 const statusDisplay = {
   PENDING: {
     bg: 'bg-gradient-to-br from-amber-50 to-orange-50',
@@ -108,7 +107,6 @@ const saveCost = async () => {
   }
 }
 
-// Format currency with dollar sign and 2 decimal places
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

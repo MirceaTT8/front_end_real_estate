@@ -32,7 +32,6 @@ const getStatusLabel = (status) => {
   }
 }
 
-// Handle feedback submission from maintenance cards and pass it up to parent
 const handleFeedbackSubmitted = (feedbackData) => {
   emit('feedback-submitted', feedbackData)
 }

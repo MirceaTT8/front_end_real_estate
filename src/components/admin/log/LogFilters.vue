@@ -1,3 +1,45 @@
+
+<script setup>
+import { computed } from 'vue'
+import { useLogStore } from '@/stores/admin/logStore.js'
+
+const logStore = useLogStore()
+
+const hasActiveFilters = computed(() => {
+  return logStore.filters.actionType !== '' ||
+      logStore.filters.entityType !== '' ||
+      logStore.filters.userId !== '' ||
+      logStore.filters.dateRange !== 'all'
+})
+
+const activeFilterCount = computed(() => {
+  let count = 0
+  if (logStore.filters.actionType) count++
+  if (logStore.filters.entityType) count++
+  if (logStore.filters.userId) count++
+  if (logStore.filters.dateRange !== 'all') count++
+  return count
+})
+
+const applyFilters = () => {
+  logStore.applyFilters()
+}
+
+const resetFilters = () => {
+  logStore.resetFilters()
+}
+
+const getDateRangeLabel = (range) => {
+  const labels = {
+    'today': 'Today',
+    'week': 'This Week',
+    'month': 'This Month',
+    'all': 'All Time'
+  }
+  return labels[range] || range
+}
+</script>
+
 <template>
   <div class="space-y-6">
     <!-- Filter Controls -->
@@ -182,46 +224,3 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { computed } from 'vue'
-import { useLogStore } from '@/stores/logStore'
-
-const logStore = useLogStore()
-
-// Computed properties for filter state
-const hasActiveFilters = computed(() => {
-  return logStore.filters.actionType !== '' ||
-      logStore.filters.entityType !== '' ||
-      logStore.filters.userId !== '' ||
-      logStore.filters.dateRange !== 'all'
-})
-
-const activeFilterCount = computed(() => {
-  let count = 0
-  if (logStore.filters.actionType) count++
-  if (logStore.filters.entityType) count++
-  if (logStore.filters.userId) count++
-  if (logStore.filters.dateRange !== 'all') count++
-  return count
-})
-
-// Methods
-const applyFilters = () => {
-  logStore.applyFilters()
-}
-
-const resetFilters = () => {
-  logStore.resetFilters()
-}
-
-const getDateRangeLabel = (range) => {
-  const labels = {
-    'today': 'Today',
-    'week': 'This Week',
-    'month': 'This Month',
-    'all': 'All Time'
-  }
-  return labels[range] || range
-}
-</script>

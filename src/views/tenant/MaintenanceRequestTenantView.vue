@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useMaintenanceTenantStore } from "@/stores/leaseMaintenanceTenantStore.js";
+import { useMaintenanceTenantStore } from "@/stores/tenant/leaseMaintenanceTenantStore.js";
 import MaintenanceListTenant from '@/components/tenant/maintenance/MaintenanceListTenant.vue'
 import MaintenanceCreateForm from '@/components/tenant/maintenance/MaintenanceCreateForm.vue'
 import MaintenanceFilter from '@/components/tenant/maintenance/MaintenanceFilter.vue'

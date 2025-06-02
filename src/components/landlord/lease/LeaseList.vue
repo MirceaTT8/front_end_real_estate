@@ -203,7 +203,6 @@ const canReviewLease = (lease) => {
       </div>
     </div>
 
-    <!-- Review Modal -->
     <LeaseTenantReviewModal
         :visible="showReviewModal"
         :lease="selectedLease"

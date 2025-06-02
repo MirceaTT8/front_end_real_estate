@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { usePaymentTenantStore } from "@/stores/paymentTenantStore.js";
+import { usePaymentTenantStore } from "@/stores/tenant/paymentTenantStore.js";
 import { loadStripe } from "@stripe/stripe-js";
 import {formatDate} from "@/utils/dateUtils.js";
 const stripePromise = loadStripe('pk_test_51MMELpFqC40RfDoFO6Jg3gMWPzmE16VwhlDkBdaa5DlTHn7s7jtjok0zsiLT3x4v2h8TB6nTEgtg9552gtGCGsYn00Qg9p6wT4')

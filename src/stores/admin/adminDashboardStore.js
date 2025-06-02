@@ -7,8 +7,8 @@ import {
     approveLease,
     rejectLease,
     fetchLeaseTrends
-} from '@/services/leaseService'
-import { fetchAllPropertiesAdmin, fetchPendingProperties, validateProperty } from '@/services/propertyService'
+} from '@/services/leaseService.js'
+import { fetchAllPropertiesAdmin, fetchPendingProperties, validateProperty } from '@/services/propertyService.js'
 import { fetchAllUsers } from '@/services/userService.js'
 import { fetchAllMaintenanceRequests } from '@/services/maintenanceService.js'
 import {BASE_URL} from "@/configs/config.js";
@@ -36,13 +36,11 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
     })
     const statsLoading = ref(false)
 
-    // Computed stats that include pending counts
     const stats = computed(() => ({
         activeLeases: kpiMetrics.value['Total Leases'] || 0,
         pendingApprovals: pendingLeaseTerminations.value.length + pendingLeaseApprovals.value.length + pendingProperties.value.length,
         monthlyRevenue: kpiMetrics.value['Total Payments'] || '$0',
         totalUsers: kpiMetrics.value['Total Users'] || 0,
-        // Additional breakdown for specific counts
         pendingTerminations: pendingLeaseTerminations.value.length,
         pendingLeases: pendingLeaseApprovals.value.length,
         pendingPropertiesCount: pendingProperties.value.length
@@ -53,11 +51,9 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         datasets: []
     })
 
-    // Helper function to find the earliest available data period
     const findEarliestDataPeriod = (leases, periodType) => {
         if (!leases.length) return null
 
-        // Find the earliest date from all lease dates
         const allDates = []
         leases.forEach(lease => {
             if (lease.startDate) allDates.push(new Date(lease.startDate))
@@ -101,7 +97,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         return null
     }
 
-    // Helper function to check if date falls within period
     const isDateInPeriod = (dateString, period) => {
         if (!dateString) return false
         const date = new Date(dateString)
@@ -114,11 +109,9 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         try {
             const leases = await fetchLeaseTrends()
 
-            // Find the first period with available data
             const firstPeriod = findEarliestDataPeriod(leases, periodType)
 
             if (!firstPeriod) {
-                // No data available, show empty chart
                 leaseChartData.value = {
                     labels: ['No Data'],
                     datasets: [
@@ -145,24 +138,19 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
                 return
             }
 
-            // Count lease starts and terminations for the first period only
             let leaseStartCount = 0
             let leaseEndCount = 0
 
             leases.forEach(lease => {
-                // Count lease starts in the first period
                 if (isDateInPeriod(lease.startDate, firstPeriod)) {
                     leaseStartCount++
                 }
 
-                // Count lease terminations in the first period
-                // Check multiple possible termination date fields and status
                 const isTerminated = lease.status === 'TERMINATED' ||
                     lease.terminationStatus === 'APPROVED' ||
                     lease.terminationRequestedAt
 
                 if (isTerminated) {
-                    // Use terminationRequestedAt if available, otherwise use createdAt for terminated leases
                     const terminationDate = lease.terminationRequestedAt ||
                         (lease.status === 'TERMINATED' ? lease.createdAt : null)
 
@@ -172,7 +160,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
                 }
             })
 
-            // Update chart data with single period
             leaseChartData.value = {
                 labels: [firstPeriod.label],
                 datasets: [
@@ -199,7 +186,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         } catch (err) {
             console.error('Failed to fetch lease trends:', err)
 
-            // Fallback to empty chart data
             leaseChartData.value = {
                 labels: ['Error Loading Data'],
                 datasets: [
@@ -231,21 +217,19 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
     const fetchStatsData = async () => {
         statsLoading.value = true
         try {
-            // Fetch all counts in parallel using your existing functions
             const [usersCount, propertiesCount, maintenanceCount] = await Promise.all([
                 fetchUsersCount(),
                 fetchPropertiesCount(),
                 fetchMaintenanceRequestsCount()
             ])
 
-            // Update statsData with the actual counts
             statsData.value = {
                 totalUsers: usersCount,
-                userGrowth: 0, // You can calculate this if you have historical data
+                userGrowth: 0,
                 totalProperties: propertiesCount,
-                propertyGrowth: 0, // You can calculate this if you have historical data
+                propertyGrowth: 0,
                 maintenanceRequests: maintenanceCount,
-                urgentRequests: 0 // You'll need to implement urgent count logic
+                urgentRequests: 0
             }
         } catch (error) {
             console.error('Failed to fetch stats data:', error)
@@ -456,11 +440,9 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         pendingLeaseApprovals.value = pendingLeaseApprovals.value.filter(l => l.leaseId !== id)
     }
 
-    // Property validation functions
     const approveProperty = async (propertyId) => {
         try {
             await validateProperty(propertyId, 'APPROVED')
-            // Remove the property from pending list after successful approval
             pendingProperties.value = pendingProperties.value.filter(p => p.propertyId !== propertyId)
             return { success: true, message: 'Property approved successfully' }
         } catch (error) {
@@ -472,7 +454,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
     const rejectProperty = async (propertyId) => {
         try {
             await validateProperty(propertyId, 'REJECTED')
-            // Remove the property from pending list after successful rejection
             pendingProperties.value = pendingProperties.value.filter(p => p.propertyId !== propertyId)
             return { success: true, message: 'Property rejected successfully' }
         } catch (error) {

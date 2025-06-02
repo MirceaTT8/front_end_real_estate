@@ -21,10 +21,8 @@ const expiringLeases = computed(() => {
   }).length;
 });
 
-// Computed property for filtered leases
 const filteredLeases = computed(() => {
   return leases.value.filter(lease => {
-    // Filter by search query
     const matchesSearch = !searchQuery.value ||
         lease.leaseId.toString().includes(searchQuery.value) ||
         (lease.tenantId && lease.tenantId.toString().includes(searchQuery.value)) ||

@@ -9,9 +9,8 @@ const props = defineProps({
   chartOptions: Object
 })
 
-const activeTab = ref('comparison') // comparison, income or expenses
+const activeTab = ref('comparison')
 
-// Computed to show data availability information
 const dataAvailability = computed(() => {
   const enabledRanges = props.rangeOptions?.filter(r => r.enabled) || []
   const totalMonths = props.filteredChartData?.labels?.length || 0
@@ -23,14 +22,12 @@ const dataAvailability = computed(() => {
   }
 })
 
-// Computed to get the chart data based on active tab
 const displayChartData = computed(() => {
   if (!props.filteredChartData?.datasets) {
     return props.filteredChartData
   }
 
   if (activeTab.value === 'income') {
-    // Show only rent collection data
     return {
       ...props.filteredChartData,
       datasets: props.filteredChartData.datasets.filter(ds =>
@@ -38,7 +35,6 @@ const displayChartData = computed(() => {
       )
     }
   } else if (activeTab.value === 'expenses') {
-    // Show only maintenance costs data
     return {
       ...props.filteredChartData,
       datasets: props.filteredChartData.datasets.filter(ds =>
@@ -46,7 +42,6 @@ const displayChartData = computed(() => {
       )
     }
   } else {
-    // Show both datasets for comparison
     return props.filteredChartData
   }
 })

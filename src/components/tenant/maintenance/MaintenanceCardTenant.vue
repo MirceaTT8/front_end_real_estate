@@ -5,7 +5,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
-import { useMaintenanceTenantStore } from "@/stores/leaseMaintenanceTenantStore.js";
+import { useMaintenanceTenantStore } from "@/stores/tenant/leaseMaintenanceTenantStore.js";
 
 const showModal = ref(false);
 const activeIndex = ref(0);
@@ -25,19 +25,15 @@ const props = defineProps({
   }
 });
 
-// Track if user has responded
 const userFixedResponse = ref(props.request.is_fixed ?? null);
 const hasSubmittedResponse = ref(props.request.is_fixed !== null);
 
 const submitFixedStatus = async (isFixed) => {
   try {
     if (isFixed) {
-      // For "Yes, it's fixed" - optionally call confirm endpoint
-      // await maintenanceStore.confirmAsFixed(props.request.requestId);
       userFixedResponse.value = true;
       hasSubmittedResponse.value = true;
     } else {
-      // For "No, still needs work" - call the store method
       await maintenanceStore.markAsNotFixed(props.request.requestId);
 
       userFixedResponse.value = false;
@@ -51,14 +47,12 @@ const submitFixedStatus = async (isFixed) => {
     }
   } catch (error) {
     console.error('Failed to submit feedback:', error);
-    // Show error message to user
     alert('Failed to submit feedback. Please try again.');
   }
 };
 
 const emit = defineEmits(['feedback-submitted']);
 
-// Status label/color mapping
 const statusDisplay = {
   PENDING: {
     label: 'Pending',
@@ -97,7 +91,6 @@ const formatDate = (dateString) => {
 };
 
 const getRequestTypeIcon = (type) => {
-// Icons for different maintenance types
   switch (type?.toLowerCase() || '') {
     case 'plumbing':
       return `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">

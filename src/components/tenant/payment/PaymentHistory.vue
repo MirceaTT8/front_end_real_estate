@@ -1,7 +1,6 @@
-<!-- PaymentHistory.vue -->
 <script setup>
 import { useRouter } from 'vue-router'
-import { formatDate, formatCurrency } from '@/components/utils/formatters.js'
+import { formatDate, formatCurrency } from '@/utils/formatters.js'
 import { ref } from 'vue'
 
 const props = defineProps({
@@ -13,7 +12,6 @@ const firstThree = props.payments.slice(0, 3)
 const extraPayments = props.payments.slice(3)
 const showAllPayments = ref(false)
 
-// Method to get appropriate status badge classes
 const getStatusClasses = (status) => {
   switch(status.toLowerCase()) {
     case 'completed':
@@ -29,7 +27,6 @@ const getStatusClasses = (status) => {
   }
 };
 
-// Method to get appropriate status dot classes
 const getStatusDotClasses = (status) => {
   switch(status.toLowerCase()) {
     case 'completed':
@@ -45,7 +42,6 @@ const getStatusDotClasses = (status) => {
   }
 };
 
-// Method to get payment method icon
 const getPaymentMethodIcon = (method) => {
   switch(method) {
     case 'CREDIT_CARD':
@@ -55,10 +51,6 @@ const getPaymentMethodIcon = (method) => {
     case 'BANK_TRANSFER':
       return `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
-              </svg>`;
-    case 'PAYPAL':
-      return `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>`;
     case 'STRIPE':
       return `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -71,7 +63,6 @@ const getPaymentMethodIcon = (method) => {
   }
 };
 
-// Download invoice function
 const downloadInvoice = (invoiceId) => {
   console.log('Download invoice', invoiceId);
   // Implement actual download logic here
