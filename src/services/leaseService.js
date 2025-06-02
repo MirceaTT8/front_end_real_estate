@@ -256,6 +256,66 @@ export const fetchLeaseTrends = async () => {
     return await response.json();
 };
 
+// Add these functions to your leaseService.js
+
+// Function to get tenant's current active lease
+export const fetchActiveTenantLease = async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/tenant/active`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        if (response.status === 404) {
+            return null;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+};
+
+// Function to check if tenant has any lease (active or inactive)
+export const checkTenantHasLease = async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/tenant/exists`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json(); // Should return boolean
+};
+
+// Function to request a new lease (if needed)
+export const requestTenantLease = async (propertyId, leaseData) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/tenant/request`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            propertyId,
+            ...leaseData
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to request lease: ${response.status}`);
+    }
+
+    return await response.json();
+};
+
 
 
 

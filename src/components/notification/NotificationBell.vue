@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, onBeforeUnmount, watch } from 'vue';
 import { useNotificationStore } from '@/stores/notificationStore.js';
 import { storeToRefs } from 'pinia';
-import { markNotificationAsRead } from '@/services/notificationService';
+import { markNotificationAsRead, markAllNotificationAsReadByEmail } from '@/services/notificationService';
 import { formatTimeAgo } from '@/utils/dateUtils';
 
 const notificationStore = useNotificationStore();
@@ -11,14 +11,12 @@ const showDropdown = ref(false);
 const bellRinging = ref(false);
 const dropdownRef = ref(null);
 
-// Close dropdown when clicking outside
 const handleClickOutside = (event) => {
   if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
     showDropdown.value = false;
   }
 };
 
-// Animation for new notifications
 const animateBell = () => {
   bellRinging.value = true;
   setTimeout(() => {
@@ -26,7 +24,6 @@ const animateBell = () => {
   }, 2000);
 };
 
-// Watch for new notifications
 watch(unreadCount, (newCount, oldCount) => {
   if (newCount > oldCount && oldCount !== undefined) {
     animateBell();
@@ -37,7 +34,6 @@ onMounted(() => {
   notificationStore.fetchNotification();
   document.addEventListener('click', handleClickOutside);
 
-  // Initial animation if there are unread notifications
   if (unreadCount.value > 0) {
     setTimeout(() => {
       animateBell();
@@ -60,6 +56,57 @@ const handleNotificationClick = async (notification) => {
   } catch (error) {
     console.error('Failed to mark notification as read:', error);
   }
+};
+
+const getUserEmail = () => {
+  const userEmail = localStorage.getItem('userEmail');
+  if (userEmail) return userEmail;
+
+  try {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.email || payload.sub || payload.username;
+    }
+  } catch (error) {
+    console.error('Error decoding token:', error);
+  }
+
+  return null;
+};
+
+const handleMarkAllAsRead = async () => {
+  try {
+    const userEmail = getUserEmail();
+    if (!userEmail) {
+      console.error('User email not found');
+      return;
+    }
+
+    await markAllNotificationAsReadByEmail(userEmail);
+
+    notifications.value.forEach(notification => {
+      if (!notification.read) {
+        notification.read = true;
+        notification.status = 'READ';
+      }
+    });
+
+    unreadCount.value = 0;
+
+  } catch (error) {
+    console.error('Failed to mark all notifications as read:', error);
+  }
+};
+
+const formatStatusText = (text) => {
+  if (!text) return text;
+
+  return text
+      .replace(/\bIN_PROGRESS\b/g, 'In Progress')
+      .replace(/\bCANCELLED\b/g, 'Cancelled')
+      .replace(/\bCOMPLETED\b/g, 'Completed')
+      .replace(/\bPENDING\b/g, 'Pending');
 };
 
 const sortedNotifications = computed(() => {
@@ -207,7 +254,7 @@ const getNotificationColor = (notification) => {
                       {{ formatTimeAgo(notification.createdAt) }}
                     </div>
                   </div>
-                  <div class="text-sm text-gray-500 mt-1">{{ notification.message }}</div>
+                  <div class="text-sm text-gray-500 mt-1">{{ formatStatusText(notification.message) }}</div>
                 </div>
 
                 <!-- Unread Indicator -->
@@ -219,19 +266,19 @@ const getNotificationColor = (notification) => {
 
         <!-- Footer -->
         <div class="px-4 py-3 text-sm bg-gray-50 border-t border-gray-200 flex justify-between items-center">
-<!--          <router-link-->
-<!--              to="/notifications"-->
-<!--              class="text-blue-600 hover:text-blue-800 font-medium flex items-center"-->
-<!--              @click="showDropdown = false"-->
-<!--          >-->
-<!--            View All-->
-<!--            <i class="pi pi-arrow-right ml-1 text-xs"></i>-->
-<!--          </router-link>-->
+          <!--          <router-link-->
+          <!--              to="/notifications"-->
+          <!--              class="text-blue-600 hover:text-blue-800 font-medium flex items-center"-->
+          <!--              @click="showDropdown = false"-->
+          <!--          >-->
+          <!--            View All-->
+          <!--            <i class="pi pi-arrow-right ml-1 text-xs"></i>-->
+          <!--          </router-link>-->
 
           <button
               v-if="unreadCount > 0"
               class="text-gray-600 hover:text-gray-800 text-sm"
-              @click="notificationStore.markAllAsRead()"
+              @click="handleMarkAllAsRead"
           >
             Mark all as read
           </button>

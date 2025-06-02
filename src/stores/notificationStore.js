@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { fetchNotificationsByEmail} from '@/services/notificationService'
+import { fetchNotificationsByEmail, markAllNotificationAsReadByEmail} from '@/services/notificationService'
 import { jwtDecode } from 'jwt-decode'
 
 export const useNotificationStore = defineStore('notification', () => {
@@ -38,5 +38,23 @@ export const useNotificationStore = defineStore('notification', () => {
         }
     }
 
-    return { notifications, unreadCount, fetchNotification, startPolling, stopPolling }
+    const markAllAsRead = async () => {
+        try {
+            await markAllNotificationAsReadByEmail();
+
+            notifications.value.forEach(notification => {
+                if (!notification.read) {
+                    notification.read = true;
+                    notification.status = 'READ';
+                }
+            });
+
+            unreadCount.value = 0;
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error);
+            throw error;
+        }
+    }
+
+    return { notifications, unreadCount, fetchNotification, startPolling, stopPolling, markAllAsRead }
 })

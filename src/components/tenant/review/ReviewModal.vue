@@ -1,0 +1,306 @@
+<script setup>
+import { ref, computed } from 'vue'
+import { createReview } from '@/services/reviewService'
+
+const props = defineProps({
+  lease: {
+    type: Object,
+    required: true
+  }
+})
+
+const emit = defineEmits(['close', 'submitted'])
+
+const form = ref({
+  rating: 5,
+  comment: '',
+  landlordRating: 5,
+  propertyRating: 5,
+  maintenanceRating: 5,
+  communicationRating: 5
+})
+
+const loading = ref(false)
+const error = ref('')
+
+const isFormValid = computed(() => {
+  return form.value.rating >= 1 &&
+      form.value.rating <= 5 &&
+      form.value.comment.trim().length >= 10
+})
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+const submitReview = async () => {
+  if (!isFormValid.value) {
+    error.value = 'Please fill in all required fields with valid values.'
+    return
+  }
+
+  try {
+    loading.value = true
+    error.value = ''
+
+    // ✅ Send only the data that matches your ReviewDTO
+    const reviewData = {
+      // tenantId: not needed - backend gets it from authentication
+      propertyId: props.lease.propertyId,
+      leaseId: props.lease.leaseId,
+      // landlordId: not needed - backend gets it from property
+      rating: form.value.rating,
+      comment: form.value.comment.trim(),
+      displayName: `Tenant-${Date.now()}` // Generate a simple display name
+    }
+
+    console.log('Sending review data:', reviewData) // Debug log
+
+    await createReview(reviewData)
+    emit('submitted')
+  } catch (err) {
+    console.error('Review submission error:', err) // Debug log
+    error.value = err.message || 'Failed to submit review. Please try again.'
+  } finally {
+    loading.value = false
+  }
+}
+
+const closeModal = () => {
+  emit('close')
+}
+
+// Star rating component helpers
+const setRating = (field, rating) => {
+  form.value[field] = rating
+}
+
+const getStarClass = (field, star) => {
+  return form.value[field] >= star
+      ? 'text-yellow-400 fill-current'
+      : 'text-gray-300'
+}
+</script>
+
+<template>
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <!-- Header -->
+      <div class="sticky top-0 bg-white px-6 py-4 border-b border-gray-200 rounded-t-xl">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-bold text-gray-900">Write a Review</h2>
+          <button
+              @click="closeModal"
+              class="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="p-6">
+        <!-- Lease Information -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+          <h3 class="font-semibold text-gray-900 mb-2">Lease Information</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="text-gray-600">Property ID:</span>
+              <span class="font-medium ml-1">#{{ lease.propertyId }}</span>
+            </div>
+            <div>
+              <span class="text-gray-600">Lease Period:</span>
+              <span class="font-medium ml-1">
+                {{ formatDate(lease.startDate) }} - {{ formatDate(lease.endDate) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div v-if="error" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-red-600 text-sm">{{ error }}</p>
+        </div>
+
+        <!-- Review Form -->
+        <form @submit.prevent="submitReview" class="space-y-6">
+          <!-- Overall Rating -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Overall Rating <span class="text-red-500">*</span>
+            </label>
+            <div class="flex items-center space-x-1">
+              <button
+                  v-for="star in 5"
+                  :key="`overall-${star}`"
+                  type="button"
+                  @click="setRating('rating', star)"
+                  class="text-2xl transition-colors hover:text-yellow-400"
+                  :class="getStarClass('rating', star)"
+              >
+                ★
+              </button>
+              <span class="ml-2 text-sm text-gray-600">({{ form.rating }}/5)</span>
+            </div>
+          </div>
+
+          <!-- Detailed Ratings -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Landlord Rating -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Landlord Rating</label>
+              <div class="flex items-center space-x-1">
+                <button
+                    v-for="star in 5"
+                    :key="`landlord-${star}`"
+                    type="button"
+                    @click="setRating('landlordRating', star)"
+                    class="text-lg transition-colors hover:text-yellow-400"
+                    :class="getStarClass('landlordRating', star)"
+                >
+                  ★
+                </button>
+                <span class="ml-2 text-sm text-gray-600">({{ form.landlordRating }}/5)</span>
+              </div>
+            </div>
+
+            <!-- Property Rating -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Property Rating</label>
+              <div class="flex items-center space-x-1">
+                <button
+                    v-for="star in 5"
+                    :key="`property-${star}`"
+                    type="button"
+                    @click="setRating('propertyRating', star)"
+                    class="text-lg transition-colors hover:text-yellow-400"
+                    :class="getStarClass('propertyRating', star)"
+                >
+                  ★
+                </button>
+                <span class="ml-2 text-sm text-gray-600">({{ form.propertyRating }}/5)</span>
+              </div>
+            </div>
+
+            <!-- Maintenance Rating -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Maintenance Rating</label>
+              <div class="flex items-center space-x-1">
+                <button
+                    v-for="star in 5"
+                    :key="`maintenance-${star}`"
+                    type="button"
+                    @click="setRating('maintenanceRating', star)"
+                    class="text-lg transition-colors hover:text-yellow-400"
+                    :class="getStarClass('maintenanceRating', star)"
+                >
+                  ★
+                </button>
+                <span class="ml-2 text-sm text-gray-600">({{ form.maintenanceRating }}/5)</span>
+              </div>
+            </div>
+
+            <!-- Communication Rating -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Communication Rating</label>
+              <div class="flex items-center space-x-1">
+                <button
+                    v-for="star in 5"
+                    :key="`communication-${star}`"
+                    type="button"
+                    @click="setRating('communicationRating', star)"
+                    class="text-lg transition-colors hover:text-yellow-400"
+                    :class="getStarClass('communicationRating', star)"
+                >
+                  ★
+                </button>
+                <span class="ml-2 text-sm text-gray-600">({{ form.communicationRating }}/5)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comment -->
+          <div>
+            <label for="comment" class="block text-sm font-medium text-gray-700 mb-2">
+              Your Review <span class="text-red-500">*</span>
+            </label>
+            <textarea
+                id="comment"
+                v-model="form.comment"
+                rows="6"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                placeholder="Share your experience with this property and landlord. What did you like? What could be improved? (minimum 10 characters)"
+                required
+            ></textarea>
+            <p class="mt-1 text-sm text-gray-500">
+              {{ form.comment.length }}/500 characters (minimum 10 required)
+            </p>
+          </div>
+
+          <!-- Guidelines -->
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 class="font-medium text-blue-900 mb-2">Review Guidelines</h4>
+            <ul class="text-sm text-blue-800 space-y-1">
+              <li>• Be honest and fair in your assessment</li>
+              <li>• Focus on your actual experience during the lease</li>
+              <li>• Avoid personal attacks or inappropriate language</li>
+              <li>• Your review will help other tenants make informed decisions</li>
+            </ul>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200">
+            <button
+                type="button"
+                @click="closeModal"
+                class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                :disabled="loading"
+            >
+              Cancel
+            </button>
+            <button
+                type="submit"
+                class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="!isFormValid || loading"
+            >
+              <span v-if="loading" class="flex items-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Submitting...
+              </span>
+              <span v-else>Submit Review</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* Custom scrollbar for the modal */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+</style>

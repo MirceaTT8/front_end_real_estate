@@ -1,20 +1,24 @@
 <script setup>
-import { onMounted, ref, computed, watch, onUnmounted } from 'vue'
+import { onMounted, ref, computed, onUnmounted } from 'vue'
 import { useTenantLeaseStore } from "@/stores/leaseTenantStore.js"
-import { usePaymentTenantStore } from "@/stores/paymentTenantStore.js" // Import the correct store
+import { usePaymentTenantStore } from "@/stores/paymentTenantStore.js"
 
 import LeaseHeader from '@/components/tenant/lease/LeaseHeader.vue'
 import LeasePropertyDetails from '@/components/tenant/lease/LeasePropertyDetails.vue'
 import LeaseTerms from '@/components/tenant/lease/LeaseTerms.vue'
 import PaymentHistory from '@/components/tenant/payment/PaymentHistory.vue'
-import LeaseDocuments from '@/components/tenant/lease/LeaseDocuments.vue'
 import LeaseNotes from '@/components/tenant/lease/LeaseNotes.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import NoLeaseMessage from '@/components/tenant/lease/NoLeaseMessage.vue'
+import ReviewModal from '@/components/tenant/review/ReviewModal.vue' // You'll need to create this
 
 const tenantStore = useTenantLeaseStore()
-const paymentStore = usePaymentTenantStore() // Use the correct store
+const paymentStore = usePaymentTenantStore()
 const activeTab = ref('overview')
+
+// Review-related state
+const showReviewModal = ref(false)
+const selectedLeaseForReview = ref(null)
 
 // Initialize dates for Next Payment card
 const today = ref(new Date())
@@ -28,9 +32,58 @@ const formatCurrency = (amount) => {
   }).format(amount)
 }
 
+// Computed property to determine if we should show the no lease message
+const shouldShowNoLeaseMessage = computed(() => {
+  return !tenantStore.loading && !tenantStore.tenantHasActiveLease
+})
+
+// Computed property to determine if we should show the main lease dashboard
+const shouldShowLeaseDashboard = computed(() => {
+  return !tenantStore.loading && tenantStore.tenantHasActiveLease && tenantStore.lease
+})
+
+// Handle retry from NoLeaseMessage component
+const handleRetryLease = async () => {
+  await tenantStore.retryLoadLease()
+  if (tenantStore.lease) {
+    await paymentStore.fetchPayments()
+  }
+}
+
+// Handle contact support from NoLeaseMessage component
+const handleContactSupport = () => {
+  // You can implement this based on your app's support system
+  // For example: open a modal, redirect to contact page, or open email client
+  window.location.href = 'mailto:support@yourapp.com?subject=Lease Inquiry'
+}
+
+// Handle write review from NoLeaseMessage component
+const handleWriteReview = (lease) => {
+  selectedLeaseForReview.value = lease
+  showReviewModal.value = true
+}
+
+// Handle review submission
+const handleReviewSubmitted = async () => {
+  showReviewModal.value = false
+  selectedLeaseForReview.value = null
+  // Optionally refresh the no lease message to update pending reviews
+  // The NoLeaseMessage component will automatically refresh when mounted
+}
+
+// Handle review modal close
+const handleReviewModalClose = () => {
+  showReviewModal.value = false
+  selectedLeaseForReview.value = null
+}
+
 onMounted(async () => {
   await tenantStore.loadTenantLeaseData()
-  await paymentStore.fetchPayments() // Use fetchPayments method from paymentTenantStore
+
+  // Only fetch payments if tenant has an active lease
+  if (tenantStore.tenantHasActiveLease) {
+    await paymentStore.fetchPayments()
+  }
 
   // Set up interval to update the date every minute
   const interval = setInterval(() => {
@@ -56,11 +109,19 @@ onUnmounted(() => {
     <LoadingSpinner v-if="tenantStore.loading" message="Loading your lease information..." />
 
     <template v-else>
-      <!-- No Lease Message -->
-      <NoLeaseMessage v-if="!tenantStore.lease" />
+      <!-- No Lease Message with Review Integration -->
+      <NoLeaseMessage
+          v-if="shouldShowNoLeaseMessage"
+          :has-lease="tenantStore.tenantHasAnyLease"
+          :loading="tenantStore.loading"
+          :error="tenantStore.error"
+          @retry="handleRetryLease"
+          @contact-support="handleContactSupport"
+          @write-review="handleWriteReview"
+      />
 
       <!-- Lease Dashboard -->
-      <div v-else class="space-y-8">
+      <div v-if="shouldShowLeaseDashboard" class="space-y-8">
         <!-- Main Header with Gradient Background -->
         <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-md overflow-hidden">
           <div class="px-6 py-8 sm:px-8">
@@ -201,6 +262,14 @@ onUnmounted(() => {
         </div>
       </div>
     </template>
+
+    <!-- Review Modal -->
+    <ReviewModal
+        v-if="showReviewModal"
+        :lease="selectedLeaseForReview"
+        @close="handleReviewModalClose"
+        @submitted="handleReviewSubmitted"
+    />
   </div>
 </template>
 

@@ -43,6 +43,8 @@ const handleStripeCheckout = async () => {
 };
 
 onMounted(() => {
+  console.log(paymentStore.nextPaymentDate)
+  console.log(paymentStore.daysUntilNextPayment)
   paymentStore.fetchPayments()
 })
 </script>

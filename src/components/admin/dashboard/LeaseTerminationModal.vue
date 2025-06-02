@@ -6,7 +6,6 @@
       class="w-full max-w-2xl rounded-xl shadow-lg overflow-hidden"
       @update:visible="$emit('update:visible', $event)"
   >
-    <!-- Custom Header -->
     <div class="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4 flex justify-between items-center">
       <div class="flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -24,13 +23,11 @@
       </button>
     </div>
 
-    <!-- Loading State -->
     <div v-if="loading" class="flex flex-col items-center justify-center p-12 bg-white min-h-[400px]">
       <div class="w-12 h-12 border-4 border-gray-200 border-t-red-500 rounded-full animate-spin mb-4"></div>
       <p class="text-gray-600">Loading termination requests...</p>
     </div>
 
-    <!-- Content -->
     <div v-else class="bg-white min-h-[400px]">
       <div v-if="leases.length > 0" class="p-6 space-y-5">
         <div
@@ -38,7 +35,6 @@
             :key="lease.leaseId"
             class="bg-white border border-red-200 rounded-lg overflow-hidden shadow-sm"
         >
-          <!-- Lease Header -->
           <div class="bg-red-50 px-5 py-3 border-b border-red-200 flex justify-between items-center">
             <div class="flex items-center">
               <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-1 rounded-full mr-2">
@@ -51,10 +47,8 @@
             </span>
           </div>
 
-          <!-- Lease Details -->
           <div class="p-5">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-              <!-- Tenant Info -->
               <div class="flex items-start">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -65,7 +59,6 @@
                 </div>
               </div>
 
-              <!-- Property Info -->
               <div class="flex items-start">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -76,7 +69,6 @@
                 </div>
               </div>
 
-              <!-- Lease Dates -->
               <div class="flex items-start">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -87,7 +79,6 @@
                 </div>
               </div>
 
-              <!-- Monthly Rent -->
               <div class="flex items-start">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -99,7 +90,6 @@
               </div>
             </div>
 
-            <!-- Actions -->
             <div class="flex gap-3 justify-end mt-6">
               <button
                   @click="$emit('reject', lease.leaseId)"
@@ -121,16 +111,13 @@
         </div>
       </div>
 
-      <!-- Enhanced Empty State -->
       <div v-else class="flex flex-col items-center justify-center px-8 py-16 bg-white text-center min-h-[400px]">
-        <!-- Icon Container -->
         <div class="mx-auto w-24 h-24 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center mb-6 shadow-sm">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
 
-        <!-- Content -->
         <div class="max-w-sm">
           <h3 class="text-xl font-semibold text-gray-900 mb-3">All Clear!</h3>
           <p class="text-gray-600 mb-6 leading-relaxed">

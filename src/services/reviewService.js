@@ -1,0 +1,169 @@
+// src/services/reviewService.js
+import { BASE_URL } from "@/configs/config.js";
+
+const API = `${BASE_URL}/review`;
+
+export const createReview = async (reviewData) => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(API, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(reviewData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error creating review:', error);
+        throw error;
+    }
+};
+
+export const fetchPendingReviews = async () => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}/pending`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                return []; // No pending reviews
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching pending reviews:', error);
+        throw error;
+    }
+};
+
+export const fetchPendingReviewsCount = async () => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}/pending/count`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                return { count: 0, hasPendingReviews: false };
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching pending reviews count:', error);
+        throw error;
+    }
+};
+
+export const getReviewById = async (reviewId) => {
+    try {
+        const response = await fetch(`${API}/${reviewId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching review:', error);
+        throw error;
+    }
+};
+
+export const getReviewsByProperty = async (propertyId) => {
+    try {
+        const response = await fetch(`${API}/property/${propertyId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching property reviews:', error);
+        throw error;
+    }
+};
+
+export const getReviewsByTenant = async (tenantId) => {
+    try {
+        const response = await fetch(`${API}/tenant/${tenantId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching tenant reviews:', error);
+        throw error;
+    }
+};
+
+export const getReviewsByLandlord = async (landlordId) => {
+    try {
+        const response = await fetch(`${API}/landlord/${landlordId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching landlord reviews:', error);
+        throw error;
+    }
+};
+
+export const updateReview = async (reviewId, reviewData) => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}/${reviewId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(reviewData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error updating review:', error);
+        throw error;
+    }
+};
+
+export const deleteReview = async (reviewId) => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}/${reviewId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error deleting review:', error);
+        throw error;
+    }
+};
