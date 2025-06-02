@@ -1,12 +1,13 @@
 <script setup>
+import { ref } from 'vue'
 import {
   getPropertyNameByLeaseId,
   getTenantNameByLeaseId
 } from '@/utils/leaseNameUtils';
 
 import { requestLeaseTermination } from "@/services/leaseService.js";
-
-defineProps({
+import LeaseTenantReviewModal from "@/components/landlord/lease/LeaseTenantReviewModal.vue";
+const props = defineProps({
   leases: {
     type: Array,
     required: true
@@ -25,7 +26,10 @@ defineProps({
   }
 });
 
-const emit = defineEmits(['terminate']);
+const emit = defineEmits(['terminate', 'review-submitted']);
+
+const showReviewModal = ref(false)
+const selectedLease = ref(null)
 
 const formatDate = (dateString) => {
   if (!dateString || dateString === 'undetermined') return 'undetermined';
@@ -41,6 +45,38 @@ const handleTerminate = async (leaseId) => {
     alert('Failed to request lease termination.');
   }
 };
+
+const openReviewModal = (lease) => {
+  selectedLease.value = lease
+  showReviewModal.value = true
+}
+
+const closeReviewModal = () => {
+  showReviewModal.value = false
+  selectedLease.value = null
+}
+
+const handleReviewSuccess = () => {
+  emit('review-submitted')
+  closeReviewModal()
+}
+
+const getSelectedTenant = () => {
+  if (!selectedLease.value) return null
+  return props.tenants.find(t => t.userId === selectedLease.value.tenantId)
+}
+
+const getSelectedProperty = () => {
+  if (!selectedLease.value) return null
+  return props.properties.find(p => p.propertyId === selectedLease.value.propertyId)
+}
+
+// Check if lease is eligible for review (terminated or completed)
+const canReviewLease = (lease) => {
+  return lease.status === 'TERMINATED' ||
+      lease.terminationStatus === 'APPROVED' ||
+      (lease.endDate && new Date(lease.endDate) < new Date())
+}
 </script>
 
 <template>
@@ -85,12 +121,9 @@ const handleTerminate = async (leaseId) => {
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
-              <router-link
-                  :to="`/properties/${lease.propertyId}`"
-                  class="text-blue-600 hover:text-blue-800 hover:underline font-medium"
-              >
-                {{ getPropertyNameByLeaseId(lease.leaseId, leases, properties) }}
-              </router-link>
+              <span class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                {{ getPropertyNameByLeaseId(lease.leaseId, props.leases, props.properties) }}
+              </span>
             </div>
           </div>
 
@@ -101,12 +134,9 @@ const handleTerminate = async (leaseId) => {
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              <router-link
-                  :to="`/tenants/${lease.tenantId}`"
-                  class="text-blue-600 hover:text-blue-800 hover:underline font-medium"
-              >
-                {{ getTenantNameByLeaseId(lease.leaseId, leases, tenants) }}
-              </router-link>
+              <span class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                {{ getTenantNameByLeaseId(lease.leaseId, props.leases, props.tenants) }}
+              </span>
             </div>
           </div>
 
@@ -126,7 +156,19 @@ const handleTerminate = async (leaseId) => {
 
         <!-- Actions Section -->
         <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+          <!-- Review Tenant Button -->
+          <button
+              v-if="canReviewLease(lease)"
+              @click="openReviewModal(lease)"
+              class="flex items-center bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            Review Tenant
+          </button>
 
+          <!-- Termination Status or Action -->
           <div
               v-if="lease.terminationStatus === 'PENDING'"
               class="flex items-center text-orange-600 font-medium px-4 py-2 rounded-md bg-orange-50"
@@ -160,5 +202,15 @@ const handleTerminate = async (leaseId) => {
         </div>
       </div>
     </div>
+
+    <!-- Review Modal -->
+    <LeaseTenantReviewModal
+        :visible="showReviewModal"
+        :lease="selectedLease"
+        :tenant="getSelectedTenant()"
+        :property="getSelectedProperty()"
+        @close="closeReviewModal"
+        @success="handleReviewSuccess"
+    />
   </div>
 </template>

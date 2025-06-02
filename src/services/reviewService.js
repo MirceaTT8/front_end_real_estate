@@ -167,3 +167,67 @@ export const deleteReview = async (reviewId) => {
         throw error;
     }
 };
+
+export const createLandlordReview = async (reviewData) => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}/landlord-to-tenant`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(reviewData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Review creation failed with status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error creating landlord review:', error);
+        throw error;
+    }
+};
+
+export const fetchReviewsForTenant = async (tenantId) => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}/tenant/${tenantId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching tenant reviews:', error);
+        throw error;
+    }
+};
+
+export const fetchReviewsForProperty = async (propertyId) => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}/property/${propertyId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching property reviews:', error);
+        throw error;
+    }
+};

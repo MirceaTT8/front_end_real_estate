@@ -5,11 +5,12 @@ import LeaseList from '@/components/landlord/lease/LeaseList.vue';
 import LeaseSummaryCards from '@/components/landlord/lease/LeaseSummaryCards.vue';
 import LeaseTabs from '@/components/landlord/lease/LeaseTabs.vue';
 import LeaseCreateModal from "@/components/landlord/lease/LeaseCreateModal.vue";
-import { createWebHistory as $router } from "vue-router/dist/vue-router.esm-browser.js";
 
 const leaseStore = useLeaseStore()
 const activeTab = ref('ACTIVE')
 const showCreateModal = ref(false)
+const showSuccessMessage = ref(false)
+const successMessage = ref('')
 
 onMounted(async () => {
   await leaseStore.loadLeasesAndData()
@@ -34,10 +35,39 @@ const activeLeasesCount = computed(() => {
 const handleTerminate = (leaseId) => {
   console.log('Terminating lease:', leaseId)
 }
+
+const handleReviewSubmitted = () => {
+  successMessage.value = 'Review submitted successfully!'
+  showSuccessMessage.value = true
+
+  // Auto-hide success message after 5 seconds
+  setTimeout(() => {
+    showSuccessMessage.value = false
+  }, 5000)
+}
+
+const hideSuccessMessage = () => {
+  showSuccessMessage.value = false
+}
 </script>
 
 <template>
   <div class="max-w-6xl mx-auto px-6 py-10 min-h-screen bg-gray-50">
+    <!-- Success Message -->
+    <div v-if="showSuccessMessage" class="fixed top-4 right-4 z-50">
+      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg flex items-center max-w-md">
+        <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ successMessage }}</span>
+        <button @click="hideSuccessMessage" class="ml-3 text-green-500 hover:text-green-700">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
     <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg mb-8">
       <div class="px-8 py-6">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -125,6 +155,7 @@ const handleTerminate = (leaseId) => {
               PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-700' }
             }"
               @terminate="handleTerminate"
+              @review-submitted="handleReviewSubmitted"
           />
 
           <div v-else class="bg-gray-50 p-12 rounded-lg text-center border border-gray-100">
