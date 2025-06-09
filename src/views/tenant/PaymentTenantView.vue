@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { usePaymentTenantStore } from "@/stores/tenant/paymentTenantStore.js";
+import { isPaymentMadeThisCycle } from "@/services/paymentService.js";
+import {fetchMyLease} from "@/services/leaseService.js";
 import { loadStripe } from "@stripe/stripe-js";
 import {formatDate} from "@/utils/dateUtils.js";
 const stripePromise = loadStripe('pk_test_51MMELpFqC40RfDoFO6Jg3gMWPzmE16VwhlDkBdaa5DlTHn7s7jtjok0zsiLT3x4v2h8TB6nTEgtg9552gtGCGsYn00Qg9p6wT4')
@@ -8,6 +10,7 @@ import PaymentHistory from "@/components/tenant/payment/PaymentHistory.vue";
 
 const paymentStore = usePaymentTenantStore()
 const showPaymentModal = ref(false)
+const hasPaidThisCycle = ref(true)
 
 const paymentForm = ref({
   amount: 0,
@@ -42,10 +45,19 @@ const handleStripeCheckout = async () => {
   }
 };
 
-onMounted(() => {
-  console.log(paymentStore.nextPaymentDate)
-  console.log(paymentStore.daysUntilNextPayment)
+onMounted(async () => {
   paymentStore.fetchPayments()
+
+  try {
+    const currentLeaseId = await fetchMyLease()
+    if (currentLeaseId) {
+      hasPaidThisCycle.value = await isPaymentMadeThisCycle(currentLeaseId.leaseId)
+      console.log(currentLeaseId)
+    }
+  } catch (error) {
+    console.error('Failed to check payment status:', error)
+  }
+
 })
 </script>
 
@@ -60,7 +72,7 @@ onMounted(() => {
             <p class="text-purple-100">Manage your rent payments and view payment history</p>
           </div>
           <button
-              v-if="!paymentStore.loading && !paymentStore.hasPaidThisCycle"
+              v-if="!paymentStore.loading && !hasPaidThisCycle"
               @click="handleStripeCheckout"
               class="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg hover:bg-white/30 transition-all duration-200 font-medium shadow-lg"
           >

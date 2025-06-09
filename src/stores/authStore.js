@@ -3,7 +3,8 @@ import { jwtDecode } from 'jwt-decode'
 export const useAuthStore = defineStore('auth', {
     state: () => ({
         token: localStorage.getItem('token'),
-        role: null
+        role: null,
+        authorities: []
     }),
     getters: {
         isAuthenticated: (state) => !!state.token,

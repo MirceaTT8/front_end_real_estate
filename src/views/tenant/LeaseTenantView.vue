@@ -10,8 +10,7 @@ import PaymentHistory from '@/components/tenant/payment/PaymentHistory.vue'
 import LeaseNotes from '@/components/tenant/lease/LeaseNotes.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import NoLeaseMessage from '@/components/tenant/lease/NoLeaseMessage.vue'
-import ReviewModal from '@/components/tenant/review/ReviewModal.vue' // You'll need to create this
-
+import ReviewModal from '@/components/tenant/review/ReviewModal.vue'
 const tenantStore = useTenantLeaseStore()
 const paymentStore = usePaymentTenantStore()
 const activeTab = ref('overview')
@@ -23,7 +22,6 @@ const selectedLeaseForReview = ref(null)
 // Initialize dates for Next Payment card
 const today = ref(new Date())
 
-// Function to format currency values
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

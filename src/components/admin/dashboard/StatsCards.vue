@@ -52,14 +52,6 @@ const getUrgencyColor = (urgentCount) => {
             </p>
             <p class="text-sm text-gray-600 mt-1">Registered users</p>
           </div>
-          <div class="text-right">
-            <p class="text-sm font-medium" :class="stats.userGrowth >= 0 ? 'text-green-600' : 'text-red-600'">
-              <span v-if="!loading && stats.userGrowth !== undefined">
-                {{ stats.userGrowth >= 0 ? '+' : '' }}{{ stats.userGrowth }}%
-              </span>
-            </p>
-            <p class="text-xs text-gray-500">vs last month</p>
-          </div>
         </div>
       </div>
     </div>
@@ -82,14 +74,6 @@ const getUrgencyColor = (urgentCount) => {
             </p>
             <p class="text-sm text-gray-600 mt-1">Listed properties</p>
           </div>
-          <div class="text-right">
-            <p class="text-sm font-medium" :class="stats.propertyGrowth >= 0 ? 'text-green-600' : 'text-red-600'">
-              <span v-if="!loading && stats.propertyGrowth !== undefined">
-                {{ stats.propertyGrowth >= 0 ? '+' : '' }}{{ stats.propertyGrowth }}%
-              </span>
-            </p>
-            <p class="text-xs text-gray-500">vs last month</p>
-          </div>
         </div>
       </div>
     </div>
@@ -111,16 +95,7 @@ const getUrgencyColor = (urgentCount) => {
             <p class="text-3xl font-bold text-gray-900" :class="{ 'animate-pulse bg-gray-200 rounded w-16 h-8': loading }">
               <span v-if="!loading">{{ stats.maintenanceRequests?.toLocaleString() || '0' }}</span>
             </p>
-            <p class="text-sm text-gray-600 mt-1">Active requests</p>
-          </div>
-          <div class="text-right">
-            <div class="flex flex-col space-y-1">
-              <span class="text-xs px-2 py-1 rounded-full"
-                    :class="getUrgencyColor(stats.urgentRequests)">
-                {{ stats.urgentRequests || 0 }} urgent
-              </span>
-              <p class="text-xs text-gray-500">priority requests</p>
-            </div>
+            <p class="text-sm text-gray-600 mt-1">Maintenance Requests</p>
           </div>
         </div>
       </div>

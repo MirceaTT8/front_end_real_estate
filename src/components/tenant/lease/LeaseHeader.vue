@@ -6,9 +6,6 @@
         <p class="text-blue-100 mt-1">
           <span class="opacity-80">Owned by:</span> {{ owner?.firstName || 'N/A' }} {{ owner?.lastName || 'N/A' }}
         </p>
-        <p class="text-blue-100 mt-0.5">
-          <span class="opacity-80">Lease #:</span> {{ lease.leaseId }}
-        </p>
       </div>
       <span
           class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium shadow-sm"
