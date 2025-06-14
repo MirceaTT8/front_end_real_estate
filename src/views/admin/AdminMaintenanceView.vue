@@ -12,8 +12,9 @@ const showModal = ref(false)
 const modalImageIds = ref([])
 
 const totalRequests = computed(() => store.filteredRequests.length)
-const pendingRequests = computed(() => store.filteredRequests.filter(req => req.status === 'PENDING').length)
-const urgentRequests = computed(() => store.filteredRequests.filter(req => req.priority === 'HIGH').length)
+const cancelledRequests = computed(() => store.filteredRequests.filter(req => req.status === 'CANCELLED').length)
+const completedRequests = computed(() => store.filteredRequests.filter(req => req.status === 'COMPLETED').length)
+const inProgressRequests = computed(() => store.filteredRequests.filter(req => req.status === 'IN_PROGRESS').length)
 
 const openImageModal = (ids) => {
   modalImageIds.value = ids
@@ -27,7 +28,6 @@ const updateFilters = (newFilters) => {
 const sortBy = (field) => {
   store.setSort(field)
 }
-
 
 onMounted(() => {
   store.fetchRequests()
@@ -51,13 +51,13 @@ onMounted(() => {
               <p class="text-amber-100 mt-1">Manage and track property maintenance</p>
             </div>
           </div>
-
         </div>
       </div>
     </div>
 
     <!-- Stats cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Total Requests Card -->
       <div class="bg-white rounded-xl shadow-md p-6">
         <div class="flex items-center gap-4">
           <div class="bg-blue-100 p-3 rounded-lg">
@@ -72,6 +72,37 @@ onMounted(() => {
         </div>
       </div>
 
+      <!-- Cancelled Requests Card -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center gap-4">
+          <div class="bg-red-100 p-3 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-gray-500 text-sm">Cancelled Requests</h3>
+            <p class="font-bold text-xl text-gray-800">{{ cancelledRequests }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Completed Requests Card -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center gap-4">
+          <div class="bg-green-100 p-3 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-gray-500 text-sm">Completed Requests</h3>
+            <p class="font-bold text-xl text-gray-800">{{ completedRequests }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- In Progress Requests Card -->
       <div class="bg-white rounded-xl shadow-md p-6">
         <div class="flex items-center gap-4">
           <div class="bg-amber-100 p-3 rounded-lg">
@@ -80,22 +111,8 @@ onMounted(() => {
             </svg>
           </div>
           <div>
-            <h3 class="text-gray-500 text-sm">Pending Requests</h3>
-            <p class="font-bold text-xl text-gray-800">{{ pendingRequests }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <div class="flex items-center gap-4">
-          <div class="bg-red-100 p-3 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-gray-500 text-sm">Urgent Requests</h3>
-            <p class="font-bold text-xl text-gray-800">{{ urgentRequests }}</p>
+            <h3 class="text-gray-500 text-sm">In Progress Requests</h3>
+            <p class="font-bold text-xl text-gray-800">{{ inProgressRequests }}</p>
           </div>
         </div>
       </div>

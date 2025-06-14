@@ -49,7 +49,7 @@ const router = createRouter({
                 return '/login'
             }
         },
-        { path: '/profile', name: 'Profile', component: ProfileView },
+        { path: '/profile/:userId?', name: 'Profile', component: ProfileView },
 
         { path: '/landlord', name: 'Dashboard', component: DashboardView },
         { path: '/landlord/properties', name: 'Property', component: PropertyView },
@@ -78,7 +78,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-    const publicPages = ['/login', '/register', '/payment/success']
+    const publicPages = ['/login', '/register', '/payment/success', '/invite']
 
     const authRequired = !publicPages.includes(to.path.split('?')[0])
 

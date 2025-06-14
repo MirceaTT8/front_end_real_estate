@@ -1,13 +1,23 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { fetchPaymentsForLease, createPayment, createStripeCheckoutSession } from '@/services/paymentService.js'
-import { useTenantLeaseStore } from "@/stores/tenant/leaseTenantStore.js";
+import {
+    fetchPaymentsForLease,
+    createPayment,
+    createStripeCheckoutSession,
+    confirmStripePayment,
+    isPaymentMadeThisCycle,
+    isPaymentMadeThisMonth
+} from '@/services/paymentService.js'
+import { fetchMyLease } from "@/services/leaseService.js"
+import { useTenantLeaseStore } from "@/stores/tenant/leaseTenantStore.js"
 
 export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
     const payments = ref([])
     const loading = ref(false)
     const error = ref(null)
     const yearlyPayments = ref([])
+    const hasPaidCurrentCycle = ref(true)
+    const currentLease = ref(null)
 
     const tenantLeaseStore = useTenantLeaseStore()
 
@@ -31,12 +41,48 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
         }
     }
 
-    const updateYearlyPayments = () => {
-        const currentYear = new Date().getFullYear()
-        yearlyPayments.value = payments.value.filter(payment => {
-            const paymentDate = new Date(payment.paymentDate)
-            return paymentDate.getFullYear() === currentYear && payment.status === 'COMPLETED'
-        })
+    const fetchCurrentLease = async () => {
+        try {
+            currentLease.value = await fetchMyLease()
+            return currentLease.value
+        } catch (error) {
+            console.error('Failed to fetch current lease:', error)
+            throw error
+        }
+    }
+
+    const checkPaymentCycleStatus = async () => {
+        try {
+            if (!currentLease.value) {
+                await fetchCurrentLease()
+            }
+
+            if (currentLease.value?.leaseId) {
+                hasPaidCurrentCycle.value = await isPaymentMadeThisCycle(currentLease.value.leaseId)
+            }
+
+            return hasPaidCurrentCycle.value
+        } catch (error) {
+            console.error('Failed to check payment status:', error)
+            throw error
+        }
+    }
+
+    const initializePaymentData = async () => {
+        loading.value = true
+        error.value = null
+
+        try {
+            await fetchPayments()
+
+            await checkPaymentCycleStatus()
+
+        } catch (err) {
+            error.value = err.message || 'Failed to initialize payment data'
+            throw err
+        } finally {
+            loading.value = false
+        }
     }
 
     const makePayment = async (paymentData) => {
@@ -48,13 +94,47 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
             const newPayment = await createPayment(leaseId, paymentData)
             if (newPayment) {
                 payments.value.unshift(newPayment)
-                updateYearlyPayments() // Update yearly payments after adding a new payment
+                updateYearlyPayments()
+                // Update payment cycle status after successful payment
+                await checkPaymentCycleStatus()
             }
+            return newPayment
         } catch (err) {
             error.value = err.message || 'Payment failed'
+            throw err
         } finally {
             loading.value = false
         }
+    }
+
+    const startStripeCheckout = async () => {
+        const leaseId = tenantLeaseStore.lease?.leaseId
+        if (!leaseId) throw new Error('No active lease found')
+        return await createStripeCheckoutSession(leaseId)
+    }
+
+    const confirmStripePaymentStatus = async (sessionId) => {
+        return await confirmStripePayment(sessionId)
+    }
+
+    const checkPaymentMadeThisCycle = async () => {
+        const leaseId = tenantLeaseStore.lease?.leaseId
+        if (!leaseId) throw new Error('No active lease found')
+        return await isPaymentMadeThisCycle(leaseId)
+    }
+
+    const checkPaymentMadeThisMonth = async () => {
+        const leaseId = tenantLeaseStore.lease?.leaseId
+        if (!leaseId) throw new Error('No active lease found')
+        return await isPaymentMadeThisMonth(leaseId)
+    }
+
+    const updateYearlyPayments = () => {
+        const currentYear = new Date().getFullYear()
+        yearlyPayments.value = payments.value.filter(payment => {
+            const paymentDate = new Date(payment.paymentDate)
+            return paymentDate.getFullYear() === currentYear && payment.status === 'COMPLETED'
+        })
     }
 
     const hasPaidThisCycle = computed(() => {
@@ -65,7 +145,6 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
         const currentMonth = today.getMonth()
         const currentYear = today.getFullYear()
 
-        // Check if there's a completed payment in the current month
         return payments.value.some(payment => {
             if (payment.status !== 'COMPLETED') return false
 
@@ -76,7 +155,7 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
     })
 
     const currentBalance = computed(() => {
-        return hasPaidThisCycle.value ? 0 : tenantLeaseStore.lease?.monthlyRent || 0
+        return hasPaidCurrentCycle.value ? 0 : tenantLeaseStore.lease?.monthlyRent || 0
     })
 
     const totalPaidYTD = computed(() => {
@@ -93,12 +172,6 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
 
         return months
     })
-
-    const startStripeCheckout = async () => {
-        const leaseId = tenantLeaseStore.lease?.leaseId
-        if (!leaseId) throw new Error('No active lease found')
-        return await createStripeCheckoutSession(leaseId)
-    }
 
     const nextPaymentDate = computed(() => {
         const lease = tenantLeaseStore.lease
@@ -144,14 +217,22 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
         yearlyPayments,
         loading,
         error,
+        hasPaidCurrentCycle,
+        currentLease,
         fetchPayments,
+        fetchCurrentLease,
+        checkPaymentCycleStatus,
+        initializePaymentData,
         makePayment,
+        startStripeCheckout,
+        confirmStripePaymentStatus,
+        checkPaymentMadeThisCycle,
+        checkPaymentMadeThisMonth,
         hasPaidThisCycle,
         currentBalance,
         totalPaidYTD,
         paymentsByMonth,
         nextPaymentDate,
         daysUntilNextPayment,
-        startStripeCheckout,
     }
 })

@@ -19,29 +19,6 @@ const columns = ref([
 ]);
 </script>
 
-<style scoped>
-table {
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-thead th:first-child {
-  border-top-left-radius: 0.5rem;
-}
-
-thead th:last-child {
-  border-top-right-radius: 0.5rem;
-}
-
-tbody tr:last-child td:first-child {
-  border-bottom-left-radius: 0.5rem;
-}
-
-tbody tr:last-child td:last-child {
-  border-bottom-right-radius: 0.5rem;
-}
-</style>
-
 <template>
   <div class="overflow-x-auto">
     <table class="min-w-full table-auto">
@@ -82,3 +59,26 @@ tbody tr:last-child td:last-child {
   </div>
 </template>
 
+
+<style scoped>
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+thead th:first-child {
+  border-top-left-radius: 0.5rem;
+}
+
+thead th:last-child {
+  border-top-right-radius: 0.5rem;
+}
+
+tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 0.5rem;
+}
+
+tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 0.5rem;
+}
+</style>

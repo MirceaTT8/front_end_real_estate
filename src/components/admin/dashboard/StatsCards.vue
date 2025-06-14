@@ -21,15 +21,6 @@ const props = defineProps({
 
 const stats = computed(() => props.statsData)
 
-const getUrgencyColor = (urgentCount) => {
-  if (!urgentCount || urgentCount === 0) {
-    return 'bg-gray-100 text-gray-600'
-  } else if (urgentCount <= 5) {
-    return 'bg-yellow-100 text-yellow-700'
-  } else {
-    return 'bg-red-100 text-red-700'
-  }
-}
 </script>
 
 <template>

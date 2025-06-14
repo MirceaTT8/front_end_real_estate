@@ -1,6 +1,5 @@
 <script setup>
 import { onMounted, onUnmounted, ref, computed, watch } from 'vue'
-import Menubar from 'primevue/menubar'
 import { PrimeIcons } from '@primevue/core/api'
 import UserDropdown from '@/components/UserDropdown.vue'
 import NotificationBell from '@/components/notification/NotificationBell.vue'
@@ -35,12 +34,12 @@ const menuItems = {
   ],
   admin: [
     { label: 'Dashboard', icon: PrimeIcons.TH_LARGE, route: '/admin/dashboard' },
+    { label: 'Leases', icon: PrimeIcons.FILE, route: '/admin/leases' },
+    { label: 'Properties', icon: PrimeIcons.BUILDING, route: '/admin/properties' },
     { label: 'Users', icon: PrimeIcons.USERS, route: '/admin/users' },
-    { label: 'Logs', icon: PrimeIcons.LIST, route: '/admin/logs' },
     { label: 'Payments', icon: PrimeIcons.MONEY_BILL, route: '/admin/payments' },
     { label: 'Maintenance', icon: PrimeIcons.WRENCH, route: '/admin/maintenance' },
-    { label: 'Properties', icon: PrimeIcons.BUILDING, route: '/admin/properties' },
-    { label: 'Leases', icon: PrimeIcons.FILE, route: '/admin/leases' },
+    { label: 'Logs', icon: PrimeIcons.LIST, route: '/admin/logs' },
   ]
 }
 
@@ -68,7 +67,6 @@ const closeDropdown = () => {
   activeDropdown.value = null
 }
 
-// Close dropdown when clicking outside
 const handleClickOutside = (event) => {
   if (!event.target.closest('.dropdown-container')) {
     activeDropdown.value = null
@@ -93,7 +91,15 @@ const showNavBar = computed(() => {
 })
 
 const isActiveRoute = (itemRoute) => {
-  return route.path === itemRoute || route.path.startsWith(itemRoute + '/')
+  if (route.path === itemRoute) {
+    return true;
+  }
+
+  if (itemRoute === '/landlord' || itemRoute === '/admin/dashboard') {
+    return route.path === itemRoute;
+  }
+
+  return route.path.startsWith(itemRoute + '/');
 }
 </script>
 

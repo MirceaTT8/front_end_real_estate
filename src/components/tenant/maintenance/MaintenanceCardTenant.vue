@@ -13,7 +13,7 @@ const isExpanded = ref(false);
 
 const maintenanceStore = useMaintenanceTenantStore();
 
-const openSlider = (index) => {
+const openSlider = (index = 0) => {
   activeIndex.value = index;
   showModal.value = true;
 };
@@ -171,38 +171,17 @@ const getRequestTypeIcon = (type) => {
         </button>
       </div>
 
-      <!-- Attached Photos -->
+      <!-- View Photos Button (Only show if images exist) -->
       <div v-if="request.imageUrls?.length" class="mb-4">
-        <h4 class="font-medium text-sm text-gray-700 mb-3 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button
+            @click="openSlider(0)"
+            class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          Attached Photos ({{ request.imageUrls.length }})
-        </h4>
-
-        <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
-          <button
-              v-for="(imageId, index) in request.imageUrls"
-              :key="index"
-              @click="openSlider(index)"
-              class="block w-full aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-teal-400 hover:shadow-md transition-all relative group"
-          >
-            <img
-                :src="`http://localhost:8080/image/${imageId}`"
-                :alt="`Attachment ${index + 1}`"
-                loading="lazy"
-                class="w-full h-full object-cover"
-            />
-            <!-- Zoom icon overlay on hover -->
-            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
-              <div class="bg-white rounded-full p-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                </svg>
-              </div>
-            </div>
-          </button>
-        </div>
+          View Photos ({{ request.imageUrls.length }})
+        </button>
       </div>
 
       <!-- Meta Information -->
@@ -233,92 +212,54 @@ const getRequestTypeIcon = (type) => {
             <span class="font-medium">Status:</span>
             <span class="ml-1">{{ statusDisplay[request.status]?.label || request.status }}</span>
           </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Enhanced Feedback Section -->
-    <div v-if="request.status === 'COMPLETED'" class="px-6 py-4 bg-gray-50 border-t border-gray-100">
-      <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Was this maintenance issue resolved to your satisfaction?
-      </h4>
-
-      <!-- Initial Response Buttons -->
-      <div v-if="!hasSubmittedResponse" class="flex gap-3 items-center">
-        <button
-            @click="submitFixedStatus(true)"
-            class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex items-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          Yes, it's fixed
-        </button>
-        <button
-            @click="submitFixedStatus(false)"
-            class="bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex items-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-          No, still needs work
-        </button>
-      </div>
-
-      <!-- Response Confirmation -->
-      <div v-if="hasSubmittedResponse" class="space-y-3">
-        <!-- Positive Response -->
-        <div v-if="userFixedResponse" class="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800 flex items-start">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-          </svg>
-          <div>
-            <p class="font-medium">✅ Issue Resolved Successfully</p>
-            <p class="text-xs mt-1">Thank you for confirming the maintenance work was completed satisfactorily.</p>
-          </div>
-        </div>
-
-        <!-- Negative Response -->
-        <div v-else class="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm text-orange-800">
-          <div class="flex items-start">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          <!-- Show image count in meta if there are images -->
+          <div v-if="request.imageUrls?.length" class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <div class="flex-1">
-              <p class="font-medium">⚠️ Marked as Not Fixed</p>
-              <p class="text-xs mt-1">The request has been reopened. Your property manager will be notified and will contact you within 24 hours to address the remaining issues.</p>
-            </div>
+            <span class="font-medium">Photos:</span>
+            <span class="ml-1">{{ request.imageUrls.length }} attached</span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Image Slider Modal -->
-    <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-xl overflow-hidden w-full max-w-5xl shadow-xl relative">
-        <div class="absolute top-4 right-4 z-10">
-          <button @click="showModal = false" class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-full p-2 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl overflow-hidden w-full max-w-6xl shadow-xl relative">
+        <!-- Header with image counter and close button -->
+        <div class="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/50 to-transparent p-4">
+          <div class="flex justify-between items-center">
+            <div class="bg-black/30 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium">
+              Photo {{ activeIndex + 1 }} of {{ request.imageUrls.length }}
+            </div>
+            <button
+                @click="showModal = false"
+                class="bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white rounded-full p-2 transition-all duration-200"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
+
         <Swiper
             :initial-slide="activeIndex"
             :modules="[Navigation, Pagination]"
             :navigation="true"
             :pagination="{ clickable: true }"
-            class="h-[80vh]"
+            class="h-[85vh]"
+            @slide-change="(swiper) => activeIndex = swiper.activeIndex"
         >
           <SwiperSlide v-for="(imageId, index) in request.imageUrls" :key="index">
             <div class="h-full w-full flex items-center justify-center bg-gray-900">
               <img
                   :src="`http://localhost:8080/image/${imageId}`"
-                  :alt="`Image ${index + 1}`"
+                  :alt="`Maintenance request photo ${index + 1}`"
                   class="max-w-full max-h-full object-contain"
+                  loading="lazy"
               />
             </div>
           </SwiperSlide>

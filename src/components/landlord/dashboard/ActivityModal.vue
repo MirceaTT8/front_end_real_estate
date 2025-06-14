@@ -108,7 +108,7 @@ const getInitial = (description) => {
         </button>
       </div>
 
-      <!-- Modal Content (Scrollable) -->
+      <!-- Modal Content -->
       <div class="overflow-y-auto px-6 py-4 max-h-[calc(85vh-8rem)] custom-scrollbar">
         <!-- Activities List -->
         <div v-for="(activities, date) in groupActivitiesByDate()" :key="date" class="space-y-3 mb-8 last:mb-4">

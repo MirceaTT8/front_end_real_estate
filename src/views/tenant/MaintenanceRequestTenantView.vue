@@ -9,7 +9,7 @@ import MaintenanceHeader from '@/components/tenant/maintenance/MaintenanceHeader
 const maintenanceStore = useMaintenanceTenantStore()
 
 const showCreateForm = ref(false)
-const statusFilter = ref('PENDING')
+const statusFilter = ref('ALL')
 
 const filteredRequests = computed(() => {
   if (statusFilter.value === 'ALL') return maintenanceStore.requests

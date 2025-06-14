@@ -84,7 +84,7 @@ const handleMarkerDragged = async (location) => {
 }
 
 function cancel() {
-  router.push('/properties')
+  router.push('/landlord/properties')
 }
 
 async function saveProperty() {

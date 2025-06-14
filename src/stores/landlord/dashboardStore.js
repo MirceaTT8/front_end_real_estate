@@ -108,11 +108,16 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
     }
 
     const isInLast30Days = dateStr => {
-        const date = new Date(dateStr)
-        const now = new Date()
-        const past = new Date()
-        past.setDate(now.getDate() - 30)
-        return date >= past && date <= now
+        if (!dateStr) return false;
+
+        const inputDate = new Date(dateStr);
+        const now = new Date();
+
+        const diffInMs = now.getTime() - inputDate.getTime();
+
+        const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+        return diffInDays >= 0 && diffInDays <= 30;
     }
 
     const initDashboard = async () => {

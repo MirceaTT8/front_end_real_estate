@@ -203,3 +203,25 @@ export const deactivateUser = async (userId) => {
         throw error
     }
 }
+
+export const updateUserPhone = async (userId, phone) => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}/${userId}/phone`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ phone })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error updating phone number:', error);
+        throw error;
+    }
+};

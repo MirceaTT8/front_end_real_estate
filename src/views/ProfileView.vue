@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, onMounted, ref, computed } from 'vue';
-import { fetchUserByEmail } from '@/services/userService';
+import { useRoute } from 'vue-router';
+import { fetchUserByEmail, fetchUserById, updateUserPhone } from '@/services/userService';
 import { jwtDecode } from 'jwt-decode';
 import ProfileAvatar from "@/views/profile/ProfileAvatar.vue";
 import ProfileDetailItem from "@/views/profile/ProfileDetailItem.vue";
@@ -8,11 +9,19 @@ import ProfileInputField from "@/views/profile/ProfileInputField.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import ErrorMessage from "@/components/ErrorMessage.vue";
 
+const route = useRoute();
+
 const user = reactive({
+  userId: null,
   firstName: '',
   lastName: '',
   email: '',
   phone: ''
+});
+
+const currentUser = reactive({
+  userId: null,
+  email: ''
 });
 
 const isEditing = ref(false);
@@ -20,15 +29,45 @@ const isLoading = ref(true);
 const error = ref(null);
 const tempProfile = reactive({});
 
+// Computed property to check if the current user can edit this profile
+const canEdit = computed(() => {
+  return currentUser.userId && user.userId && currentUser.userId === user.userId;
+});
+
+// Computed property to determine if this is the user's own profile
+const isOwnProfile = computed(() => {
+  return canEdit.value;
+});
+
 const fetchUserData = async () => {
   try {
     isLoading.value = true;
     error.value = null;
+
     const token = localStorage.getItem('token');
     if (!token) throw new Error('User not authenticated');
 
     const decoded = jwtDecode(token);
-    const userData = await fetchUserByEmail(decoded.sub);
+
+    // Set current authenticated user info
+    const currentUserData = await fetchUserByEmail(decoded.sub);
+    Object.assign(currentUser, {
+      userId: currentUserData.userId,
+      email: currentUserData.email
+    });
+
+    // Check if viewing a specific user profile via route parameter
+    const userIdParam = route.params.userId;
+
+    let userData;
+    if (userIdParam) {
+      // Viewing another user's profile
+      userData = await fetchUserById(parseInt(userIdParam));
+    } else {
+      // Viewing own profile (default behavior)
+      userData = currentUserData;
+    }
+
     Object.assign(user, userData);
   } catch (err) {
     error.value = err.message || 'Failed to load profile data';
@@ -39,12 +78,38 @@ const fetchUserData = async () => {
 };
 
 const startEditing = () => {
+  if (!canEdit.value) {
+    alert('You can only edit your own profile');
+    return;
+  }
   Object.assign(tempProfile, user);
   isEditing.value = true;
 };
 
 const cancelEditing = () => {
   isEditing.value = false;
+};
+
+const saveProfile = async () => {
+  try {
+    isLoading.value = true;
+
+    // Only update phone number if it has changed
+    if (tempProfile.phone !== user.phone) {
+      const updatedUser = await updateUserPhone(user.userId, tempProfile.phone);
+
+      // Update only the phone number in the local user object
+      user.phone = updatedUser.phone;
+    }
+
+    isEditing.value = false;
+    alert('Phone number updated successfully');
+  } catch (err) {
+    alert('Failed to update phone number: ' + err.message);
+    console.error('Phone update error:', err);
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 onMounted(fetchUserData);
@@ -65,15 +130,21 @@ onMounted(fetchUserData);
             <ProfileAvatar :user="user" />
           </div>
           <div class="text-center md:text-left mt-2">
-            <h1 class="text-2xl font-bold text-gray-800">{{ user.firstName }} {{ user.lastName }}</h1>
-            <p class="text-gray-500">{{ user.email }}</p>
+            <div class="flex items-center gap-2">
+              <h1 class="text-2xl font-bold text-white">{{ user.firstName }} {{ user.lastName }}</h1>
+              <!-- Badge to indicate if viewing own profile -->
+              <span v-if="isOwnProfile" class="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full">
+                Your Profile
+              </span>
+            </div>
           </div>
         </div>
 
         <!-- Action Buttons -->
         <div class="mt-4 md:mt-0">
+          <!-- Edit button only shown for own profile -->
           <button
-              v-if="!isEditing"
+              v-if="!isEditing && canEdit"
               @click="startEditing"
               class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center shadow-sm"
           >
@@ -82,6 +153,30 @@ onMounted(fetchUserData);
             </svg>
             Edit Profile
           </button>
+
+          <!-- Save/Cancel buttons when editing -->
+          <div v-if="isEditing" class="flex gap-2">
+            <button
+                @click="saveProfile"
+                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center shadow-sm"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Save
+            </button>
+            <button
+                @click="cancelEditing"
+                class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition flex items-center shadow-sm"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Cancel
+            </button>
+          </div>
+
+          <!-- Read-only indicator for other users - removed -->
         </div>
       </div>
     </div>
@@ -149,147 +244,53 @@ onMounted(fetchUserData);
           </div>
         </div>
 
-        <!-- Edit Mode -->
-        <form v-else @submit.prevent="saveProfile" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-1">
-              <label for="firstName" class="block text-sm font-medium text-gray-700">First Name</label>
-              <div class="relative rounded-md shadow-sm">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <input
-                    id="firstName"
-                    v-model="tempProfile.firstName"
-                    type="text"
-                    required
-                    class="pl-10 block w-full border border-gray-300 rounded-lg py-2 text-gray-900 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div class="space-y-1">
-              <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
-              <div class="relative rounded-md shadow-sm">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <input
-                    id="lastName"
-                    v-model="tempProfile.lastName"
-                    type="text"
-                    required
-                    class="pl-10 block w-full border border-gray-300 rounded-lg py-2 text-gray-900 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div class="space-y-1">
-              <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-              <div class="relative rounded-md shadow-sm">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <input
-                    id="email"
-                    v-model="tempProfile.email"
-                    type="email"
-                    disabled
-                    class="pl-10 block w-full border border-gray-300 rounded-lg py-2 bg-gray-50 text-gray-500 cursor-not-allowed"
-                />
-              </div>
-              <p class="text-xs text-gray-500 mt-1">Email address cannot be changed</p>
-            </div>
-
-            <div class="space-y-1">
-              <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-              <div class="relative rounded-md shadow-sm">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                </div>
-                <input
-                    id="phone"
-                    v-model="tempProfile.phone"
-                    type="tel"
-                    class="pl-10 block w-full border border-gray-300 rounded-lg py-2 text-gray-900 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                    placeholder="e.g. (123) 456-7890"
-                />
-              </div>
-            </div>
+        <!-- Edit Mode (only phone number can be edited) -->
+        <div v-if="isEditing" class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
+          <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+            <p class="text-sm font-medium text-gray-500 mb-1">First Name</p>
+            <p class="text-lg font-medium text-gray-400 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              {{ user.firstName }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Cannot be changed</p>
           </div>
 
-          <!-- Action Buttons -->
-          <div class="flex justify-end gap-4 pt-4 border-t border-gray-200">
-            <button
-                type="button"
-                @click="cancelEditing"
-                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition flex items-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+            <p class="text-sm font-medium text-gray-500 mb-1">Last Name</p>
+            <p class="text-lg font-medium text-gray-400 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              Cancel
-            </button>
-            <button
-                type="submit"
-                class="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center shadow-sm"
-                :disabled="isLoading"
-            >
-              <svg v-if="!isLoading" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <svg v-else class="animate-spin h-4 w-4 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              {{ isLoading ? 'Saving...' : 'Save Changes' }}
-            </button>
+              {{ user.lastName }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Cannot be changed</p>
           </div>
-        </form>
+
+          <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+            <p class="text-sm font-medium text-gray-500 mb-1">Email Address</p>
+            <p class="text-lg font-medium text-gray-400 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              {{ user.email }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Cannot be changed</p>
+          </div>
+
+          <div class="space-y-1">
+            <label class="block text-sm font-medium text-gray-700">Phone Number</label>
+            <input
+                v-model="tempProfile.phone"
+                type="tel"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="Enter phone number"
+            />
+            <p class="text-xs text-blue-600 mt-1">This field can be updated</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-/* Add subtle hover effect for profile items */
-.hover\:shadow:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transform: translateY(-2px);
-  transition: all 0.3s ease;
-}
-
-/* Add smooth transitions */
-.transition-all {
-  transition: all 0.3s ease;
-}
-
-/* Ensure proper sizing for the profile picture */
-.w-24 {
-  min-width: 6rem;
-}
-
-/* Add focus styles for input fields */
-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-}
-
-/* Fade in animation */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-[v-cloak] {
-  display: none;
-}
-</style>

@@ -179,13 +179,11 @@ const formatCurrency = (amount) => {
       >
         <td colspan="8" class="px-6 py-4 bg-gray-50">
           <div class="space-y-4">
-            <!-- Full Description -->
             <div>
               <h4 class="text-xs font-semibold text-gray-500 uppercase mb-1">Full Description</h4>
               <p class="text-sm text-gray-900">{{ request.description }}</p>
             </div>
 
-            <!-- Tenant Feedback Section -->
             <div v-if="request.status === 'COMPLETED'">
               <h4 class="text-xs font-semibold text-gray-500 uppercase mb-1">Tenant Feedback</h4>
               <div class="bg-white p-3 rounded border">

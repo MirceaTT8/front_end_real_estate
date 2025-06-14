@@ -1,4 +1,3 @@
-
 <script setup>
 import { computed } from 'vue'
 import { useLogStore } from '@/stores/admin/logStore.js'
@@ -44,7 +43,6 @@ const getDateRangeLabel = (range) => {
   <div class="space-y-6">
     <!-- Filter Controls -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <!-- Action Type Filter -->
       <div>
         <label for="actionType" class="block text-sm font-medium text-gray-700 mb-2">
           Action Type
@@ -66,7 +64,6 @@ const getDateRangeLabel = (range) => {
         </select>
       </div>
 
-      <!-- Entity Type Filter -->
       <div>
         <label for="entityType" class="block text-sm font-medium text-gray-700 mb-2">
           Entity Type
@@ -88,7 +85,6 @@ const getDateRangeLabel = (range) => {
         </select>
       </div>
 
-      <!-- User ID Filter -->
       <div>
         <label for="userId" class="block text-sm font-medium text-gray-700 mb-2">
           User ID
@@ -110,7 +106,6 @@ const getDateRangeLabel = (range) => {
         </select>
       </div>
 
-      <!-- Date Range Filter -->
       <div>
         <label for="dateRange" class="block text-sm font-medium text-gray-700 mb-2">
           Date Range
@@ -129,7 +124,6 @@ const getDateRangeLabel = (range) => {
       </div>
     </div>
 
-    <!-- Filter Actions -->
     <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
       <button
           @click="applyFilters"
@@ -151,7 +145,6 @@ const getDateRangeLabel = (range) => {
         Reset Filters
       </button>
 
-      <!-- Active Filters Indicator -->
       <div v-if="hasActiveFilters" class="flex items-center text-sm text-gray-600 ml-auto">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -160,7 +153,6 @@ const getDateRangeLabel = (range) => {
       </div>
     </div>
 
-    <!-- Active Filters Tags -->
     <div v-if="hasActiveFilters" class="flex flex-wrap gap-2">
       <span
           v-if="logStore.filters.actionType"

@@ -116,6 +116,11 @@ const property = computed(() => propertyStore.selectedProperty)
 const loading = computed(() => propertyStore.loading || leaseStore.loading)
 const error = computed(() => propertyStore.error || leaseStore.error)
 
+// Computed property to check if validation warning should be shown
+const shouldShowValidationWarning = computed(() => {
+  return property.value?.validationStatus === 'PENDING'
+})
+
 const currentLease = computed(() => {
   if (!property.value || !leaseStore.leases?.length) return null
   return leaseStore.leases.find(lease => lease.propertyId === property.value.propertyId)
@@ -172,6 +177,7 @@ onMounted(async () => {
           Back to Properties
         </router-link>
       </div>
+
 
       <!-- Loading State -->
       <div v-if="loading" class="flex items-center justify-center py-20">
@@ -379,6 +385,36 @@ onMounted(async () => {
               <div v-if="leaseDetails.securityDeposit">
                 <span class="block font-medium text-blue-800">Security Deposit</span>
                 <span class="text-lg text-blue-900 font-semibold">{{ formatCurrency(leaseDetails.securityDeposit) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Validation Status Warning Banner -->
+          <div v-if="shouldShowValidationWarning" class="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-400 rounded-lg shadow-sm">
+            <div class="p-4">
+              <div class="flex items-start">
+                <div class="flex-shrink-0">
+                  <svg class="h-6 w-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                  </svg>
+                </div>
+                <div class="ml-3 flex-1">
+                  <h3 class="text-sm font-medium text-amber-800">
+                    Property Validation Pending
+                  </h3>
+                  <div class="mt-2 text-sm text-amber-700">
+                    <p>
+                      This property is currently under review and has not been validated yet.
+                      Some features may be limited until the validation process is complete.
+                    </p>
+                  </div>
+                </div>
+                <div class="ml-auto pl-3">
+                  <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                    <div class="w-2 h-2 bg-amber-500 rounded-full mr-1.5 animate-pulse"></div>
+                    Pending Review
+                  </div>
+                </div>
               </div>
             </div>
           </div>

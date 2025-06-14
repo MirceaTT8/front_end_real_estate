@@ -70,7 +70,6 @@ const formatDetails = (details) => {
 
 <template>
   <tr class="hover:bg-gray-50 transition-colors">
-    <!-- Timestamp -->
     <td class="px-6 py-4 whitespace-nowrap">
       <div class="flex flex-col">
         <span class="text-sm font-medium text-gray-900">{{ formatTime(log.createdAt) }}</span>
@@ -78,7 +77,6 @@ const formatDetails = (details) => {
       </div>
     </td>
 
-    <!-- User ID -->
     <td class="px-6 py-4 whitespace-nowrap">
       <div class="flex items-center">
         <div class="h-8 w-8 flex-shrink-0 mr-3">
@@ -95,7 +93,6 @@ const formatDetails = (details) => {
       </div>
     </td>
 
-    <!-- Action -->
     <td class="px-6 py-4 whitespace-nowrap">
       <span
           class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
@@ -106,7 +103,6 @@ const formatDetails = (details) => {
       </span>
     </td>
 
-    <!-- Entity Type -->
     <td class="px-6 py-4 whitespace-nowrap">
       <div class="flex items-center">
         <span class="mr-2" v-html="getEntityIcon(log.entityType)"></span>
@@ -114,19 +110,16 @@ const formatDetails = (details) => {
       </div>
     </td>
 
-    <!-- Entity ID -->
     <td class="px-6 py-4 whitespace-nowrap">
       <span class="text-sm font-mono bg-gray-100 text-gray-800 px-2.5 py-0.5 rounded">{{ log.entityId }}</span>
     </td>
 
-    <!-- Details -->
     <td class="px-6 py-4">
       <div class="relative max-w-xs">
         <div class="text-sm text-gray-500 truncate hover:text-clip" @click="showFullDetails = !showFullDetails">
           {{ log.details }}
         </div>
 
-        <!-- View Details Button -->
         <button
             @click="showFullDetails = !showFullDetails"
             class="mt-1 inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
@@ -144,7 +137,6 @@ const formatDetails = (details) => {
           </svg>
         </button>
 
-        <!-- Full Details Modal -->
         <div
             v-if="showFullDetails"
             class="absolute z-10 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 p-4"

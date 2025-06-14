@@ -33,7 +33,6 @@ watch([() => props.show, () => props.images], () => {
 
       <h2 class="text-2xl font-semibold mb-6 text-gray-800">Maintenance Images</h2>
 
-      <!-- Main Image Display -->
       <div v-if="images && images.length > 0" class="space-y-6">
         <div class="relative bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center" style="height: 400px;">
           <img
@@ -43,7 +42,6 @@ watch([() => props.show, () => props.images], () => {
               style="image-rendering: high-quality;"
           />
 
-          <!-- Navigation Arrows (only show if more than 1 image) -->
           <button
               v-if="images.length > 1"
               @click="prevImage"
@@ -63,13 +61,11 @@ watch([() => props.show, () => props.images], () => {
             </svg>
           </button>
 
-          <!-- Image Counter -->
           <div v-if="images.length > 1" class="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
             {{ currentImageIndex + 1 }} / {{ images.length }}
           </div>
         </div>
 
-        <!-- Thumbnail Strip (only show if more than 1 image) -->
         <div v-if="images.length > 1" class="flex gap-3 overflow-x-auto pb-2 px-1">
           <button
               v-for="(id, index) in images"
@@ -91,7 +87,6 @@ watch([() => props.show, () => props.images], () => {
         </div>
       </div>
 
-      <!-- No images state -->
       <div v-else class="flex items-center justify-center py-16">
         <div class="text-center">
           <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

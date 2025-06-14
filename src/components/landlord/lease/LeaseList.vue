@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   getPropertyNameByLeaseId,
   getTenantNameByLeaseId
@@ -7,6 +8,9 @@ import {
 
 import { requestLeaseTermination } from "@/services/leaseService.js";
 import LeaseTenantReviewModal from "@/components/landlord/lease/LeaseTenantReviewModal.vue";
+
+const router = useRouter()
+
 const props = defineProps({
   leases: {
     type: Array,
@@ -77,6 +81,22 @@ const canReviewLease = (lease) => {
       lease.terminationStatus === 'APPROVED' ||
       (lease.endDate && new Date(lease.endDate) < new Date())
 }
+
+// Navigate to property details
+const navigateToPropertyDetails = (lease) => {
+  const propertyId = lease.propertyId
+  if (propertyId) {
+    router.push(`/landlord/property/${propertyId}`)
+  }
+}
+
+// Navigate to tenant profile
+const navigateToTenantProfile = (lease) => {
+  const tenantId = lease.tenantId
+  if (tenantId) {
+    router.push(`/profile/${tenantId}`)
+  }
+}
 </script>
 
 <template>
@@ -121,9 +141,12 @@ const canReviewLease = (lease) => {
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
-              <span class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+              <button
+                  @click="navigateToPropertyDetails(lease)"
+                  class="text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors cursor-pointer"
+              >
                 {{ getPropertyNameByLeaseId(lease.leaseId, props.leases, props.properties) }}
-              </span>
+              </button>
             </div>
           </div>
 
@@ -134,9 +157,12 @@ const canReviewLease = (lease) => {
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              <span class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+              <button
+                  @click="navigateToTenantProfile(lease)"
+                  class="text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors cursor-pointer"
+              >
                 {{ getTenantNameByLeaseId(lease.leaseId, props.leases, props.tenants) }}
-              </span>
+              </button>
             </div>
           </div>
 

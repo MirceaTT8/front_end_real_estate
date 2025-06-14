@@ -1,16 +1,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { usePaymentTenantStore } from "@/stores/tenant/paymentTenantStore.js";
-import { isPaymentMadeThisCycle } from "@/services/paymentService.js";
-import {fetchMyLease} from "@/services/leaseService.js";
-import { loadStripe } from "@stripe/stripe-js";
-import {formatDate} from "@/utils/dateUtils.js";
+import { usePaymentTenantStore } from "@/stores/tenant/paymentTenantStore.js"
+import { loadStripe } from "@stripe/stripe-js"
+import { formatDate } from "@/utils/dateUtils.js"
 const stripePromise = loadStripe('pk_test_51MMELpFqC40RfDoFO6Jg3gMWPzmE16VwhlDkBdaa5DlTHn7s7jtjok0zsiLT3x4v2h8TB6nTEgtg9552gtGCGsYn00Qg9p6wT4')
-import PaymentHistory from "@/components/tenant/payment/PaymentHistory.vue";
+import PaymentHistory from "@/components/tenant/payment/PaymentHistory.vue"
 
 const paymentStore = usePaymentTenantStore()
 const showPaymentModal = ref(false)
-const hasPaidThisCycle = ref(true)
 
 const paymentForm = ref({
   amount: 0,
@@ -26,38 +23,32 @@ const formatCurrency = (amount) => {
 
 const submitPayment = async () => {
   try {
-    await paymentStore.makePayment(paymentForm.value);
-    showPaymentModal.value = false;
-    paymentForm.value = { amount: paymentStore.currentBalance, paymentMethod: 'CREDIT_CARD' };
+    await paymentStore.makePayment(paymentForm.value)
+    showPaymentModal.value = false
+    paymentForm.value = { amount: paymentStore.currentBalance, paymentMethod: 'CREDIT_CARD' }
   } catch (err) {
     console.error('Payment submission failed:', err)
   }
-};
+}
 
 const handleStripeCheckout = async () => {
   try {
-    const { id: sessionId } = await paymentStore.startStripeCheckout();
+    const { id: sessionId } = await paymentStore.startStripeCheckout()
     console.log(sessionId)
-    const stripe = await stripePromise;
-    await stripe.redirectToCheckout({ sessionId });
+    const stripe = await stripePromise
+    await stripe.redirectToCheckout({ sessionId })
   } catch (err) {
-    console.error('Stripe Checkout failed:', err);
+    console.error('Stripe Checkout failed:', err)
   }
-};
+}
 
 onMounted(async () => {
-  paymentStore.fetchPayments()
-
+  // Use the new store method that handles all initialization
   try {
-    const currentLeaseId = await fetchMyLease()
-    if (currentLeaseId) {
-      hasPaidThisCycle.value = await isPaymentMadeThisCycle(currentLeaseId.leaseId)
-      console.log(currentLeaseId)
-    }
+    await paymentStore.initializePaymentData()
   } catch (error) {
-    console.error('Failed to check payment status:', error)
+    console.error('Failed to initialize payment data:', error)
   }
-
 })
 </script>
 
@@ -72,7 +63,7 @@ onMounted(async () => {
             <p class="text-purple-100">Manage your rent payments and view payment history</p>
           </div>
           <button
-              v-if="!paymentStore.loading && !hasPaidThisCycle"
+              v-if="!paymentStore.loading && !paymentStore.hasPaidCurrentCycle"
               @click="handleStripeCheckout"
               class="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg hover:bg-white/30 transition-all duration-200 font-medium shadow-lg"
           >
@@ -146,7 +137,7 @@ onMounted(async () => {
     <div v-else-if="paymentStore.error" class="text-center text-red-600 py-16">
       <p>⚠️ {{ paymentStore.error }}</p>
       <button
-          @click="paymentStore.fetchPayments"
+          @click="paymentStore.initializePaymentData"
           class="mt-4 bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition"
       >
         Try Again

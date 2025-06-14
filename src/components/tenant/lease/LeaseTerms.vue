@@ -24,7 +24,6 @@ const rentClassMap = {
 
 <template>
   <section>
-    <h2 class="text-xl font-semibold text-gray-700 border-b pb-2 mb-4">Lease Terms</h2>
     <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
       <div class="bg-white shadow rounded p-5">
         <h3 class="font-semibold text-gray-800 mb-2">Duration</h3>

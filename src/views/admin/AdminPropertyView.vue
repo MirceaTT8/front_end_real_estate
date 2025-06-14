@@ -4,35 +4,40 @@ import { useAdminPropertyStore } from '@/stores/admin/adminPropertyStore.js'
 
 const store = useAdminPropertyStore()
 
+// Status colors matching landlord PropertyCard component
+const statusColors = {
+  // Property Status Colors
+  AVAILABLE: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  RENTED: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  INACTIVE: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' },
+  MAINTENANCE: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  ACTIVE: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+
+  // Validation Status Colors
+  APPROVED: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+  PENDING: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
+  REJECTED: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' }
+}
+
 const getStatusStyle = (status) => {
-  switch (status) {
-    case 'ACTIVE':
-      return 'bg-green-100 text-green-800 border border-green-200'
-    case 'PENDING':
-      return 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-    case 'INACTIVE':
-      return 'bg-gray-100 text-gray-800 border border-gray-200'
-    case 'MAINTENANCE':
-      return 'bg-blue-100 text-blue-800 border border-blue-200'
-    case 'RENTED':
-      return 'bg-purple-100 text-purple-800 border border-purple-200'
-    default:
-      return 'bg-gray-100 text-gray-800 border border-gray-200'
-  }
+  return statusColors[status] || statusColors.INACTIVE
 }
 
 const getStatusDot = (status) => {
   switch (status) {
     case 'ACTIVE':
+    case 'AVAILABLE':
+    case 'APPROVED':
       return 'bg-green-500'
     case 'PENDING':
       return 'bg-yellow-500'
     case 'INACTIVE':
-      return 'bg-gray-500'
-    case 'MAINTENANCE':
-      return 'bg-blue-500'
+    case 'REJECTED':
+      return 'bg-red-500'
     case 'RENTED':
-      return 'bg-purple-500'
+      return 'bg-amber-500'
+    case 'MAINTENANCE':
+      return 'bg-red-500'
     default:
       return 'bg-gray-500'
   }
@@ -100,7 +105,7 @@ onMounted(() => {
           </div>
           <div>
             <h3 class="text-gray-500 text-sm">Total Properties</h3>
-            <p class="font-bold text-xl text-gray-800">{{ store.totalProperties }}</p>
+            <p class="font-bold text-xl text-gray-800">{{ store.properties?.length || 0 }}</p>
             <p class="text-xs text-gray-500">Portfolio size</p>
           </div>
         </div>
@@ -114,24 +119,24 @@ onMounted(() => {
             </svg>
           </div>
           <div>
-            <h3 class="text-gray-500 text-sm">Active Properties</h3>
-            <p class="font-bold text-xl text-gray-800">{{ store.activeProperties }}</p>
-            <p class="text-xs text-gray-500">{{ store.occupancyRate }}% occupancy rate</p>
+            <h3 class="text-gray-500 text-sm">Approved</h3>
+            <p class="font-bold text-xl text-gray-800">{{ store.properties?.filter(p => p.validationStatus === 'APPROVED').length || 0 }}</p>
+            <p class="text-xs text-gray-500">Ready for listing</p>
           </div>
         </div>
       </div>
 
       <div class="bg-white rounded-xl shadow-md p-6">
         <div class="flex items-center gap-4">
-          <div class="bg-yellow-100 p-3 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div class="bg-red-100 p-3 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
           <div>
-            <h3 class="text-gray-500 text-sm">Pending Properties</h3>
-            <p class="font-bold text-xl text-gray-800">{{ store.pendingProperties }}</p>
-            <p class="text-xs text-gray-500">Awaiting approval</p>
+            <h3 class="text-gray-500 text-sm">Rejected Properties</h3>
+            <p class="font-bold text-xl text-gray-800">{{ store.properties?.filter(p => p.validationStatus === 'REJECTED').length || 0 }}</p>
+            <p class="text-xs text-gray-500">Not approved</p>
           </div>
         </div>
       </div>
@@ -140,13 +145,13 @@ onMounted(() => {
         <div class="flex items-center gap-4">
           <div class="bg-purple-100 p-3 rounded-lg">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
           </div>
           <div>
-            <h3 class="text-gray-500 text-sm">Average Rent</h3>
-            <p class="font-bold text-xl text-gray-800">${{ store.averageRent.toLocaleString() }}</p>
-            <p class="text-xs text-gray-500">Per month</p>
+            <h3 class="text-gray-500 text-sm">Available</h3>
+            <p class="font-bold text-xl text-gray-800">{{ store.properties?.filter(p => p.status === 'AVAILABLE').length || 0 }}</p>
+            <p class="text-xs text-gray-500">Ready to rent</p>
           </div>
         </div>
       </div>
@@ -217,177 +222,138 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="store.loading" class="bg-white rounded-xl shadow-md p-10">
-      <div class="flex flex-col items-center justify-center">
-        <svg class="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    <!-- Properties Grid -->
+    <div v-if="store.loading" class="flex justify-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <div v-else-if="store.properties.length === 0" class="text-center py-12">
+      <div class="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
-        <p class="text-gray-500 text-lg">Loading properties...</p>
       </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No properties found</h3>
+      <p class="text-gray-500">Properties will appear here once landlords start adding them.</p>
     </div>
 
-    <!-- Error State -->
-    <div v-else-if="store.error" class="bg-white rounded-xl shadow-md p-10">
-      <div class="flex items-center justify-center">
-        <div class="bg-red-100 border border-red-200 rounded-lg p-4 w-full max-w-2xl">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <div class="ml-3">
-              <p class="text-sm text-red-700">{{ store.error }}</p>
-              <button
-                  @click="retryLoading"
-                  class="mt-2 text-sm font-medium text-red-600 hover:text-red-500"
-              >
-                Try Again
-              </button>
-            </div>
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+          v-for="property in store.properties"
+          :key="property.propertyId"
+          class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300"
+      >
+        <!-- Property Image -->
+        <div class="h-48 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <div v-if="property.imageUrls?.length" class="w-full h-full">
+            <img
+                :src="`http://localhost:8080/image/${property.imageUrls[0]}`"
+                :alt="property.name"
+                class="w-full h-full object-cover"
+            />
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Empty State -->
-    <div v-else-if="store.filteredProperties.length === 0" class="bg-white rounded-xl shadow-md p-10">
-      <div class="flex flex-col items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-        <p class="text-gray-600 font-medium mb-1">No properties found</p>
-        <p class="text-gray-500 text-sm">Try adjusting your filters or search criteria</p>
-        <button
-            @click="store.clearFilters"
-            class="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
-        >
-          Clear Filters
-        </button>
-      </div>
-    </div>
-
-    <!-- Property Cards -->
-    <div v-else>
-      <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
-        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-          <div>
-            <h2 class="text-lg font-semibold text-gray-800">Property Directory</h2>
-            <p class="text-sm text-gray-500">{{ store.filteredProperties.length }} properties found</p>
-          </div>
-          <div class="flex gap-2">
-            <button
-                v-if="store.selectedProperties.size > 0"
-                @click="store.bulkApproveProperties"
-                class="text-sm bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors"
-            >
-              Approve Selected ({{ store.selectedProperties.size }})
-            </button>
-            <button
-                v-if="store.selectedProperties.size > 0"
-                @click="store.bulkRejectProperties"
-                class="text-sm bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Reject Selected ({{ store.selectedProperties.size }})
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-            v-for="property in store.filteredProperties"
-            :key="property.propertyId"
-            class="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg"
-        >
-          <!-- Property Image/Placeholder -->
-          <div class="h-40 bg-gradient-to-r from-blue-100 to-blue-50 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          <div v-else class="text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-300 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
+            <p class="text-blue-400 text-sm font-medium">No Image</p>
           </div>
+        </div>
 
-          <!-- Property Details -->
-          <div class="p-6 space-y-4">
-            <div>
-              <div class="flex justify-between items-start mb-1">
-                <h2 class="text-lg font-semibold text-gray-800 leading-tight">{{ property.name || property.title }}</h2>
+        <!-- Property Details -->
+        <div class="p-6">
+          <!-- Header with title and status badges -->
+          <div class="mb-4">
+            <div class="flex justify-between items-start mb-3">
+              <h3 class="text-lg font-semibold text-gray-900 line-clamp-1">{{ property.name }}</h3>
+              <div class="flex flex-col gap-2 ml-3">
+                <!-- Property Status Badge -->
                 <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="getStatusStyle(property.status)"
+                    v-if="property.status"
+                    :class="[
+                      statusColors[property.status].bg,
+                      statusColors[property.status].text,
+                      statusColors[property.status].border
+                    ]"
+                    class="px-2 py-1 rounded-full text-xs font-semibold capitalize border inline-flex items-center gap-1"
                 >
-                  <span :class="getStatusDot(property.status)" class="w-1.5 h-1.5 mr-1.5 rounded-full"></span>
-                  {{ property.status }}
+                  <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                  {{ property.status.toLowerCase() }}
+                </span>
+
+                <!-- Validation Status Badge -->
+                <span
+                    v-if="property.validationStatus"
+                    :class="[
+                      statusColors[property.validationStatus].bg,
+                      statusColors[property.validationStatus].text,
+                      statusColors[property.validationStatus].border
+                    ]"
+                    class="px-2 py-1 rounded-full text-xs font-semibold capitalize border inline-flex items-center gap-1"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                  {{ property.validationStatus.toLowerCase() }}
                 </span>
               </div>
-              <p class="text-sm text-gray-600">{{ property.address }}</p>
             </div>
 
-            <!-- Property metrics -->
-            <div class="border-t border-gray-100 pt-4">
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <p class="text-xs text-gray-500">Property ID</p>
-                  <p class="text-sm font-medium text-gray-700">{{ property.propertyId }}</p>
-                </div>
-                <div>
-                  <p class="text-xs text-gray-500">Monthly Rent</p>
-                  <p class="text-sm font-medium text-gray-700">${{ property.rentAmount?.toLocaleString() || 'N/A' }}</p>
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-4 mt-3">
-                <div>
-                  <p class="text-xs text-gray-500">Type</p>
-                  <p class="text-sm font-medium text-gray-700">{{ property.type || 'N/A' }}</p>
-                </div>
-                <div>
-                  <p class="text-xs text-gray-500">Validation Status</p>
-                  <p class="text-sm font-medium" :class="{
-                    'text-green-600': property.validationStatus === 'APPROVED',
-                    'text-yellow-600': property.validationStatus === 'PENDING',
-                    'text-red-600': property.validationStatus === 'REJECTED',
-                    'text-gray-600': !property.validationStatus
-                  }">
-                    {{ property.validationStatus || 'N/A' }}
-                  </p>
-                </div>
-              </div>
+            <p class="text-sm text-gray-600 line-clamp-2">{{ property.address }}</p>
+          </div>
+
+          <!-- Property Info Grid -->
+          <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+            <div>
+              <p class="text-gray-500 font-medium">Property ID</p>
+              <p class="text-gray-700 font-mono">{{ property.propertyId }}</p>
             </div>
+            <div>
+              <p class="text-gray-500 font-medium">Monthly Rent</p>
+              <p class="text-gray-700 font-semibold">${{ property.rentAmount || 'N/A' }}</p>
+            </div>
+            <div>
+              <p class="text-gray-500 font-medium">Type</p>
+              <p class="text-gray-700 capitalize">{{ property.type?.toLowerCase() || 'N/A' }}</p>
+            </div>
+            <div>
+              <p class="text-gray-500 font-medium">Owner ID</p>
+              <p class="text-gray-700 font-mono">{{ property.ownerId || 'N/A' }}</p>
+            </div>
+          </div>
 
-            <!-- Actions -->
-            <div class="border-t border-gray-100 pt-4 space-y-2">
-              <!-- Approval buttons for pending properties -->
-              <div v-if="property.validationStatus === 'PENDING'" class="flex gap-2">
-                <button
-                    @click="store.approveProperty(property.propertyId)"
-                    class="flex-1 text-xs font-medium bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Approve
-                </button>
-                <button
-                    @click="store.rejectProperty(property.propertyId)"
-                    class="flex-1 text-xs font-medium bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Reject
-                </button>
-              </div>
-
-              <!-- View details link -->
-              <router-link
-                  :to="{ name: 'PropertyDetails', params: { id: property.propertyId } }"
-                  class="block text-center text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors py-2"
+          <!-- Actions -->
+          <div class="border-t border-gray-100 pt-4 space-y-3">
+            <!-- Approval buttons for pending properties -->
+            <div v-if="property.validationStatus === 'PENDING'" class="flex gap-2">
+              <button
+                  @click="store.approveProperty(property.propertyId)"
+                  class="flex-1 text-sm font-medium bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
               >
-                View Details
-              </router-link>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Approve
+              </button>
+              <button
+                  @click="store.rejectProperty(property.propertyId)"
+                  class="flex-1 text-sm font-medium bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Reject
+              </button>
             </div>
+
+            <!-- View details link -->
+            <router-link
+                :to="{ name: 'PropertyDetails', params: { id: property.propertyId } }"
+                class="block w-full text-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors py-2 border border-blue-200 rounded-lg hover:bg-blue-50"
+            >
+              View Details
+            </router-link>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-</style>

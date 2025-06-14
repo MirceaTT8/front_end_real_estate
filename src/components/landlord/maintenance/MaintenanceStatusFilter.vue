@@ -113,25 +113,6 @@ const isStatusAvailable = (status) => {
         </svg>
       </div>
     </div>
-
-    <!-- Status Indicator (shows which filter is active) -->
-    <div v-if="selectedStatus !== 'all'"
-         :class="[
-        'py-2 px-4 rounded-lg flex items-center text-sm',
-        statusMap[selectedStatus]?.bgColor,
-        statusMap[selectedStatus]?.textColor
-      ]">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" v-html="statusMap[selectedStatus]?.icon"></svg>
-      <span>Showing {{ formatStatus(selectedStatus) }} requests</span>
-      <button
-          @click="emit('update:selectedStatus', 'all')"
-          class="ml-auto text-gray-500 hover:text-gray-700"
-          aria-label="Clear filter">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
   </div>
 </template>
 

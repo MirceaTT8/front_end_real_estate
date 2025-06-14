@@ -60,7 +60,6 @@ const displayChartData = computed(() => {
 
       <!-- Time Range Selector -->
       <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-        <!-- Data availability indicator -->
         <div v-if="dataAvailability.hasData" class="text-xs text-gray-500 text-center sm:text-right">
           {{ dataAvailability.totalMonths }} month{{ dataAvailability.totalMonths !== 1 ? 's' : '' }} of data
         </div>
