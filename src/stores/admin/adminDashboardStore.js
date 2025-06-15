@@ -11,20 +11,24 @@ import {
 import { fetchAllPropertiesAdmin, fetchPendingProperties, validateProperty } from '@/services/propertyService.js'
 import { fetchAllUsers } from '@/services/userService.js'
 import { fetchAllMaintenanceRequests } from '@/services/maintenanceService.js'
-import {BASE_URL} from "@/configs/config.js";
+import { BASE_URL } from '@/configs/config.js'
 
 export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
+    const loading = ref(false)
+    const chartLoading = ref(false)
+    const statsLoading = ref(false)
+
     const showTerminateModal = ref(false)
     const showPendingLeasesModal = ref(false)
     const showPendingPropertiesModal = ref(false)
+
     const pendingLeaseTerminations = ref([])
     const pendingLeaseApprovals = ref([])
     const pendingProperties = ref([])
-    const loading = ref(false)
-    const chartLoading = ref(false)
-
     const recentActivities = ref([])
     const landlordRatings = ref([])
+    const landlordRatingsDetailed = ref([])
+
     const kpiMetrics = ref({})
     const statsData = ref({
         totalUsers: 0,
@@ -34,7 +38,11 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         maintenanceRequests: 0,
         urgentRequests: 0
     })
-    const statsLoading = ref(false)
+
+    const leaseChartData = ref({
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        datasets: []
+    })
 
     const stats = computed(() => ({
         activeLeases: kpiMetrics.value['Total Leases'] || 0,
@@ -46,10 +54,112 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         pendingPropertiesCount: pendingProperties.value.length
     }))
 
-    const leaseChartData = ref({
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-        datasets: []
+    const executeAction = async (actionFunction, ...args) => {
+        loading.value = true
+        try {
+            const result = await actionFunction(...args)
+            return result
+        } catch (err) {
+            console.error('Dashboard action failed:', err)
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
+
+    const fetchData = async (fetchFunction) => {
+        try {
+            return await fetchFunction()
+        } catch (err) {
+            console.error('Failed to fetch dashboard data:', err)
+            return []
+        }
+    }
+
+    const fetchLeaseTerminations = () => fetchData(async () => {
+        pendingLeaseTerminations.value = await fetchPendingLeaseTerminations()
+        return pendingLeaseTerminations.value
     })
+
+    const fetchLeaseApprovals = () => fetchData(async () => {
+        pendingLeaseApprovals.value = await fetchPendingLeases()
+        return pendingLeaseApprovals.value
+    })
+
+    const fetchProperties = () => fetchData(async () => {
+        pendingProperties.value = await fetchPendingProperties()
+        return pendingProperties.value
+    })
+
+    const fetchUsersCount = async () => {
+        const users = await fetchAllUsers()
+        return users.length
+    }
+
+    const fetchPropertiesCount = async () => {
+        const properties = await fetchAllPropertiesAdmin()
+        return properties.length
+    }
+
+    const fetchMaintenanceRequestsCount = async () => {
+        const maintenance = await fetchAllMaintenanceRequests()
+        return maintenance.length
+    }
+
+    const fetchStatsData = async () => {
+        statsLoading.value = true
+        try {
+            const [usersCount, propertiesCount, maintenanceCount] = await Promise.all([
+                fetchUsersCount(),
+                fetchPropertiesCount(),
+                fetchMaintenanceRequestsCount()
+            ])
+
+            statsData.value = {
+                totalUsers: usersCount,
+                userGrowth: 0,
+                totalProperties: propertiesCount,
+                propertyGrowth: 0,
+                maintenanceRequests: maintenanceCount,
+                urgentRequests: 0
+            }
+        } catch (error) {
+            console.error('Failed to fetch stats data:', error)
+        } finally {
+            statsLoading.value = false
+        }
+    }
+
+    const fetchMockAnalytics = () => {
+        kpiMetrics.value = {
+            'Total Users': 250,
+            'Active Landlords': 45,
+            'Active Tenants': 93,
+            'Total Properties': 162,
+            'Rented Properties': 115,
+            'Total Leases': 128,
+            'Avg. Monthly Rent': '$1200',
+            'Total Payments': '$93600',
+            'Pending Maintenance': 8,
+            'Avg. Maintenance Response': '2.5 days'
+        }
+    }
+
+    const fetchMockRatings = () => {
+        landlordRatings.value = [
+            { name: 'John Smith', rating: 4.5 },
+            { name: 'Emily Davis', rating: 4.8 },
+            { name: 'Michael Lee', rating: 4.1 }
+        ]
+    }
+
+    const fetchMockActivity = () => {
+        recentActivities.value = [
+            { action: 'New lease created', user: 'landlord_john', date: '2024-05-07' },
+            { action: 'Maintenance request resolved', user: 'landlord_emily', date: '2024-05-06' },
+            { action: 'New tenant registered', user: 'tenant_lisa', date: '2024-05-05' }
+        ]
+    }
 
     const findEarliestDataPeriod = (leases, periodType) => {
         if (!leases.length) return null
@@ -67,12 +177,11 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         switch (periodType) {
             case 'monthly':
                 return {
-                    key: earliestDate.toISOString().slice(0, 7), // YYYY-MM format
+                    key: earliestDate.toISOString().slice(0, 7),
                     label: earliestDate.toLocaleString(undefined, { month: 'long', year: 'numeric' }),
                     start: new Date(earliestDate.getFullYear(), earliestDate.getMonth(), 1),
                     end: new Date(earliestDate.getFullYear(), earliestDate.getMonth() + 1, 0)
                 }
-
             case 'quarterly':
                 const quarter = Math.floor(earliestDate.getMonth() / 3)
                 const year = earliestDate.getFullYear()
@@ -83,7 +192,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
                     start: new Date(year, startMonth, 1),
                     end: new Date(year, startMonth + 3, 0)
                 }
-
             case 'yearly':
                 const dataYear = earliestDate.getFullYear()
                 return {
@@ -93,7 +201,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
                     end: new Date(dataYear, 11, 31)
                 }
         }
-
         return null
     }
 
@@ -108,7 +215,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
 
         try {
             const leases = await fetchLeaseTrends()
-
             const firstPeriod = findEarliestDataPeriod(leases, periodType)
 
             if (!firstPeriod) {
@@ -185,7 +291,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
             }
         } catch (err) {
             console.error('Failed to fetch lease trends:', err)
-
             leaseChartData.value = {
                 labels: ['Error Loading Data'],
                 datasets: [
@@ -214,27 +319,15 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         }
     }
 
-    const fetchStatsData = async () => {
-        statsLoading.value = true
+    const fetchLandlordRatings = async () => {
         try {
-            const [usersCount, propertiesCount, maintenanceCount] = await Promise.all([
-                fetchUsersCount(),
-                fetchPropertiesCount(),
-                fetchMaintenanceRequestsCount()
-            ])
-
-            statsData.value = {
-                totalUsers: usersCount,
-                userGrowth: 0,
-                totalProperties: propertiesCount,
-                propertyGrowth: 0,
-                maintenanceRequests: maintenanceCount,
-                urgentRequests: 0
-            }
-        } catch (error) {
-            console.error('Failed to fetch stats data:', error)
-        } finally {
-            statsLoading.value = false
+            const token = localStorage.getItem('token')
+            const res = await fetch(`${BASE_URL}/landlord-score`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            landlordRatingsDetailed.value = await res.json()
+        } catch (err) {
+            console.error('Failed to fetch landlord ratings', err)
         }
     }
 
@@ -251,10 +344,7 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
                 labels: {
                     padding: 20,
                     usePointStyle: true,
-                    font: {
-                        size: 12,
-                        weight: '500'
-                    }
+                    font: { size: 12, weight: '500' }
                 }
             },
             tooltip: {
@@ -277,14 +367,9 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         },
         scales: {
             x: {
-                grid: {
-                    display: false
-                },
+                grid: { display: false },
                 ticks: {
-                    font: {
-                        size: 11,
-                        weight: '500'
-                    },
+                    font: { size: 11, weight: '500' },
                     color: '#6B7280'
                 }
             },
@@ -295,10 +380,7 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
                     lineWidth: 1
                 },
                 ticks: {
-                    font: {
-                        size: 11,
-                        weight: '500'
-                    },
+                    font: { size: 11, weight: '500' },
                     color: '#6B7280',
                     callback: function(value) {
                         return Number.isInteger(value) ? value : ''
@@ -307,9 +389,7 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
             }
         },
         elements: {
-            bar: {
-                borderRadius: 4
-            }
+            bar: { borderRadius: 4 }
         }
     })
 
@@ -320,7 +400,7 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
                 fetchLeaseTerminations(),
                 fetchLeaseApprovals(),
                 fetchProperties(),
-                fetchLeaseChartData('monthly'), // Default to monthly
+                fetchLeaseChartData('monthly'),
                 fetchMockAnalytics(),
                 fetchStatsData(),
                 fetchMockRatings(),
@@ -330,78 +410,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
             console.error('Failed to initialize dashboard:', e)
         } finally {
             loading.value = false
-        }
-    }
-
-    const fetchLeaseTerminations = async () => {
-        pendingLeaseTerminations.value = await fetchPendingLeaseTerminations()
-    }
-
-    const fetchUsersCount = async () => {
-        const usersCount = await fetchAllUsers();
-        return usersCount.length;
-    }
-
-    const fetchPropertiesCount = async () => {
-        const propertiesCount = await fetchAllPropertiesAdmin()
-        return propertiesCount.length
-    }
-
-    const fetchMaintenanceRequestsCount = async () => {
-        const maintenanceRequests = await fetchAllMaintenanceRequests()
-        return maintenanceRequests.length
-    }
-
-    const fetchLeaseApprovals = async () => {
-        pendingLeaseApprovals.value = await fetchPendingLeases()
-    }
-
-    const fetchProperties = async () => {
-        pendingProperties.value = await fetchPendingProperties()
-    }
-
-    const fetchMockAnalytics = () => {
-        kpiMetrics.value = {
-            'Total Users': 250,
-            'Active Landlords': 45,
-            'Active Tenants': 93,
-            'Total Properties': 162,
-            'Rented Properties': 115,
-            'Total Leases': 128,
-            'Avg. Monthly Rent': `$1200`,
-            'Total Payments': `$93600`,
-            'Pending Maintenance': 8,
-            'Avg. Maintenance Response': `2.5 days`
-        }
-    }
-
-    const fetchMockRatings = () => {
-        landlordRatings.value = [
-            { name: 'John Smith', rating: 4.5 },
-            { name: 'Emily Davis', rating: 4.8 },
-            { name: 'Michael Lee', rating: 4.1 }
-        ]
-    }
-
-    const fetchMockActivity = () => {
-        recentActivities.value = [
-            { action: 'New lease created', user: 'landlord_john', date: '2024-05-07' },
-            { action: 'Maintenance request resolved', user: 'landlord_emily', date: '2024-05-06' },
-            { action: 'New tenant registered', user: 'tenant_lisa', date: '2024-05-05' }
-        ]
-    }
-
-    const landlordRatingsDetailed = ref([])
-
-    const fetchLandlordRatings = async () => {
-        try {
-            const token = localStorage.getItem('token')
-            const res = await fetch(`${BASE_URL}/landlord-score`, {
-                headers: { Authorization: `Bearer ${token}` }
-            })
-            landlordRatingsDetailed.value = await res.json()
-        } catch (err) {
-            console.error('Failed to fetch landlord ratings', err)
         }
     }
 
@@ -420,69 +428,60 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         await fetchProperties()
     }
 
-    const approveTermination = async (id) => {
+    const approveTermination = (id) => executeAction(async () => {
         await approveLeaseTermination(id)
         pendingLeaseTerminations.value = pendingLeaseTerminations.value.filter(l => l.leaseId !== id)
-    }
+    })
 
-    const rejectTermination = async (id) => {
+    const rejectTermination = (id) => executeAction(async () => {
         await rejectLeaseTermination(id)
         pendingLeaseTerminations.value = pendingLeaseTerminations.value.filter(l => l.leaseId !== id)
-    }
+    })
 
-    const approveLeaseRequest = async (id) => {
+    const approveLeaseRequest = (id) => executeAction(async () => {
         await approveLease(id)
         pendingLeaseApprovals.value = pendingLeaseApprovals.value.filter(l => l.leaseId !== id)
-    }
+    })
 
-    const rejectLeaseRequest = async (id) => {
+    const rejectLeaseRequest = (id) => executeAction(async () => {
         await rejectLease(id)
         pendingLeaseApprovals.value = pendingLeaseApprovals.value.filter(l => l.leaseId !== id)
-    }
+    })
 
-    const approveProperty = async (propertyId) => {
-        try {
-            await validateProperty(propertyId, 'APPROVED')
-            pendingProperties.value = pendingProperties.value.filter(p => p.propertyId !== propertyId)
-            return { success: true, message: 'Property approved successfully' }
-        } catch (error) {
-            console.error('Failed to approve property:', error)
-            return { success: false, message: error.message || 'Failed to approve property' }
-        }
-    }
+    const approveProperty = (propertyId) => executeAction(async () => {
+        await validateProperty(propertyId, 'APPROVED')
+        pendingProperties.value = pendingProperties.value.filter(p => p.propertyId !== propertyId)
+        return { success: true, message: 'Property approved successfully' }
+    })
 
-    const rejectProperty = async (propertyId) => {
-        try {
-            await validateProperty(propertyId, 'REJECTED')
-            pendingProperties.value = pendingProperties.value.filter(p => p.propertyId !== propertyId)
-            return { success: true, message: 'Property rejected successfully' }
-        } catch (error) {
-            console.error('Failed to reject property:', error)
-            return { success: false, message: error.message || 'Failed to reject property' }
-        }
-    }
+    const rejectProperty = (propertyId) => executeAction(async () => {
+        await validateProperty(propertyId, 'REJECTED')
+        pendingProperties.value = pendingProperties.value.filter(p => p.propertyId !== propertyId)
+        return { success: true, message: 'Property rejected successfully' }
+    })
 
     return {
+        loading,
+        chartLoading,
+        statsLoading,
         showTerminateModal,
         showPendingLeasesModal,
-        statsData,
-        fetchStatsData,
-        statsLoading,
         showPendingPropertiesModal,
         pendingLeaseTerminations,
         pendingLeaseApprovals,
         pendingProperties,
         recentActivities,
         landlordRatings,
+        landlordRatingsDetailed,
         kpiMetrics,
+        statsData,
         stats,
         leaseChartData,
         leaseChartOptions,
-        loading,
-        chartLoading,
         initDashboard,
         fetchLandlordRatings,
         fetchLeaseChartData,
+        fetchStatsData,
         openTerminationModal,
         openPendingLeasesModal,
         openPendingPropertiesModal,

@@ -44,11 +44,11 @@ const getStatusDot = (status) => {
 }
 
 const retryLoading = async () => {
-  await store.loadProperties()
+  await store.fetchProperties()
 }
 
 onMounted(() => {
-  store.loadProperties()
+  store.fetchProperties()
 })
 </script>
 
