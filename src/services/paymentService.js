@@ -4,10 +4,17 @@ const API = `${BASE_URL}/payment`;
 
 export const getAllPayments = async () => {
     try {
-        const response = await fetch(API);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
+
         return await response.json();
     } catch (error) {
         console.error('Error fetching all payments:', error);

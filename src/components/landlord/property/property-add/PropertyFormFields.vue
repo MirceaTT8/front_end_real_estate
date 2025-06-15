@@ -187,7 +187,6 @@ onUnmounted(() => {
   @apply text-blue-600;
 }
 
-/* Optional animation for form validation */
 input:invalid, select:invalid {
   @apply border-red-300;
 }

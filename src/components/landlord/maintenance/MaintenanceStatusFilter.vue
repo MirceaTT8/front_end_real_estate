@@ -77,8 +77,6 @@ const isStatusAvailable = (status) => {
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" v-html="statusMap[status].icon"></svg>
           <span>{{ formatStatus(status) }}</span>
 
-          <!-- Count badge for each status - optional, if you have the count data -->
-          <!-- <span class="ml-1 text-xs bg-gray-200 text-gray-800 rounded-full px-2 py-0.5">12</span> -->
         </template>
       </button>
     </div>

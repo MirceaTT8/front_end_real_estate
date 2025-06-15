@@ -75,14 +75,12 @@ const getSelectedProperty = () => {
   return props.properties.find(p => p.propertyId === selectedLease.value.propertyId)
 }
 
-// Check if lease is eligible for review (terminated or completed)
 const canReviewLease = (lease) => {
   return lease.status === 'TERMINATED' ||
       lease.terminationStatus === 'APPROVED' ||
       (lease.endDate && new Date(lease.endDate) < new Date())
 }
 
-// Navigate to property details
 const navigateToPropertyDetails = (lease) => {
   const propertyId = lease.propertyId
   if (propertyId) {
@@ -90,7 +88,6 @@ const navigateToPropertyDetails = (lease) => {
   }
 }
 
-// Navigate to tenant profile
 const navigateToTenantProfile = (lease) => {
   const tenantId = lease.tenantId
   if (tenantId) {

@@ -61,13 +61,6 @@ const formatDetails = (details) => {
 };
 </script>
 
-<style scoped>
-.text-clip {
-  text-overflow: clip;
-  white-space: normal;
-}
-</style>
-
 <template>
   <tr class="hover:bg-gray-50 transition-colors">
     <td class="px-6 py-4 whitespace-nowrap">
@@ -157,3 +150,11 @@ const formatDetails = (details) => {
     </td>
   </tr>
 </template>
+
+
+<style scoped>
+.text-clip {
+  text-overflow: clip;
+  white-space: normal;
+}
+</style>

@@ -101,7 +101,6 @@ watch([() => props.show, () => props.images], () => {
 
 
 <style scoped>
-/* Custom scrollbar for thumbnails */
 .overflow-x-auto::-webkit-scrollbar {
   height: 4px;
 }

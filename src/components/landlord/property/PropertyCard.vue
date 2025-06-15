@@ -13,8 +13,7 @@ defineProps({
 const statusColors = {
   AVAILABLE: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
   RENTED: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-  INACTIVE: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' },
-  MAINTENANCE: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' }
+  INACTIVE: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' }
 }
 
 const navigateToDetails = (id) => {
@@ -54,7 +53,6 @@ const navigateToDetails = (id) => {
     </div>
 
     <div class="p-6">
-      <!-- Header with title and status -->
       <div class="flex justify-between items-start mb-5">
         <div class="flex-1 pr-4">
           <h3 class="text-xl font-semibold text-gray-900 leading-tight mb-1">{{ property.name }}</h3>
@@ -71,7 +69,6 @@ const navigateToDetails = (id) => {
         </span>
       </div>
 
-      <!-- Address and Price -->
       <div class="space-y-3 mb-6">
         <div class="flex items-start text-gray-600">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 mt-0.5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -90,7 +87,6 @@ const navigateToDetails = (id) => {
         </div>
       </div>
 
-      <!-- Property Photos Grid -->
       <div v-if="property.imageUrls?.length > 1" class="mb-6">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-semibold text-gray-800 text-sm">
@@ -126,7 +122,6 @@ const navigateToDetails = (id) => {
         </div>
       </div>
 
-      <!-- Action Button -->
       <div class="flex justify-end pt-2">
         <button
             @click="navigateToDetails(property.propertyId)"

@@ -44,10 +44,15 @@ export const fetchUserByEmail = async (email) => {
 
 export const fetchAllUsers = async () => {
     try {
-        const response = await fetch(API);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        const token = localStorage.getItem('token');
+
+        const response = await fetch(`${API}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         return await response.json();
     } catch (error) {
         console.error('Error fetching users:', error);

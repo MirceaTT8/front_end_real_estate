@@ -1,3 +1,4 @@
+
 <script setup>
 import { ref, computed } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
@@ -131,7 +132,7 @@ const formatCurrency = (value) => {
         </div>
       </div>
 
-      <!-- Active Status Indicator - Only for IN_PROGRESS -->
+      <!-- Active Status Indicator for IN_PROGRESS -->
       <div v-if="request.status === 'IN_PROGRESS'" class="absolute top-4 right-4">
         <div class="flex h-3 w-3">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" :class="statusDisplay[request.status].accent"></span>
@@ -165,12 +166,10 @@ const formatCurrency = (value) => {
     <!-- Card Body -->
     <div class="px-6 py-4 flex-grow">
 
-      <!-- Description -->
       <div class="mb-4">
         <p class="text-sm text-gray-600 line-clamp-3">{{ request.description }}</p>
       </div>
 
-      <!-- Dates -->
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
           <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Submitted</h4>
@@ -193,33 +192,32 @@ const formatCurrency = (value) => {
         </div>
       </div>
 
-      <!-- Attachments -->
+      <!-- Images Section -->
       <div v-if="request.imageUrls?.length" class="mt-4">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between">
           <span class="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full font-bold">
             {{ request.imageUrls.length }} photo{{ request.imageUrls.length > 1 ? 's' : '' }}
           </span>
-        </div>
 
-        <div class="grid grid-cols-3 gap-2">
+          <!-- View Images Button -->
           <button
-              v-for="(imageId, index) in request.imageUrls"
-              :key="index"
-              @click="openSlider(index)"
-              class="block w-full aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all duration-200 group relative">
-            <img
-                :src="`http://localhost:8080/image/${imageId}`"
-                :alt="`Attachment ${index + 1}`"
-                loading="lazy"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-            />
-            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 flex items-center justify-center transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
+              @click="openSlider(0)"
+              class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            View Images
           </button>
         </div>
+      </div>
+
+      <!-- No Images State -->
+      <div v-else class="mt-4 text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <p class="text-gray-500 text-sm">No images attached</p>
       </div>
     </div>
 

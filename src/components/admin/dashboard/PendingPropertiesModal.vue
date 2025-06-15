@@ -17,7 +17,7 @@ const processingPropertyId = ref(null)
 const handleApprove = async (propertyId) => {
   processingPropertyId.value = propertyId
   try {
-    await emit('approve-property', propertyId)
+    emit('approve-property', propertyId)
   } finally {
     processingPropertyId.value = null
   }
@@ -26,17 +26,15 @@ const handleApprove = async (propertyId) => {
 const handleReject = async (propertyId) => {
   processingPropertyId.value = propertyId
   try {
-    await emit('reject-property', propertyId)
+    emit('reject-property', propertyId)
   } finally {
     processingPropertyId.value = null
   }
 }
 
 const viewPropertyDetails = (propertyId) => {
-  // Close the modal first
   emit('update:visible', false)
 
-  // Navigate to property details page
   router.push({ name: 'PropertyDetails', params: { id: propertyId } })
 }
 </script>
