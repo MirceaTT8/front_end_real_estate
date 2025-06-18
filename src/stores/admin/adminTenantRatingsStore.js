@@ -42,11 +42,13 @@ export const useTenantRatingsStore = defineStore('tenantRatings', () => {
     const refreshRatings = () => fetchRatings()
 
     const getTenantById = (tenantId) => {
-        return baseStore.items.find(tenant => tenant.tenantId === tenantId) || null
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return null
+        return baseStore.items.value.find(tenant => tenant.tenantId === tenantId) || null
     }
 
     const getSortedTenants = (sortBy = 'overallScore', direction = 'desc') => {
-        return [...baseStore.items].sort((a, b) => {
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return []
+        return [...baseStore.items.value].sort((a, b) => {
             const modifier = direction === 'asc' ? 1 : -1
             const aValue = a[sortBy] || 0
             const bValue = b[sortBy] || 0
@@ -58,81 +60,94 @@ export const useTenantRatingsStore = defineStore('tenantRatings', () => {
     }
 
     const averageOverallScore = computed(() => {
-        if (!baseStore.items.length) return 0
-        const sum = baseStore.items.reduce((acc, tenant) => acc + (tenant.overallScore || 0), 0)
-        return sum / baseStore.items.length
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value) || !baseStore.items.value.length) return 0
+        const sum = baseStore.items.value.reduce((acc, tenant) => acc + (tenant.overallScore || 0), 0)
+        return sum / baseStore.items.value.length
     })
 
     const averagePaymentScore = computed(() => {
-        if (!baseStore.items.length) return 0
-        const sum = baseStore.items.reduce((acc, tenant) => acc + (tenant.paymentScore || 0), 0)
-        return sum / baseStore.items.length
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value) || !baseStore.items.value.length) return 0
+        const sum = baseStore.items.value.reduce((acc, tenant) => acc + (tenant.paymentScore || 0), 0)
+        return sum / baseStore.items.value.length
     })
 
     const averageFeedbackScore = computed(() => {
-        if (!baseStore.items.length) return 0
-        const sum = baseStore.items.reduce((acc, tenant) => acc + (tenant.feedbackScore || 0), 0)
-        return sum / baseStore.items.length
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value) || !baseStore.items.value.length) return 0
+        const sum = baseStore.items.value.reduce((acc, tenant) => acc + (tenant.feedbackScore || 0), 0)
+        return sum / baseStore.items.value.length
     })
 
     const averagePunctualityRatio = computed(() => {
-        if (!baseStore.items.length) return 0
-        const sum = baseStore.items.reduce((acc, tenant) => acc + (tenant.punctualityRatio || 0), 0)
-        return sum / baseStore.items.length
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value) || !baseStore.items.value.length) return 0
+        const sum = baseStore.items.value.reduce((acc, tenant) => acc + (tenant.punctualityRatio || 0), 0)
+        return sum / baseStore.items.value.length
     })
 
     const topRatedTenant = computed(() => {
-        if (!baseStore.items.length) return 'N/A'
-        const sorted = [...baseStore.items].sort((a, b) => (b.overallScore || 0) - (a.overallScore || 0))
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value) || !baseStore.items.value.length) return 'N/A'
+        const sorted = [...baseStore.items.value].sort((a, b) => (b.overallScore || 0) - (a.overallScore || 0))
         return sorted[0]?.name || 'N/A'
     })
 
-    const totalTenants = computed(() => baseStore.items.length)
+    const totalTenants = computed(() => {
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return 0
+        return baseStore.items.value.length
+    })
 
     const totalLatePayments = computed(() => {
-        return baseStore.items.reduce((acc, tenant) => acc + (tenant.latePayments || 0), 0)
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return 0
+        return baseStore.items.value.reduce((acc, tenant) => acc + (tenant.latePayments || 0), 0)
     })
 
     const totalPayments = computed(() => {
-        return baseStore.items.reduce((acc, tenant) => acc + (tenant.totalPayments || 0), 0)
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return 0
+        return baseStore.items.value.reduce((acc, tenant) => acc + (tenant.totalPayments || 0), 0)
     })
 
     const totalActiveLeases = computed(() => {
-        return baseStore.items.reduce((acc, tenant) => acc + (tenant.activeLeases || 0), 0)
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return 0
+        return baseStore.items.value.reduce((acc, tenant) => acc + (tenant.activeLeases || 0), 0)
     })
 
     const totalCompletedLeases = computed(() => {
-        return baseStore.items.reduce((acc, tenant) => acc + (tenant.completedLeases || 0), 0)
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return 0
+        return baseStore.items.value.reduce((acc, tenant) => acc + (tenant.completedLeases || 0), 0)
     })
 
     const excellentTenants = computed(() => {
-        return baseStore.items.filter(tenant => (tenant.overallScore || 0) >= 4.5)
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return []
+        return baseStore.items.value.filter(tenant => (tenant.overallScore || 0) >= 4.5)
     })
 
     const goodTenants = computed(() => {
-        return baseStore.items.filter(tenant => {
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return []
+        return baseStore.items.value.filter(tenant => {
             const score = tenant.overallScore || 0
             return score >= 3.5 && score < 4.5
         })
     })
 
     const averageTenants = computed(() => {
-        return baseStore.items.filter(tenant => {
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return []
+        return baseStore.items.value.filter(tenant => {
             const score = tenant.overallScore || 0
             return score >= 2.5 && score < 3.5
         })
     })
 
     const poorTenants = computed(() => {
-        return baseStore.items.filter(tenant => (tenant.overallScore || 0) < 2.5)
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return []
+        return baseStore.items.value.filter(tenant => (tenant.overallScore || 0) < 2.5)
     })
 
     const reliableTenants = computed(() => {
-        return baseStore.items.filter(tenant => (tenant.paymentScore || 0) >= 4.0)
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return []
+        return baseStore.items.value.filter(tenant => (tenant.paymentScore || 0) >= 4.0)
     })
 
     const unreliableTenants = computed(() => {
-        return baseStore.items.filter(tenant => (tenant.paymentScore || 0) < 3.0)
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return []
+        return baseStore.items.value.filter(tenant => (tenant.paymentScore || 0) < 3.0)
     })
 
     return {

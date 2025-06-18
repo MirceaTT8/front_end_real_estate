@@ -41,11 +41,13 @@ export const useLandlordRatingsStore = defineStore('landlordRatingsStore', () =>
     const refreshRatings = () => fetchRatings()
 
     const getLandlordById = (landlordId) => {
-        return baseStore.items.find(landlord => landlord.landlordId === landlordId) || null
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return null
+        return baseStore.items.value.find(landlord => landlord.landlordId === landlordId) || null
     }
 
     const getSortedLandlords = (sortBy = 'overallScore', direction = 'desc') => {
-        return [...baseStore.items].sort((a, b) => {
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return []
+        return [...baseStore.items.value].sort((a, b) => {
             const modifier = direction === 'asc' ? 1 : -1
             const aValue = a[sortBy] || 0
             const bValue = b[sortBy] || 0
@@ -57,75 +59,85 @@ export const useLandlordRatingsStore = defineStore('landlordRatingsStore', () =>
     }
 
     const averageOverallScore = computed(() => {
-        if (!baseStore.items.length) return 0
-        const sum = baseStore.items.reduce((acc, landlord) => acc + (landlord.overallScore || 0), 0)
-        return sum / baseStore.items.length
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value) || !baseStore.items.value.length) return 0
+        const sum = baseStore.items.value.reduce((acc, landlord) => acc + (landlord.overallScore || 0), 0)
+        return sum / baseStore.items.value.length
     })
 
     const topRatedLandlord = computed(() => {
-        if (!baseStore.items.length) return 'N/A'
-        const sorted = [...baseStore.items].sort((a, b) => (b.overallScore || 0) - (a.overallScore || 0))
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value) || !baseStore.items.value.length) return 'N/A'
+        const sorted = [...baseStore.items.value].sort((a, b) => (b.overallScore || 0) - (a.overallScore || 0))
         return sorted[0]?.name || 'N/A'
     })
 
-    const totalLandlords = computed(() => baseStore.items.length)
+    const totalLandlords = computed(() => {
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return 0
+        return baseStore.items.value.length
+    })
 
     const totalFlaggedProperties = computed(() => {
-        return baseStore.items.reduce((acc, landlord) => acc + (landlord.flaggedProperties || 0), 0)
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return 0
+        return baseStore.items.value.reduce((acc, landlord) => acc + (landlord.flaggedProperties || 0), 0)
     })
 
     const averageResponseTime = computed(() => {
-        if (!baseStore.items.length) return 0
-        const sum = baseStore.items.reduce((acc, landlord) => acc + (landlord.averageResponseTime || 0), 0)
-        return sum / baseStore.items.length
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value) || !baseStore.items.value.length) return 0
+        const sum = baseStore.items.value.reduce((acc, landlord) => acc + (landlord.averageResponseTime || 0), 0)
+        return sum / baseStore.items.value.length
     })
 
     const averageCommunicationScore = computed(() => {
-        if (!baseStore.items.length) return 0
-        const sum = baseStore.items.reduce((acc, landlord) => acc + (landlord.communicationScore || 0), 0)
-        return sum / baseStore.items.length
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value) || !baseStore.items.value.length) return 0
+        const sum = baseStore.items.value.reduce((acc, landlord) => acc + (landlord.communicationScore || 0), 0)
+        return sum / baseStore.items.value.length
     })
 
     const averageMaintenanceScore = computed(() => {
-        if (!baseStore.items.length) return 0
-        const sum = baseStore.items.reduce((acc, landlord) => acc + (landlord.maintenanceScore || 0), 0)
-        return sum / baseStore.items.length
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value) || !baseStore.items.value.length) return 0
+        const sum = baseStore.items.value.reduce((acc, landlord) => acc + (landlord.maintenanceScore || 0), 0)
+        return sum / baseStore.items.value.length
     })
 
     const averageRatingScore = computed(() => {
-        if (!baseStore.items.length) return 0
-        const sum = baseStore.items.reduce((acc, landlord) => acc + (landlord.ratingScore || 0), 0)
-        return sum / baseStore.items.length
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value) || !baseStore.items.value.length) return 0
+        const sum = baseStore.items.value.reduce((acc, landlord) => acc + (landlord.ratingScore || 0), 0)
+        return sum / baseStore.items.value.length
     })
 
     const totalActiveLeases = computed(() => {
-        return baseStore.items.reduce((acc, landlord) => acc + (landlord.activeLeases || 0), 0)
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return 0
+        return baseStore.items.value.reduce((acc, landlord) => acc + (landlord.activeLeases || 0), 0)
     })
 
     const totalProperties = computed(() => {
-        return baseStore.items.reduce((acc, landlord) => acc + (landlord.totalProperties || 0), 0)
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return 0
+        return baseStore.items.value.reduce((acc, landlord) => acc + (landlord.totalProperties || 0), 0)
     })
 
     const excellentLandlords = computed(() => {
-        return baseStore.items.filter(landlord => (landlord.overallScore || 0) >= 4.5)
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return []
+        return baseStore.items.value.filter(landlord => (landlord.overallScore || 0) >= 4.5)
     })
 
     const goodLandlords = computed(() => {
-        return baseStore.items.filter(landlord => {
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return []
+        return baseStore.items.value.filter(landlord => {
             const score = landlord.overallScore || 0
             return score >= 3.5 && score < 4.5
         })
     })
 
     const averageLandlords = computed(() => {
-        return baseStore.items.filter(landlord => {
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return []
+        return baseStore.items.value.filter(landlord => {
             const score = landlord.overallScore || 0
             return score >= 2.5 && score < 3.5
         })
     })
 
     const poorLandlords = computed(() => {
-        return baseStore.items.filter(landlord => (landlord.overallScore || 0) < 2.5)
+        if (!baseStore.items.value || !Array.isArray(baseStore.items.value)) return []
+        return baseStore.items.value.filter(landlord => (landlord.overallScore || 0) < 2.5)
     })
 
     return {

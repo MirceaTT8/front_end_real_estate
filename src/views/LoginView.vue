@@ -239,17 +239,14 @@ button:active:not(:disabled) {
   transform: translateY(1px);
 }
 
-/* Custom focus states */
 input:focus, button:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
 
-/* Ensure proper sizing and spacing */
 .min-h-screen {
   min-height: 100vh;
 }
 
-/* Add animations to decorative elements */
 @keyframes float {
   0%, 100% {
     transform: translateY(0);

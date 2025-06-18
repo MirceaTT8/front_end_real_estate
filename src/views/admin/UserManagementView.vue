@@ -135,8 +135,8 @@ onMounted(() => {
                 @click="showUserDialog = true"
                 class="flex items-center justify-center gap-2 px-4 py-2 bg-white text-purple-700 text-sm font-medium rounded-xl hover:bg-purple-50 transition-colors shadow-sm"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
               Add User
             </button>
@@ -145,70 +145,39 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Filters and Search -->
-    <div class="bg-white rounded-xl shadow-md overflow-hidden">
-      <div class="border-b border-gray-100 px-6 py-4">
-        <h2 class="text-lg font-semibold text-gray-800">Find Users</h2>
-        <p class="text-sm text-gray-500">Search and filter system users</p>
-      </div>
-
-      <div class="p-6">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <!-- Status Filter -->
-          <div class="space-y-2">
-            <label for="status" class="block text-sm font-medium text-gray-700">User Status</label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-              </div>
-              <select
-                  id="status"
-                  v-model="statusFilter"
-                  class="block w-full pl-10 pr-10 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 sm:text-sm appearance-none"
-              >
-                <option value="ALL">All Users</option>
-                <option value="ACTIVE">Active Users</option>
-                <option value="INACTIVE">Inactive Users</option>
-              </select>
-              <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <!-- Search -->
-          <div class="sm:col-span-2 space-y-2">
-            <label for="search" class="block text-sm font-medium text-gray-700">Search Users</label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                  id="search"
-                  v-model="userStore.searchQuery"
-                  type="text"
-                  placeholder="Search by name, email or ID"
-                  class="block w-full pl-10 pr-3 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-              />
-            </div>
-          </div>
+    <!-- Search and Filter Controls -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="flex-1">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Search Users</label>
+          <input
+              v-model="userStore.searchQuery"
+              type="text"
+              placeholder="Search by name or email..."
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+          />
+        </div>
+        <div class="w-full md:w-48">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
+          <select
+              v-model="statusFilter"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+          >
+            <option value="ALL">All Users</option>
+            <option value="ACTIVE">Active Only</option>
+            <option value="INACTIVE">Inactive Only</option>
+          </select>
         </div>
       </div>
     </div>
 
-    <!-- Stats cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <div class="bg-white rounded-xl shadow-md p-6">
         <div class="flex items-center gap-4">
-          <div class="bg-indigo-100 p-3 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          <div class="bg-blue-100 p-3 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
           </div>
           <div>
@@ -296,17 +265,14 @@ onMounted(() => {
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200 text-sm">
-          <tr
-              v-for="user in filteredUsers"
-              :key="user.userId"
-              class="hover:bg-gray-50 transition-colors"
-          >
-            <td class="px-6 py-4">
+          <tbody class="bg-white divide-y divide-gray-200">
+          <tr v-for="user in filteredUsers" :key="user.userId" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
               <input
                   type="checkbox"
                   :checked="userStore.selectedUsers.has(user.userId)"
@@ -314,36 +280,25 @@ onMounted(() => {
                   class="h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
               >
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-gray-500 font-mono">{{ user.userId }}</td>
-            <td class="px-6 py-4">
-              <div class="flex items-center">
-                <div class="h-10 w-10 flex-shrink-0 bg-purple-100 rounded-full flex items-center justify-center">
-                  <span class="text-purple-700 font-medium">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</span>
-                </div>
-                <div class="ml-4">
-                  <div class="font-medium text-gray-900">{{ user.firstName }} {{ user.lastName }}</div>
-                  <div class="text-gray-500 text-xs">{{ user.role || 'User' }}</div>
-                </div>
-              </div>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+              {{ user.userId }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <a :href="`mailto:${user.email}`" class="text-purple-600 hover:text-purple-900 hover:underline">
-                {{ user.email }}
-              </a>
+              <div class="text-sm font-medium text-gray-900">{{ user.firstName }} {{ user.lastName }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ user.email }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-                <span
-                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-sm"
-                    :class="user.isActive
-                    ? 'bg-green-100 text-green-800 border border-green-200'
-                    : 'bg-red-100 text-red-800 border border-red-200'"
-                    :title="user.isActive ? 'Click to deactivate' : 'Click to activate'"
-                    @click="toggleUserStatus(user)"
-                    style="cursor: pointer;"
-                >
-                  <span class="w-2 h-2 rounded-full mr-1.5" :class="user.isActive ? 'bg-green-500' : 'bg-red-500'"></span>
-                  {{ user.isActive ? 'ACTIVE' : 'INACTIVE' }}
-                </span>
+              <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                {{ user.role }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span :class="user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
+                {{ user.isActive ? 'ACTIVE' : 'INACTIVE' }}
+              </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               <div class="flex gap-2">
@@ -391,33 +346,6 @@ onMounted(() => {
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
           </svg>
           Deactivate
-        </button>
-        <button
-            @click="userStore.approveSelected"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-          </svg>
-          Approve
-        </button>
-        <button
-            @click="userStore.suspendSelected"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
-          </svg>
-          Suspend
-        </button>
-        <button
-            @click="confirmDelete([...userStore.selectedUsers][0])"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-          </svg>
-          Delete
         </button>
       </div>
     </div>
@@ -479,48 +407,26 @@ onMounted(() => {
                 required
             >
               <option value="">Select a role</option>
-              <option value="ADMIN">Admin</option>
-              <option value="USER">User</option>
-              <option value="MANAGER">Manager</option>
+              <option v-for="role in userStore.roles" :key="role" :value="role">{{ role }}</option>
             </select>
-          </div>
-
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <p class="text-sm text-blue-700">
-                  A temporary password will be generated and sent to the user's email address.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 mt-6">
+        <div class="flex gap-3 mt-6">
           <button
               @click="showUserDialog = false"
-              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors"
+              class="flex-1 px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
           >
             Cancel
           </button>
           <button
               @click="saveNewUser"
-              :disabled="!newUser.firstName || !newUser.lastName || !newUser.email || !newUser.role"
-              class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              class="flex-1 px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
           >
-            Create User
+            Add User
           </button>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
-</style>

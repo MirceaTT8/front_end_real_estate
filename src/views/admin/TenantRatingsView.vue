@@ -212,7 +212,6 @@ onMounted(() => {
           <tr v-for="tenant in sortedTenants" :key="tenant.tenantId" class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-medium text-gray-900">#{{ tenant.tenantId }}</div>
-              <div class="text-sm text-gray-500">{{ tenant.name }}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <span :class="getScoreColor(tenant.overallScore)" class="text-sm font-semibold">

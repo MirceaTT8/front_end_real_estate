@@ -6,6 +6,10 @@ import DashboardView from "@/views/landlord/DashboardView.vue"
 import LoginView from "@/views/LoginView.vue"
 import RegisterView from "@/views/RegisterView.vue"
 import InvitedRegisterView from "@/views/InvitedRegisterView.vue";
+import LogsView from "@/views/admin/LogsView.vue"
+import TenantRatingsView from "@/views/admin/TenantRatingsView.vue";
+import AdminDashboardView from "@/views/admin/AdminDashboardView.vue"
+import UserManagementView from "@/views/admin/UserManagementView.vue"
 
 const PropertyView = () => import('@/views/landlord/PropertyView.vue')
 const PropertyDetailsView = () => import('@/views/landlord/PropertyDetailsView.vue')
@@ -19,15 +23,12 @@ const PaymentTenantView = () => import('@/views/tenant/PaymentTenantView.vue')
 const MaintenanceRequestTenantView = () => import('@/views/tenant/MaintenanceRequestTenantView.vue')
 const PaymentSuccessView = () => import('@/views/tenant/PaymentSuccessView.vue')
 
-import AdminDashboardView from "@/views/admin/AdminDashboardView.vue"
-import UserManagementView from "@/views/admin/UserManagementView.vue"
 const AdminPaymentsView = () => import('@/views/admin/AdminPaymentView.vue')
 const AdminMaintenanceView = () => import('@/views/admin/AdminMaintenanceView.vue')
 const AdminPropertyManagementView = () => import('@/views/admin/AdminPropertyView.vue')
 const AdminLeaseView = () => import('@/views/admin/AdminLeaseView.vue')
 const LandlordRatingsView = () => import ('@/views/admin/LandlordRatingsView.vue')
-import LogsView from "@/views/admin/LogsView.vue"
-import TenantRatingsView from "@/views/admin/TenantRatingsView.vue";
+
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),

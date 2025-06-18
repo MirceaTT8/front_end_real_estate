@@ -74,7 +74,6 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
 
         try {
             await fetchPayments()
-
             await checkPaymentCycleStatus()
 
         } catch (err) {

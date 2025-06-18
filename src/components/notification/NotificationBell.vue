@@ -260,17 +260,7 @@ const getNotificationColor = (notification) => {
             </div>
           </template>
         </div>
-
-        <!-- Footer -->
         <div class="px-4 py-3 text-sm bg-gray-50 border-t border-gray-200 flex justify-between items-center">
-          <!--          <router-link-->
-          <!--              to="/notifications"-->
-          <!--              class="text-blue-600 hover:text-blue-800 font-medium flex items-center"-->
-          <!--              @click="showDropdown = false"-->
-          <!--          >-->
-          <!--            View All-->
-          <!--            <i class="pi pi-arrow-right ml-1 text-xs"></i>-->
-          <!--          </router-link>-->
 
           <button
               v-if="unreadCount > 0"

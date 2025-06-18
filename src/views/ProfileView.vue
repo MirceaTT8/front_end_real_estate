@@ -29,12 +29,10 @@ const isLoading = ref(true);
 const error = ref(null);
 const tempProfile = reactive({});
 
-// Computed property to check if the current user can edit this profile
 const canEdit = computed(() => {
   return currentUser.userId && user.userId && currentUser.userId === user.userId;
 });
 
-// Computed property to determine if this is the user's own profile
 const isOwnProfile = computed(() => {
   return canEdit.value;
 });
@@ -49,22 +47,18 @@ const fetchUserData = async () => {
 
     const decoded = jwtDecode(token);
 
-    // Set current authenticated user info
     const currentUserData = await fetchUserByEmail(decoded.sub);
     Object.assign(currentUser, {
       userId: currentUserData.userId,
       email: currentUserData.email
     });
 
-    // Check if viewing a specific user profile via route parameter
     const userIdParam = route.params.userId;
 
     let userData;
     if (userIdParam) {
-      // Viewing another user's profile
       userData = await fetchUserById(parseInt(userIdParam));
     } else {
-      // Viewing own profile (default behavior)
       userData = currentUserData;
     }
 
@@ -94,11 +88,9 @@ const saveProfile = async () => {
   try {
     isLoading.value = true;
 
-    // Only update phone number if it has changed
     if (tempProfile.phone !== user.phone) {
       const updatedUser = await updateUserPhone(user.userId, tempProfile.phone);
 
-      // Update only the phone number in the local user object
       user.phone = updatedUser.phone;
     }
 

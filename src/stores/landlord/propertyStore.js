@@ -18,12 +18,8 @@ export const useLandlordPropertyStore = defineStore('landlordPropertyStore', () 
         loading.value = true
         error.value = null
         try {
-            console.log('Loading properties...')
             const result = await fetchMyProperties()
-            console.log('Fetched properties:', result)
-
             properties.value = Array.isArray(result) ? result : []
-            console.log('Properties set in store:', properties.value.length)
         } catch (err) {
             console.error('Error loading properties:', err)
             error.value = err?.message || err?.toString() || 'Failed to load properties'

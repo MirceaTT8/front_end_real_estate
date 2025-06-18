@@ -84,7 +84,7 @@ onUnmounted(() => {
 watch(() => authStore.userRole, updateMenu)
 watch(() => route.path, updateMenu)
 
-const hideRoutes = ['/login', '/register', '/payment/success']
+const hideRoutes = ['/login', '/register', '/payment/success', '/invite']
 const showNavBar = computed(() => {
   return authStore.isAuthenticated && !hideRoutes.includes(route.path)
 })

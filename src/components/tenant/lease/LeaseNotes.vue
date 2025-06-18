@@ -1,4 +1,3 @@
-<!-- LeaseNotes.vue -->
 <template>
   <div class="space-y-6">
     <!-- Notes Content -->
