@@ -17,25 +17,15 @@
           <div class="space-y-4">
             <div>
               <h4 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Address</h4>
-              <p class="text-gray-800">{{ property.address }}</p>
+              <p class="text-gray-800">{{ property?.address || 'Address not available' }}</p>
             </div>
 
             <div>
               <h4 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Property Type</h4>
-              <p class="text-gray-800">{{ property.type || 'Residential' }}</p>
+              <p class="text-gray-800">{{ property?.type || 'Type not available' }}</p>
             </div>
           </div>
 
-<!--          <div class="space-y-4">-->
-<!--            <div>-->
-<!--              <h4 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Year Built</h4>-->
-<!--              <p class="text-gray-800">{{ property.yearBuilt || 'N/A' }}</p>-->
-<!--            </div>-->
-
-<!--            <div>-->
-<!--              <h4 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Square Footage</h4>-->
-<!--              <p class="text-gray-800">{{ property.size ? `${property.size} sq ft` : 'N/A' }}</p>-->
-<!--            </div>-->
 <!--          </div>-->
         </div>
       </div>
@@ -45,10 +35,16 @@
 </template>
 
 <script setup>
-defineProps({
+import {onMounted} from "vue";
+
+const props = defineProps({
   property: {
     type: Object,
     required: true
   }
+})
+
+onMounted(() =>{
+  console.log(props.property)
 })
 </script>

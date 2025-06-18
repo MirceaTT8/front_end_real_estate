@@ -16,7 +16,6 @@ const filteredRequests = computed(() => {
   return maintenanceStore.requests.filter(request => request.status === statusFilter.value)
 })
 
-// Compute statistics for dashboard cards
 const totalRequests = computed(() => maintenanceStore.requests.length)
 const pendingRequests = computed(() => maintenanceStore.requests.filter(req => req.status === 'PENDING').length)
 const inProgressRequests = computed(() => maintenanceStore.requests.filter(req => req.status === 'IN_PROGRESS').length)
@@ -31,16 +30,9 @@ const submitRequest = async (newRequest) => {
   showCreateForm.value = false
 }
 
-// Handle feedback submission from maintenance cards
 const handleFeedbackSubmitted = async (feedbackData) => {
-  // Optionally refresh the data or show a success message
   console.log('Feedback submitted:', feedbackData);
 
-  // You might want to show a toast notification here
-  // toast.success('Feedback submitted successfully');
-
-  // Optionally refresh the requests to get updated data
-  // await loadRequests();
 }
 
 onMounted(() => {

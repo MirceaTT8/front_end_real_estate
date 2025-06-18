@@ -95,7 +95,6 @@ export const usePaymentTenantStore = defineStore('paymentTenantStore', () => {
             if (newPayment) {
                 payments.value.unshift(newPayment)
                 updateYearlyPayments()
-                // Update payment cycle status after successful payment
                 await checkPaymentCycleStatus()
             }
             return newPayment

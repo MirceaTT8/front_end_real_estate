@@ -17,10 +17,6 @@ const props = defineProps({
   }
 })
 
-onMounted(async () => {
-    console.log(props.properties)
-})
-
 const emit = defineEmits(['reset-filters'])
 </script>
 

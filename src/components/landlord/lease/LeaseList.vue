@@ -6,6 +6,7 @@ import {
   getTenantNameByLeaseId
 } from '@/utils/leaseNameUtils';
 
+import { formatDate } from '@/utils/formatters.js'
 import { requestLeaseTermination } from "@/services/leaseService.js";
 import LeaseTenantReviewModal from "@/components/landlord/lease/LeaseTenantReviewModal.vue";
 
@@ -34,11 +35,6 @@ const emit = defineEmits(['terminate', 'review-submitted']);
 
 const showReviewModal = ref(false)
 const selectedLease = ref(null)
-
-const formatDate = (dateString) => {
-  if (!dateString || dateString === 'undetermined') return 'undetermined';
-  return new Date(dateString).toLocaleDateString();
-};
 
 const handleTerminate = async (leaseId) => {
   try {

@@ -13,7 +13,6 @@ const currentMenu = ref([])
 const mobileMenuVisible = ref(false)
 const activeDropdown = ref(null)
 
-// Enhanced menu items with better icons and organization
 const menuItems = {
   landlord: [
     { label: 'Dashboard', icon: PrimeIcons.HOME, route: '/landlord' },

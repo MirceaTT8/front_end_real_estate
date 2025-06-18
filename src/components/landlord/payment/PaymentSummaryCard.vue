@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { formatCurrencyCompact } from '@/utils/formatters.js'
 
 const props = defineProps({
   payments: {
@@ -19,19 +20,10 @@ const completedCount = computed(() =>
 const pendingCount = computed(() =>
     props.payments.filter(p => p.status !== 'COMPLETED').length
 )
-
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2
-  }).format(value)
-}
 </script>
 
 <template>
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6">
-    <!-- Total Collected Card -->
     <div class="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:shadow-lg hover:-translate-y-1">
       <div class="bg-gradient-to-r from-green-500 to-green-600 h-2"></div>
       <div class="p-6 flex items-center">
@@ -42,12 +34,11 @@ const formatCurrency = (value) => {
         </div>
         <div>
           <p class="text-sm font-medium text-gray-500 mb-1">Total Collected</p>
-          <p class="text-2xl font-bold text-gray-800">{{ formatCurrency(totalAmount) }}</p>
+          <p class="text-2xl font-bold text-gray-800">{{ formatCurrencyCompact(totalAmount) }}</p>
         </div>
       </div>
     </div>
 
-    <!-- Completed Payments Card -->
     <div class="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:shadow-lg hover:-translate-y-1">
       <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2"></div>
       <div class="p-6 flex items-center">
@@ -66,12 +57,11 @@ const formatCurrency = (value) => {
       </div>
     </div>
 
-    <!-- Pending Payments Card -->
     <div class="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:shadow-lg hover:-translate-y-1">
-      <div class="bg-gradient-to-r from-amber-500 to-amber-600 h-2"></div>
+      <div class="bg-gradient-to-r from-orange-500 to-red-600 h-2"></div>
       <div class="p-6 flex items-center">
-        <div class="bg-amber-100 rounded-full p-3 mr-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="bg-orange-100 rounded-full p-3 mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>

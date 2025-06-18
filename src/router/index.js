@@ -32,12 +32,9 @@ import TenantRatingsView from "@/views/admin/TenantRatingsView.vue";
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
-        { path: '/payment/success', name: 'PaymentSuccess', component: PaymentSuccessView },
-        { path: '/register', name: 'Register', component: RegisterView },
-        { path: '/login', name: 'Login', component: LoginView },
-        { path: '/invite', name: 'InvitedRegister', component: InvitedRegisterView },
+
         {
-            path: '/',
+            path: '/:pathMatch(.*)*',
             redirect: () => {
                 const token = localStorage.getItem('token')
                 if (token) {
@@ -50,7 +47,10 @@ const router = createRouter({
             }
         },
         { path: '/profile/:userId?', name: 'Profile', component: ProfileView },
-
+        { path: '/payment/success', name: 'PaymentSuccess', component: PaymentSuccessView },
+        { path: '/register', name: 'Register', component: RegisterView },
+        { path: '/login', name: 'Login', component: LoginView },
+        { path: '/invite', name: 'InvitedRegister', component: InvitedRegisterView },
         { path: '/landlord', name: 'Dashboard', component: DashboardView },
         { path: '/landlord/properties', name: 'Property', component: PropertyView },
         { path: '/landlord/property/:id', name: 'PropertyDetails', component: PropertyDetailsView },
@@ -79,13 +79,10 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const publicPages = ['/login', '/register', '/payment/success', '/invite']
-
     const authRequired = !publicPages.includes(to.path.split('?')[0])
-
     const token = localStorage.getItem('token')
 
     if (authRequired && !token) return next('/login')
-
     if (token) {
         try {
             const { authorities } = jwtDecode(token)
@@ -94,12 +91,10 @@ router.beforeEach((to, from, next) => {
                 && !authorities.includes('ROLE_TENANT') && !authorities.includes('ROLE_ADMIN')) {
                 return next('/login')
             }
-
             if (to.path.startsWith('/landlord')
                 && !authorities.includes('ROLE_LANDLORD') && !authorities.includes('ROLE_ADMIN') ) {
                 return next('/login')
             }
-
             if (to.path.startsWith('/admin') && !authorities.includes('ROLE_ADMIN')) {
                 return next('/login')
             }

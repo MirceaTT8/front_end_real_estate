@@ -166,7 +166,6 @@ onMounted(() => {
       />
     </div>
 
-    <!-- Improved pagination controls -->
     <div class="flex justify-center mt-8">
       <PaginationControls
           :current-page="store.currentPage"

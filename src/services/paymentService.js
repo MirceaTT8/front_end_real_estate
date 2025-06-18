@@ -137,7 +137,7 @@ export const createStripeCheckoutSession = async (leaseId) => {
         throw new Error(errorText || `Stripe session creation failed with status: ${response.status}`);
     }
 
-    return await response.json(); // { id: sessionId }
+    return await response.json();
 };
 
 export const confirmStripePayment = async (sessionId) => {

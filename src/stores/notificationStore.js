@@ -3,7 +3,8 @@ import { ref } from 'vue'
 import { fetchNotificationsByEmail, markAllNotificationAsReadByEmail} from '@/services/notificationService'
 import { jwtDecode } from 'jwt-decode'
 
-export const useNotificationStore = defineStore('notification', () => {
+export const useNotificationStore =
+    defineStore('notification', () => {
     const notifications = ref([])
     const unreadCount = ref(0)
     const intervalId = ref(null)

@@ -1,10 +1,12 @@
+
 <script setup>
 import { ref, onMounted } from 'vue'
 import { usePaymentTenantStore } from "@/stores/tenant/paymentTenantStore.js"
 import { loadStripe } from "@stripe/stripe-js"
-import { formatDate } from "@/utils/dateUtils.js"
-const stripePromise = loadStripe('pk_test_51MMELpFqC40RfDoFO6Jg3gMWPzmE16VwhlDkBdaa5DlTHn7s7jtjok0zsiLT3x4v2h8TB6nTEgtg9552gtGCGsYn00Qg9p6wT4')
+import { formatDate, formatCurrencyCompact } from '@/utils/formatters.js'
 import PaymentHistory from "@/components/tenant/payment/PaymentHistory.vue"
+
+const stripePromise = loadStripe('pk_test_51MMELpFqC40RfDoFO6Jg3gMWPzmE16VwhlDkBdaa5DlTHn7s7jtjok0zsiLT3x4v2h8TB6nTEgtg9552gtGCGsYn00Qg9p6wT4')
 
 const paymentStore = usePaymentTenantStore()
 const showPaymentModal = ref(false)
@@ -13,13 +15,6 @@ const paymentForm = ref({
   amount: 0,
   paymentMethod: 'CREDIT_CARD'
 })
-
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(amount)
-}
 
 const submitPayment = async () => {
   try {
@@ -34,7 +29,6 @@ const submitPayment = async () => {
 const handleStripeCheckout = async () => {
   try {
     const { id: sessionId } = await paymentStore.startStripeCheckout()
-    console.log(sessionId)
     const stripe = await stripePromise
     await stripe.redirectToCheckout({ sessionId })
   } catch (err) {
@@ -43,7 +37,6 @@ const handleStripeCheckout = async () => {
 }
 
 onMounted(async () => {
-  // Use the new store method that handles all initialization
   try {
     await paymentStore.initializePaymentData()
   } catch (error) {
@@ -54,42 +47,28 @@ onMounted(async () => {
 
 <template>
   <div class="max-w-6xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
-    <!-- Header with Gradient Background -->
-    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-md overflow-hidden mb-8">
+    <div class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl shadow-md overflow-hidden mb-8">
       <div class="px-6 py-8 sm:px-8">
-        <div class="flex justify-between items-center">
-          <div>
-            <h1 class="text-3xl font-bold text-white mb-2">Rent Payment Information</h1>
-            <p class="text-purple-100">Manage your rent payments and view payment history</p>
-          </div>
-          <button
-              v-if="!paymentStore.loading && !paymentStore.hasPaidCurrentCycle"
-              @click="handleStripeCheckout"
-              class="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg hover:bg-white/30 transition-all duration-200 font-medium shadow-lg"
-          >
-            Pay via Stripe
-          </button>
+        <div class="text-center mb-8">
+          <h1 class="text-3xl font-bold text-white mb-2">Payment Center</h1>
+          <p class="text-purple-100">Manage your rent payments and view payment history</p>
         </div>
 
-        <!-- Quick Stats Cards -->
-        <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-
-          <!-- Total Paid YTD Card -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-white">
             <div class="flex items-center">
               <div class="p-3 bg-white/20 rounded-lg mr-4">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
                 <p class="text-sm text-white/80">Paid This Year</p>
-                <p class="text-2xl font-bold mt-1">{{ formatCurrency(paymentStore.totalPaidYTD) }}</p>
+                <p class="text-2xl font-bold mt-1">{{ formatCurrencyCompact(paymentStore.totalPaidYTD) }}</p>
               </div>
             </div>
           </div>
 
-          <!-- Next Payment Card -->
           <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-white">
             <div class="flex items-center">
               <div class="p-3 bg-white/20 rounded-lg mr-4">
@@ -111,7 +90,6 @@ onMounted(async () => {
             </div>
           </div>
 
-          <!-- Total Payments Card -->
           <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-white">
             <div class="flex items-center">
               <div class="p-3 bg-white/20 rounded-lg mr-4">
@@ -156,11 +134,29 @@ onMounted(async () => {
           >
             <h3 class="text-gray-500 text-sm font-medium">Rent Due</h3>
             <p class="text-3xl font-bold text-gray-800 my-2">
-              {{ formatCurrency(paymentStore.currentBalance) }}
+              {{ formatCurrencyCompact(paymentStore.currentBalance) }}
             </p>
             <p class="text-gray-600 font-medium">
               {{ paymentStore.currentBalance === 0 ? 'Rent paid for this month' : 'Due by the 5th of each month' }}
             </p>
+          </div>
+
+          <div v-if="paymentStore.currentBalance > 0" class="mt-6 flex flex-col sm:flex-row gap-4">
+            <button
+                @click="showPaymentModal = true"
+                class="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors"
+            >
+              Pay with Card/Bank
+            </button>
+            <button
+                @click="handleStripeCheckout"
+                class="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/>
+              </svg>
+              Pay with Stripe
+            </button>
           </div>
         </div>
       </div>
@@ -169,11 +165,7 @@ onMounted(async () => {
         <div class="px-6 py-4 border-b border-gray-100">
           <h2 class="text-lg font-semibold text-gray-800">Payment History</h2>
         </div>
-        <PaymentHistory
-            :payments="paymentStore.payments"
-            :format-date="formatDate"
-            :format-currency="formatCurrency"
-        />
+        <PaymentHistory :payments="paymentStore.payments" />
       </div>
     </div>
 

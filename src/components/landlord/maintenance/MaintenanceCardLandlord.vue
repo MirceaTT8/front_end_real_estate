@@ -9,6 +9,8 @@ import SwiperCore from 'swiper'
 import { Navigation, Pagination } from 'swiper/modules'
 import { setMaintenanceCost } from '@/services/maintenanceService.js'
 import { getTenantNameByLeaseId, getPropertyNameByLeaseId} from "@/utils/leaseNameUtils.js";
+import {formatCurrencyCompact, formatDate, formatTimeAgo} from "@/utils/formatters.js";
+
 
 SwiperCore.use([Navigation, Pagination])
 
@@ -52,23 +54,11 @@ const statusDisplay = {
   }
 }
 
-const formatDate = (dateString) => {
-  const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
-  return new Date(dateString).toLocaleString(undefined, options)
-}
+const cost = ref(request.cost || '')
+const isSaving = ref(false)
+const saveError = ref(null)
+const isCostSaved = computed(() => !!request.cost)
 
-const formatRelativeTime = (dateString) => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now - date) / 1000);
-
-  if (diffInSeconds < 60) return 'just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-
-  return formatDate(dateString);
-}
 
 const isRecentlyUpdated = (updatedAt) => {
   const updated = new Date(updatedAt)
@@ -83,11 +73,6 @@ const openSlider = (index) => {
   activeIndex.value = index
   showModal.value = true
 }
-
-const cost = ref(request.cost || '')
-const isSaving = ref(false)
-const saveError = ref(null)
-const isCostSaved = computed(() => !!request.cost)
 
 const saveCost = async () => {
   if (!cost.value || isNaN(cost.value)) {
@@ -108,13 +93,6 @@ const saveCost = async () => {
   }
 }
 
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2
-  }).format(value)
-}
 </script>
 
 <template>
@@ -177,7 +155,7 @@ const formatCurrency = (value) => {
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <span class="text-sm font-medium text-gray-700">{{ formatRelativeTime(request.createdAt) }}</span>
+            <span class="text-sm font-medium text-gray-700">{{ formatTimeAgo(request.createdAt) }}</span>
           </div>
         </div>
 
@@ -187,7 +165,7 @@ const formatCurrency = (value) => {
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span class="text-sm font-medium text-gray-700">{{ formatRelativeTime(request.updatedAt) }}</span>
+            <span class="text-sm font-medium text-gray-700">{{ formatTimeAgo(request.updatedAt) }}</span>
           </div>
         </div>
       </div>
@@ -284,7 +262,7 @@ const formatCurrency = (value) => {
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          Cost recorded: {{ formatCurrency(request.cost) }}
+          Cost recorded: {{ formatCurrencyCompact(request.cost) }}
         </div>
 
         <p v-if="saveError" class="text-red-600 text-xs mt-1 flex items-center font-medium">
