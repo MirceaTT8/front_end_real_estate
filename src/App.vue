@@ -12,14 +12,17 @@ const notificationStore = useNotificationStore()
 const authStore = useAuthStore()
 const token = localStorage.getItem("token")
 
-try {
-  const decoded = jwtDecode(token)
-  const roles = decoded.authorities || []
-  isAuthenticated.value = true
-  notificationStore.startPolling()
-} catch (err) {
-  localStorage.removeItem("token")
-  router.replace("/login")
+
+if (token) {
+  try {
+    const decoded = jwtDecode(token)
+    const roles = decoded.authorities || []
+    isAuthenticated.value = true
+    notificationStore.startPolling()
+  } catch (err) {
+    localStorage.removeItem("token")
+    router.replace("/login")
+  }
 }
 </script>
 

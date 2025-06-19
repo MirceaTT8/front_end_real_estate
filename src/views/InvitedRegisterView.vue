@@ -57,13 +57,18 @@ const register = async () => {
         <p class="text-gray-600">Complete your registration to access your dashboard.</p>
       </div>
 
-      <form @submit.prevent="register" class="space-y-6">
+      <form @submit.prevent="register" class="space-y-6" autocomplete="off">
         <div class="relative group">
           <input
               v-model="firstName"
               type="text"
               placeholder="First Name"
               class="w-full border-2 border-gray-200 rounded-2xl px-12 py-4 focus:border-green-500 focus:ring-4 focus:ring-green-500/20 focus:outline-none transition-all duration-300 bg-gray-50/50 group-hover:bg-white group-focus-within:bg-white"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              data-form-type="other"
               required
           />
           <div class="absolute left-4 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center group-focus-within:bg-green-500 group-focus-within:text-white transition-all duration-300">
@@ -77,6 +82,11 @@ const register = async () => {
               type="text"
               placeholder="Last Name"
               class="w-full border-2 border-gray-200 rounded-2xl px-12 py-4 focus:border-green-500 focus:ring-4 focus:ring-green-500/20 focus:outline-none transition-all duration-300 bg-gray-50/50 group-hover:bg-white group-focus-within:bg-white"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              data-form-type="other"
               required
           />
           <div class="absolute left-4 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center group-focus-within:bg-green-500 group-focus-within:text-white transition-all duration-300">
@@ -90,6 +100,11 @@ const register = async () => {
               type="password"
               placeholder="Password"
               class="w-full border-2 border-gray-200 rounded-2xl px-12 py-4 focus:border-green-500 focus:ring-4 focus:ring-green-500/20 focus:outline-none transition-all duration-300 bg-gray-50/50 group-hover:bg-white group-focus-within:bg-white"
+              autocomplete="new-password"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              data-form-type="other"
               required
           />
           <div class="absolute left-4 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center group-focus-within:bg-green-500 group-focus-within:text-white transition-all duration-300">
