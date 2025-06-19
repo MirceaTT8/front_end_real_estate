@@ -86,7 +86,7 @@ export const useTenantRatingsStore = defineStore('tenantRatings', () => {
     const topRatedTenant = computed(() => {
         if (!baseStore.items.value || !Array.isArray(baseStore.items.value) || !baseStore.items.value.length) return 'N/A'
         const sorted = [...baseStore.items.value].sort((a, b) => (b.overallScore || 0) - (a.overallScore || 0))
-        return sorted[0]?.name || 'N/A'
+        return '#' + sorted[0]?.tenantId || 'N/A'
     })
 
     const totalTenants = computed(() => {

@@ -68,7 +68,6 @@ const handleMapClick = async (location) => {
 const handleLocationSelected = (location) => {
   form.value.longitude = location.lng
   form.value.latitude = location.lat
-
 }
 
 const handleMarkerDragged = async (location) => {
@@ -84,7 +83,7 @@ const handleMarkerDragged = async (location) => {
 }
 
 function cancel() {
-  router.push('/landlord/properties')
+  router.push('/properties')
 }
 
 async function saveProperty() {
@@ -186,10 +185,11 @@ async function saveProperty() {
           </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <!-- Form Section (hidden on mobile if location tab is active) -->
+        <!-- Changed from lg:grid-cols-3 to lg:grid-cols-2 for 50/50 split -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Form Section (removed lg:col-span-2, now takes 1/2) -->
           <div
-              class="lg:col-span-2 space-y-6 bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200 transition-all duration-300"
+              class="space-y-6 bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200 transition-all duration-300"
               :class="{'hidden': activeTab === 'location' && windowWidth < 1024}"
           >
             <div class="border-b border-gray-100 pb-4 mb-4">
@@ -204,10 +204,9 @@ async function saveProperty() {
                 @location-selected="handleLocationSelected"
                 required
             />
-
           </div>
 
-          <!-- Map Section (hidden on mobile if details tab is active) -->
+          <!-- Map Section (now takes 1/2 instead of 1/3) -->
           <div
               class="lg:sticky lg:top-6 bg-white p-6 rounded-2xl shadow-lg border border-gray-200 h-fit transition-all duration-300"
               :class="{'hidden': activeTab === 'details' && windowWidth < 1024}"
@@ -251,32 +250,20 @@ async function saveProperty() {
           <button
               type="button"
               @click="cancel"
-              class="px-5 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium transition hover:bg-gray-50 hover:text-gray-800 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-              :disabled="isLoading"
+              class="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors font-medium"
           >
-            <span class="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Cancel
-            </span>
+            Cancel
           </button>
           <button
               type="submit"
-              class="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium shadow-lg transition hover:bg-blue-700 disabled:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              :disabled="isLoading"
+              :disabled="isLoading || !form.longitude || !form.latitude"
+              class="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center"
           >
-            <span class="flex items-center">
-              <svg v-if="isLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <span v-if="isLoading">Saving Property...</span>
-              <span v-else>Save Property</span>
-            </span>
+            <svg v-if="isLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ isLoading ? 'Saving...' : 'Save Property' }}
           </button>
         </div>
       </form>

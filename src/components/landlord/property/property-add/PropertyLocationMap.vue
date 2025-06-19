@@ -1,41 +1,3 @@
-<script setup>
-import { computed } from 'vue'
-import PropertyAddMap from "@/components/landlord/property/property-add/PropertyAddMap.vue";
-
-const props = defineProps({
-  longitude: Number,
-  latitude: Number,
-  isLoading: Boolean
-})
-
-const emit = defineEmits(['update:longitude', 'update:latitude', 'map-click', 'marker-dragged'])
-
-const initialMarkers = computed(() => {
-  return props.longitude && props.latitude
-      ? [{ lat: props.latitude, lng: props.longitude }]
-      : []
-})
-
-const coordinatesText = computed(() => {
-  if (props.longitude && props.latitude) {
-    return `${props.latitude.toFixed(6)}, ${props.longitude.toFixed(6)}`
-  }
-  return null
-})
-
-const handleMapClick = (location) => {
-  emit('update:longitude', location.lng)
-  emit('update:latitude', location.lat)
-  emit('map-click', location)
-}
-
-const handleMarkerDragged = (location) => {
-  emit('update:longitude', location.lng)
-  emit('update:latitude', location.lat)
-  emit('marker-dragged', location)
-}
-</script>
-
 <template>
   <div class="space-y-4">
     <!-- Map Container -->
@@ -52,8 +14,8 @@ const handleMarkerDragged = (location) => {
         </div>
       </div>
 
-      <!-- Map -->
-      <div class="h-80 border-2 border-gray-200 rounded-lg overflow-hidden shadow-inner bg-gray-50">
+      <!-- Map - Changed from h-80 to h-[600px] for much bigger map -->
+      <div class="h-[600px] border-2 border-gray-200 rounded-lg overflow-hidden shadow-inner bg-gray-50">
         <PropertyAddMap
             :key="`map-${longitude}-${latitude}`"
             :clickable="!isLoading"
@@ -109,3 +71,41 @@ const handleMarkerDragged = (location) => {
     </div>
   </div>
 </template>
+
+<script setup>
+import { computed } from 'vue'
+import PropertyAddMap from "@/components/landlord/property/property-add/PropertyAddMap.vue";
+
+const props = defineProps({
+  longitude: Number,
+  latitude: Number,
+  isLoading: Boolean
+})
+
+const emit = defineEmits(['update:longitude', 'update:latitude', 'map-click', 'marker-dragged'])
+
+const initialMarkers = computed(() => {
+  return props.longitude && props.latitude
+      ? [{ lat: props.latitude, lng: props.longitude }]
+      : []
+})
+
+const coordinatesText = computed(() => {
+  if (props.longitude && props.latitude) {
+    return `${props.latitude.toFixed(6)}, ${props.longitude.toFixed(6)}`
+  }
+  return null
+})
+
+const handleMapClick = (location) => {
+  emit('update:longitude', location.lng)
+  emit('update:latitude', location.lat)
+  emit('map-click', location)
+}
+
+const handleMarkerDragged = (location) => {
+  emit('update:longitude', location.lng)
+  emit('update:latitude', location.lat)
+  emit('marker-dragged', location)
+}
+</script>

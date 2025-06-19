@@ -26,21 +26,6 @@ const getScoreColor = (score) => {
   return 'text-red-600'
 }
 
-const getPaymentHistoryColor = (history) => {
-  if (history === 'Excellent' || history === 'Good') return 'text-green-600'
-  if (history === 'Fair') return 'text-yellow-600'
-  return 'text-red-600'
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
-
 const handleRefresh = async () => {
   await store.refreshRatings()
 }
@@ -71,8 +56,8 @@ onMounted(() => {
           {{ store.loading ? 'Refreshing...' : 'Refresh' }}
         </button>
 
-        <button class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
           </svg>
           Filter
@@ -80,18 +65,8 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Error Message -->
-    <div v-if="store.error" class="bg-red-50 border border-red-200 rounded-lg p-4">
-      <div class="flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-400 mr-2" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-        </svg>
-        <span class="text-sm text-red-700">{{ store.error }}</span>
-      </div>
-    </div>
-
-    <!-- Stats Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
       <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
         <p class="text-sm font-medium text-gray-500 mb-1">Average Overall Score</p>
         <p class="text-2xl font-bold text-blue-600">
@@ -145,66 +120,52 @@ onMounted(() => {
           <thead class="bg-gray-50">
           <tr>
             <th @click="toggleSort('tenantId')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
-              <div class="flex items-center">
+              <div class="flex items-center gap-1">
                 Tenant ID
-                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                 </svg>
               </div>
             </th>
             <th @click="toggleSort('overallScore')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
-              <div class="flex items-center">
+              <div class="flex items-center gap-1">
                 Overall Score
-                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                 </svg>
               </div>
             </th>
             <th @click="toggleSort('paymentScore')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
-              <div class="flex items-center">
+              <div class="flex items-center gap-1">
                 Payment Score
-                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
-                </svg>
-              </div>
-            </th>
-            <th @click="toggleSort('punctualityScore')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
-              <div class="flex items-center">
-                Punctuality Score
-                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                 </svg>
               </div>
             </th>
             <th @click="toggleSort('feedbackScore')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
-              <div class="flex items-center">
+              <div class="flex items-center gap-1">
                 Feedback Score
-                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                 </svg>
               </div>
             </th>
             <th @click="toggleSort('totalPayments')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
-              <div class="flex items-center">
+              <div class="flex items-center gap-1">
                 Total Payments
-                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                 </svg>
               </div>
             </th>
             <th @click="toggleSort('latePayments')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
-              <div class="flex items-center">
+              <div class="flex items-center gap-1">
                 Late Payments
-                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                 </svg>
               </div>
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Payment History
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Last Payment
             </th>
           </tr>
           </thead>
@@ -224,11 +185,6 @@ onMounted(() => {
                 </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-                <span :class="getScoreColor(tenant.punctualityScore)" class="text-sm font-semibold">
-                  {{ (tenant.punctualityScore || 0).toFixed(1) }}
-                </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
                 <span :class="getScoreColor(tenant.feedbackScore)" class="text-sm font-semibold">
                   {{ (tenant.feedbackScore || 0).toFixed(1) }}
                 </span>
@@ -240,14 +196,6 @@ onMounted(() => {
                 <span class="text-sm font-medium" :class="tenant.latePayments > 0 ? 'text-red-600' : 'text-gray-900'">
                   {{ tenant.latePayments || 0 }}
                 </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="text-sm font-medium" :class="getPaymentHistoryColor(tenant.paymentHistory)">
-                {{ tenant.paymentHistory }}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ formatDate(tenant.lastPaymentDate) }}
             </td>
           </tr>
           </tbody>
