@@ -51,6 +51,25 @@ export const fetchMyLease = async () => {
     return text ? JSON.parse(text) : null;
 }
 
+export const fetchAllTenantLeases = async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API}/tenant/all`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        if (response.status === 404) {
+            return [];
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : [];
+};
+
 export const fetchMyLeases = async () => {
     const token = localStorage.getItem('token');
     const response = await fetch(`${API}/owner/me`, {

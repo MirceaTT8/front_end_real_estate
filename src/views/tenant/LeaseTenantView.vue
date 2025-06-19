@@ -9,6 +9,7 @@ import LeasePropertyDetails from '@/components/tenant/lease/LeasePropertyDetails
 import LeaseTerms from '@/components/tenant/lease/LeaseTerms.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import NoLeaseMessage from '@/components/tenant/lease/NoLeaseMessage.vue'
+import PendingLeaseMessage from "@/components/tenant/lease/PendingLeaseMessage.vue";
 import ReviewModal from '@/components/tenant/review/ReviewModal.vue'
 
 const tenantStore = useTenantLeaseStore()
@@ -20,7 +21,11 @@ const selectedLeaseForReview = ref(null)
 const today = ref(new Date())
 
 const shouldShowNoLeaseMessage = computed(() => {
-  return !tenantStore.loading && !tenantStore.tenantHasActiveLease
+  return !tenantStore.loading && !tenantStore.tenantHasActiveLease && tenantStore.lease?.status !== 'PENDING'
+})
+
+const shouldShowPendingMessage = computed(() => {
+  return !tenantStore.loading && tenantStore.lease?.status === 'PENDING'
 })
 
 const shouldShowLeaseDashboard = computed(() => {
@@ -53,6 +58,10 @@ const handleReviewModalClose = () => {
   selectedLeaseForReview.value = null
 }
 
+const handleRefreshPending = async () => {
+  await tenantStore.retryLoadLease()
+}
+
 onMounted(async () => {
   await tenantStore.loadTenantLeaseData()
 
@@ -80,8 +89,15 @@ onUnmounted(() => {
     <LoadingSpinner v-if="tenantStore.loading" message="Loading your lease information..." />
 
     <template v-else>
+      <!-- Pending Lease Message -->
+      <PendingLeaseMessage
+          v-if="shouldShowPendingMessage"
+          @refresh="handleRefreshPending"
+      />
+
+      <!-- No Lease Message -->
       <NoLeaseMessage
-          v-if="shouldShowNoLeaseMessage"
+          v-else-if="shouldShowNoLeaseMessage"
           :has-lease="tenantStore.tenantHasAnyLease"
           :loading="tenantStore.loading"
           :error="tenantStore.error"
@@ -90,7 +106,8 @@ onUnmounted(() => {
           @write-review="handleWriteReview"
       />
 
-      <div v-if="shouldShowLeaseDashboard" class="space-y-8">
+      <!-- Active Lease Dashboard -->
+      <div v-else-if="shouldShowLeaseDashboard" class="space-y-8">
         <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-md overflow-hidden">
           <div class="px-6 py-8 sm:px-8">
             <LeaseHeader

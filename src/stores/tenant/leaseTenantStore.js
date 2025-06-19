@@ -1,8 +1,9 @@
-// Updated leaseTenantStore.js
+// stores/tenant/leaseTenantStore.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import {
     fetchMyLease,
+    fetchAllTenantLeases, // New function to get all tenant leases
     fetchActiveTenantLease,
     checkTenantHasLease
 } from '@/services/leaseService.js'
@@ -18,7 +19,10 @@ export const useTenantLeaseStore = defineStore('tenantLease', () => {
     const hasLease = ref(null)
     const tenantHasAnyLease = computed(() => hasLease.value)
 
-    const tenantHasActiveLease = computed(() => lease.value !== null)
+    // Only true for ACTIVE leases - keep this for backward compatibility
+    const tenantHasActiveLease = computed(() =>
+        lease.value !== null && lease.value.status === 'ACTIVE'
+    )
 
     const loadTenantLeaseData = async () => {
         loading.value = true
@@ -35,22 +39,47 @@ export const useTenantLeaseStore = defineStore('tenantLease', () => {
                 return
             }
 
-            const activeLeaseData = await fetchActiveTenantLease()
+            // Get all leases for this tenant (returns array)
+            const allLeases = await fetchAllTenantLeases()
 
-            if (!activeLeaseData) {
+            if (!allLeases || allLeases.length === 0) {
                 lease.value = null
                 property.value = null
                 payments.value = []
                 return
             }
 
-            lease.value = activeLeaseData
+            // Store priority logic: PENDING > ACTIVE > most recent TERMINATED
+            let currentLease = null
+
+            // First priority: PENDING leases
+            const pendingLease = allLeases.find(l => l.status === 'PENDING')
+            if (pendingLease) {
+                currentLease = pendingLease
+            } else {
+                // Second priority: ACTIVE leases
+                const activeLease = allLeases.find(l => l.status === 'ACTIVE')
+                if (activeLease) {
+                    currentLease = activeLease
+                } else {
+                    // Third priority: most recent TERMINATED lease
+                    const terminatedLeases = allLeases.filter(l => l.status === 'TERMINATED')
+                    if (terminatedLeases.length > 0) {
+                        currentLease = terminatedLeases.sort((a, b) =>
+                            new Date(b.endDate) - new Date(a.endDate)
+                        )[0]
+                    }
+                }
+            }
+
+            lease.value = currentLease
 
             if (lease.value?.propertyId) {
                 property.value = await fetchPropertyById(lease.value.propertyId)
             }
 
-            if (lease.value?.leaseId) {
+            // Only fetch payments if lease is ACTIVE
+            if (lease.value?.leaseId && lease.value.status === 'ACTIVE') {
                 payments.value = await getPaymentsByLeaseId(lease.value.leaseId)
             }
 
