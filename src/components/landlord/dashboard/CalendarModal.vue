@@ -79,7 +79,7 @@ const getEventIcon = (eventClass) => {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="fixed inset-0 bg-black/20 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-lg max-w-6xl w-full max-h-[90vh] overflow-hidden">
       <!-- Modal Header -->
       <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white">

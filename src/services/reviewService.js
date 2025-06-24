@@ -230,3 +230,19 @@ export const fetchReviewsForProperty = async (propertyId) => {
         throw error;
     }
 };
+
+export const getReviewedLeaseIds = async () => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}/landlord/reviewed-leases`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.ok ? await response.json() : [];
+    } catch (error) {
+        console.error('Error fetching reviewed lease IDs:', error);
+        return [];
+    }
+};

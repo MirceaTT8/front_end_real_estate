@@ -11,24 +11,25 @@ import {
 import { fetchAllPropertiesAdmin, fetchPendingProperties, validateProperty } from '@/services/propertyService.js'
 import { fetchAllUsers } from '@/services/userService.js'
 import { fetchAllMaintenanceRequests } from '@/services/maintenanceService.js'
-import { BASE_URL } from '@/configs/config.js'
+import { BASE_URL } from "@/configs/config.js"
 
 export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
-    const loading = ref(false)
-    const chartLoading = ref(false)
-    const statsLoading = ref(false)
-
+    // Modal states
     const showTerminateModal = ref(false)
     const showPendingLeasesModal = ref(false)
     const showPendingPropertiesModal = ref(false)
 
+    // Loading states
+    const loading = ref(false)
+    const chartLoading = ref(false)
+    const statsLoading = ref(false)
+
+    // Data arrays
     const pendingLeaseTerminations = ref([])
     const pendingLeaseApprovals = ref([])
     const pendingProperties = ref([])
-    const recentActivities = ref([])
-    const landlordRatings = ref([])
-    const landlordRatingsDetailed = ref([])
 
+    // KPI and stats data
     const kpiMetrics = ref({})
     const statsData = ref({
         totalUsers: 0,
@@ -39,11 +40,13 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         urgentRequests: 0
     })
 
+    // Chart data
     const leaseChartData = ref({
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        labels: [],
         datasets: []
     })
 
+    // Computed properties
     const stats = computed(() => ({
         activeLeases: kpiMetrics.value['Total Leases'] || 0,
         pendingApprovals: pendingLeaseTerminations.value.length + pendingLeaseApprovals.value.length + pendingProperties.value.length,
@@ -54,42 +57,113 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         pendingPropertiesCount: pendingProperties.value.length
     }))
 
-    const executeAction = async (actionFunction, ...args) => {
-        loading.value = true
-        try {
-            const result = await actionFunction(...args)
-            return result
-        } catch (err) {
-            console.error('Dashboard action failed:', err)
-            throw err
-        } finally {
-            loading.value = false
+    // Chart options with improved styling
+    const leaseChartOptions = ref({
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    usePointStyle: true,
+                    font: {
+                        size: 12
+                    }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1
+            }
+        },
+        scales: {
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    color: '#6B7280'
+                }
+            },
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                },
+                ticks: {
+                    color: '#6B7280'
+                }
+            }
+        },
+        elements: {
+            bar: {
+                borderRadius: 4
+            }
         }
+    })
+
+    const getCurrentPeriod = (periodType) => {
+        const now = new Date()
+
+        switch (periodType) {
+            case 'monthly':
+                return {
+                    key: now.toISOString().slice(0, 7), // YYYY-MM format (2025-06)
+                    label: now.toLocaleString(undefined, { month: 'long', year: 'numeric' }), // June 2025
+                    start: new Date(now.getFullYear(), now.getMonth(), 1),
+                    end: new Date(now.getFullYear(), now.getMonth() + 1, 0)
+                }
+
+            case 'quarterly':
+                const quarter = Math.floor(now.getMonth() / 3)
+                const year = now.getFullYear()
+                const startMonth = quarter * 3
+                return {
+                    key: `${year}-Q${quarter + 1}`,
+                    label: `Q${quarter + 1} ${year}`,
+                    start: new Date(year, startMonth, 1),
+                    end: new Date(year, startMonth + 3, 0)
+                }
+
+            case 'yearly':
+                const currentYear = now.getFullYear()
+                return {
+                    key: currentYear.toString(),
+                    label: currentYear.toString(),
+                    start: new Date(currentYear, 0, 1),
+                    end: new Date(currentYear, 11, 31)
+                }
+        }
+
+        return null
     }
 
-    const fetchData = async (fetchFunction) => {
-        try {
-            return await fetchFunction()
-        } catch (err) {
-            console.error('Failed to fetch dashboard data:', err)
-            return []
-        }
+    const isDateInPeriod = (dateString, period) => {
+        if (!dateString) return false
+        const date = new Date(dateString)
+        return date >= period.start && date <= period.end
     }
 
-    const fetchLeaseTerminations = () => fetchData(async () => {
+    // Data fetching functions
+    const fetchLeaseTerminations = async () => {
         pendingLeaseTerminations.value = await fetchPendingLeaseTerminations()
-        return pendingLeaseTerminations.value
-    })
+    }
 
-    const fetchLeaseApprovals = () => fetchData(async () => {
+    const fetchLeaseApprovals = async () => {
         pendingLeaseApprovals.value = await fetchPendingLeases()
-        return pendingLeaseApprovals.value
-    })
+    }
 
-    const fetchProperties = () => fetchData(async () => {
+    const fetchProperties = async () => {
         pendingProperties.value = await fetchPendingProperties()
-        return pendingProperties.value
-    })
+    }
 
     const fetchUsersCount = async () => {
         const users = await fetchAllUsers()
@@ -145,102 +219,16 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         }
     }
 
-    const fetchMockRatings = () => {
-        landlordRatings.value = [
-            { name: 'John Smith', rating: 4.5 },
-            { name: 'Emily Davis', rating: 4.8 },
-            { name: 'Michael Lee', rating: 4.1 }
-        ]
-    }
-
-    const fetchMockActivity = () => {
-        recentActivities.value = [
-            { action: 'New lease created', user: 'landlord_john', date: '2024-05-07' },
-            { action: 'Maintenance request resolved', user: 'landlord_emily', date: '2024-05-06' },
-            { action: 'New tenant registered', user: 'tenant_lisa', date: '2024-05-05' }
-        ]
-    }
-
-    const findEarliestDataPeriod = (leases, periodType) => {
-        if (!leases.length) return null
-
-        const allDates = []
-        leases.forEach(lease => {
-            if (lease.startDate) allDates.push(new Date(lease.startDate))
-            if (lease.terminationRequestedAt) allDates.push(new Date(lease.terminationRequestedAt))
-        })
-
-        if (!allDates.length) return null
-
-        const earliestDate = new Date(Math.min(...allDates))
-
-        switch (periodType) {
-            case 'monthly':
-                return {
-                    key: earliestDate.toISOString().slice(0, 7),
-                    label: earliestDate.toLocaleString(undefined, { month: 'long', year: 'numeric' }),
-                    start: new Date(earliestDate.getFullYear(), earliestDate.getMonth(), 1),
-                    end: new Date(earliestDate.getFullYear(), earliestDate.getMonth() + 1, 0)
-                }
-            case 'quarterly':
-                const quarter = Math.floor(earliestDate.getMonth() / 3)
-                const year = earliestDate.getFullYear()
-                const startMonth = quarter * 3
-                return {
-                    key: `${year}-Q${quarter + 1}`,
-                    label: `Q${quarter + 1} ${year}`,
-                    start: new Date(year, startMonth, 1),
-                    end: new Date(year, startMonth + 3, 0)
-                }
-            case 'yearly':
-                const dataYear = earliestDate.getFullYear()
-                return {
-                    key: dataYear.toString(),
-                    label: dataYear.toString(),
-                    start: new Date(dataYear, 0, 1),
-                    end: new Date(dataYear, 11, 31)
-                }
-        }
-        return null
-    }
-
-    const isDateInPeriod = (dateString, period) => {
-        if (!dateString) return false
-        const date = new Date(dateString)
-        return date >= period.start && date <= period.end
-    }
-
     const fetchLeaseChartData = async (periodType = 'monthly') => {
         chartLoading.value = true
 
         try {
             const leases = await fetchLeaseTrends()
-            const firstPeriod = findEarliestDataPeriod(leases, periodType)
 
-            if (!firstPeriod) {
-                leaseChartData.value = {
-                    labels: ['No Data'],
-                    datasets: [
-                        {
-                            label: 'New Leases',
-                            backgroundColor: '#4F46E5',
-                            borderColor: '#4F46E5',
-                            borderWidth: 2,
-                            borderRadius: 4,
-                            borderSkipped: false,
-                            data: [0]
-                        },
-                        {
-                            label: 'Terminated Leases',
-                            backgroundColor: '#F87171',
-                            borderColor: '#F87171',
-                            borderWidth: 2,
-                            borderRadius: 4,
-                            borderSkipped: false,
-                            data: [0]
-                        }
-                    ]
-                }
+            const currentPeriod = getCurrentPeriod(periodType)
+
+            if (!currentPeriod) {
+                setFallbackChartData()
                 return
             }
 
@@ -248,10 +236,11 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
             let leaseEndCount = 0
 
             leases.forEach(lease => {
-                if (isDateInPeriod(lease.startDate, firstPeriod)) {
+                if (isDateInPeriod(lease.startDate, currentPeriod)) {
                     leaseStartCount++
                 }
 
+                // Count leases that were terminated in the current period
                 const isTerminated = lease.status === 'TERMINATED' ||
                     lease.terminationStatus === 'APPROVED' ||
                     lease.terminationRequestedAt
@@ -260,14 +249,14 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
                     const terminationDate = lease.terminationRequestedAt ||
                         (lease.status === 'TERMINATED' ? lease.createdAt : null)
 
-                    if (isDateInPeriod(terminationDate, firstPeriod)) {
+                    if (isDateInPeriod(terminationDate, currentPeriod)) {
                         leaseEndCount++
                     }
                 }
             })
 
             leaseChartData.value = {
-                labels: [firstPeriod.label],
+                labels: [currentPeriod.label],
                 datasets: [
                     {
                         label: 'New Leases',
@@ -289,130 +278,42 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
                     }
                 ]
             }
+
         } catch (err) {
             console.error('Failed to fetch lease trends:', err)
-            leaseChartData.value = {
-                labels: ['Error Loading Data'],
-                datasets: [
-                    {
-                        label: 'New Leases',
-                        backgroundColor: '#4F46E5',
-                        borderColor: '#4F46E5',
-                        borderWidth: 2,
-                        borderRadius: 4,
-                        borderSkipped: false,
-                        data: [0]
-                    },
-                    {
-                        label: 'Terminated Leases',
-                        backgroundColor: '#F87171',
-                        borderColor: '#F87171',
-                        borderWidth: 2,
-                        borderRadius: 4,
-                        borderSkipped: false,
-                        data: [0]
-                    }
-                ]
-            }
+            setFallbackChartData()
         } finally {
             chartLoading.value = false
         }
     }
 
-    const fetchLandlordRatings = async () => {
-        try {
-            const token = localStorage.getItem('token')
-            const res = await fetch(`${BASE_URL}/landlord-score`, {
-                headers: { Authorization: `Bearer ${token}` }
-            })
-            landlordRatingsDetailed.value = await res.json()
-        } catch (err) {
-            console.error('Failed to fetch landlord ratings', err)
-        }
-    }
-
-    const leaseChartOptions = ref({
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-            intersect: false,
-            mode: 'index'
-        },
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    padding: 20,
-                    usePointStyle: true,
-                    font: { size: 12, weight: '500' }
-                }
-            },
-            tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                titleColor: 'white',
-                bodyColor: 'white',
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                borderWidth: 1,
-                cornerRadius: 8,
-                displayColors: true,
-                callbacks: {
-                    title: function(context) {
-                        return context[0].label
-                    },
-                    label: function(context) {
-                        return `${context.dataset.label}: ${context.parsed.y} leases`
-                    }
-                }
-            }
-        },
-        scales: {
-            x: {
-                grid: { display: false },
-                ticks: {
-                    font: { size: 11, weight: '500' },
-                    color: '#6B7280'
-                }
-            },
-            y: {
-                beginAtZero: true,
-                grid: {
-                    color: 'rgba(107, 114, 128, 0.1)',
-                    lineWidth: 1
+    const setFallbackChartData = () => {
+        leaseChartData.value = {
+            labels: ['No Data Available'],
+            datasets: [
+                {
+                    label: 'New Leases',
+                    backgroundColor: '#4F46E5',
+                    borderColor: '#4F46E5',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    borderSkipped: false,
+                    data: [0]
                 },
-                ticks: {
-                    font: { size: 11, weight: '500' },
-                    color: '#6B7280',
-                    callback: function(value) {
-                        return Number.isInteger(value) ? value : ''
-                    }
+                {
+                    label: 'Terminated Leases',
+                    backgroundColor: '#F87171',
+                    borderColor: '#F87171',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    borderSkipped: false,
+                    data: [0]
                 }
-            }
-        },
-        elements: {
-            bar: { borderRadius: 4 }
-        }
-    })
-
-    const initDashboard = async () => {
-        loading.value = true
-        try {
-            await Promise.all([
-                fetchLeaseTerminations(),
-                fetchLeaseApprovals(),
-                fetchProperties(),
-                fetchLeaseChartData('monthly'),
-                fetchMockAnalytics(),
-                fetchStatsData(),
-                fetchMockRatings(),
-                fetchMockActivity()
-            ])
-        } catch (e) {
-            console.error('Failed to initialize dashboard:', e)
-        } finally {
-            loading.value = false
+            ]
         }
     }
 
+    // Modal functions
     const openTerminationModal = async () => {
         showTerminateModal.value = true
         await fetchLeaseTerminations()
@@ -428,63 +329,96 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         await fetchProperties()
     }
 
-    const approveTermination = (id) => executeAction(async () => {
+    // Action functions
+    const approveTermination = async (id) => {
         await approveLeaseTermination(id)
         pendingLeaseTerminations.value = pendingLeaseTerminations.value.filter(l => l.leaseId !== id)
-    })
+    }
 
-    const rejectTermination = (id) => executeAction(async () => {
+    const rejectTermination = async (id) => {
         await rejectLeaseTermination(id)
         pendingLeaseTerminations.value = pendingLeaseTerminations.value.filter(l => l.leaseId !== id)
-    })
+    }
 
-    const approveLeaseRequest = (id) => executeAction(async () => {
+    const approveLeaseRequest = async (id) => {
         await approveLease(id)
         pendingLeaseApprovals.value = pendingLeaseApprovals.value.filter(l => l.leaseId !== id)
-    })
+    }
 
-    const rejectLeaseRequest = (id) => executeAction(async () => {
+    const rejectLeaseRequest = async (id) => {
         await rejectLease(id)
         pendingLeaseApprovals.value = pendingLeaseApprovals.value.filter(l => l.leaseId !== id)
-    })
+    }
 
-    const approveProperty = (propertyId) => executeAction(async () => {
-        await validateProperty(propertyId, 'APPROVED')
-        pendingProperties.value = pendingProperties.value.filter(p => p.propertyId !== propertyId)
-        return { success: true, message: 'Property approved successfully' }
-    })
+    const approveProperty = async (propertyId) => {
+        try {
+            await validateProperty(propertyId, 'APPROVED')
+            pendingProperties.value = pendingProperties.value.filter(p => p.propertyId !== propertyId)
+            return { success: true, message: 'Property approved successfully' }
+        } catch (error) {
+            console.error('Failed to approve property:', error)
+            return { success: false, message: error.message || 'Failed to approve property' }
+        }
+    }
 
-    const rejectProperty = (propertyId) => executeAction(async () => {
-        await validateProperty(propertyId, 'REJECTED')
-        pendingProperties.value = pendingProperties.value.filter(p => p.propertyId !== propertyId)
-        return { success: true, message: 'Property rejected successfully' }
-    })
+    const rejectProperty = async (propertyId) => {
+        try {
+            await validateProperty(propertyId, 'REJECTED')
+            pendingProperties.value = pendingProperties.value.filter(p => p.propertyId !== propertyId)
+            return { success: true, message: 'Property rejected successfully' }
+        } catch (error) {
+            console.error('Failed to reject property:', error)
+            return { success: false, message: error.message || 'Failed to reject property' }
+        }
+    }
+
+    // Main initialization function
+    const initDashboard = async () => {
+        loading.value = true
+        try {
+            await Promise.all([
+                fetchLeaseTerminations(),
+                fetchLeaseApprovals(),
+                fetchProperties(),
+                fetchLeaseChartData('monthly'),
+                fetchMockAnalytics(),
+                fetchStatsData()
+            ])
+        } catch (error) {
+            console.error('Failed to initialize dashboard:', error)
+        } finally {
+            loading.value = false
+        }
+    }
 
     return {
-        loading,
-        chartLoading,
-        statsLoading,
         showTerminateModal,
         showPendingLeasesModal,
         showPendingPropertiesModal,
+
+        loading,
+        chartLoading,
+        statsLoading,
+
         pendingLeaseTerminations,
         pendingLeaseApprovals,
         pendingProperties,
-        recentActivities,
-        landlordRatings,
-        landlordRatingsDetailed,
         kpiMetrics,
         statsData,
-        stats,
+
         leaseChartData,
         leaseChartOptions,
+
+        stats,
+
         initDashboard,
-        fetchLandlordRatings,
         fetchLeaseChartData,
         fetchStatsData,
+
         openTerminationModal,
         openPendingLeasesModal,
         openPendingPropertiesModal,
+
         approveTermination,
         rejectTermination,
         approveLease: approveLeaseRequest,

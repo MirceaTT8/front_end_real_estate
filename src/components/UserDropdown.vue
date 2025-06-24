@@ -3,6 +3,8 @@ import { PrimeIcons } from '@primevue/core/api';
 import { useRouter } from 'vue-router';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useAuthStore } from '@/stores/authStore.js';
+import {fetchUserByEmail} from "@/services/userService.js";
+import { jwtDecode} from "jwt-decode";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -10,7 +12,8 @@ const showMenu = ref(false);
 const userInitial = ref('U');
 const userName = ref('User');
 
-// Close dropdown when clicking outside
+const isLoading = ref(true);
+
 const handleClickOutside = (event) => {
   const dropdown = document.getElementById('user-dropdown');
   if (dropdown && !dropdown.contains(event.target)) {
@@ -18,12 +21,32 @@ const handleClickOutside = (event) => {
   }
 };
 
-onMounted(() => {
-  // Get user info from auth store or localStorage
-  const user = authStore.user || JSON.parse(localStorage.getItem('user') || '{}');
-  if (user.name) {
-    userName.value = user.name;
-    userInitial.value = user.name.charAt(0).toUpperCase();
+onMounted(async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const decoded = jwtDecode(token);
+      const userEmail = decoded.sub;
+      const user = await fetchUserByEmail(userEmail);
+
+      if (user) {
+        userName.value = `${user.firstName} ${user.lastName}`.trim();
+
+        if (user.firstName && user.lastName) {
+          userInitial.value = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+        } else if (user.firstName) {
+          userInitial.value = user.firstName.charAt(0).toUpperCase();
+        } else if (user.lastName) {
+          userInitial.value = user.lastName.charAt(0).toUpperCase();
+        } else {
+          userInitial.value = userEmail.charAt(0).toUpperCase();
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+  } finally {
+    isLoading.value = false;
   }
 
   document.addEventListener('click', handleClickOutside);

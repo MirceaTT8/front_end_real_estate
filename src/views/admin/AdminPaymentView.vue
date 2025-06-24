@@ -2,6 +2,7 @@
 import { onMounted, ref, computed } from 'vue'
 import { usePaymentAdminStore } from '@/stores/admin/adminPaymentStore.js'
 import { formatPaymentMethod } from '@/utils/paymentUtils.js'
+import {formatCurrencyCompact} from "../../utils/formatters.js";
 
 const store = usePaymentAdminStore()
 const showDetails = ref(null)
@@ -38,10 +39,6 @@ const statusDotColor = (status) => {
     case 'FAILED': return 'bg-red-500'
     default: return 'bg-gray-500'
   }
-}
-
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
 }
 
 onMounted(() => {
@@ -82,7 +79,7 @@ onMounted(() => {
           </div>
           <div>
             <h3 class="text-gray-500 text-sm">Total Amount</h3>
-            <p class="font-bold text-xl text-gray-800">{{ formatCurrency(totalAmount) }}</p>
+            <p class="font-bold text-xl text-gray-800">{{ formatCurrencyCompact(totalAmount) }}</p>
           </div>
         </div>
       </div>
@@ -234,7 +231,7 @@ onMounted(() => {
               <div class="text-sm text-gray-900">{{ payment.leaseId }}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm font-medium text-gray-900">{{ formatCurrency(payment.amount) }}</div>
+              <div class="text-sm font-medium text-gray-900">{{ formatCurrencyCompact(payment.amount) }}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm text-gray-600">{{ formatPaymentMethod(payment.paymentMethod) }}</div>

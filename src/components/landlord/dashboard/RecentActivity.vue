@@ -9,7 +9,6 @@ const props = defineProps({
 const emit = defineEmits(['view-all'])
 
 const getActivityIcon = (activity) => {
-
   const description = activity.description.toLowerCase();
 
   if (description.includes('payment') || description.includes('paid')) {
@@ -58,8 +57,21 @@ const getInitial = (description) => {
       </button>
     </div>
 
+    <!-- Empty State -->
+    <div v-if="activities.length === 0" class="flex flex-col items-center justify-center py-12 px-6">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+        </svg>
+      </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No Recent Activity</h3>
+      <p class="text-sm text-gray-500 text-center leading-relaxed">
+        When you start managing properties, tenant interactions, and maintenance requests, your recent activity will appear here.
+      </p>
+    </div>
+
     <!-- Activity List -->
-    <div class="divide-y divide-gray-100">
+    <div v-else class="divide-y divide-gray-100">
       <div
           v-for="(activity, index) in activities.slice(0, 5)"
           :key="activity.id"

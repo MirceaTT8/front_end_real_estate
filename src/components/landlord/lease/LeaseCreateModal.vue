@@ -42,7 +42,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+  <div class="fixed inset-0 bg-black/20 bg-opacity-60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md animate-fadeIn">
       <div class="p-8">
         <div class="flex items-center mb-6">

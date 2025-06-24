@@ -28,6 +28,10 @@ const props = defineProps({
   tenants: {
     type: Array,
     required: true
+  },
+  reviewedLeases: {
+    type: Array,
+    default: () => []
   }
 });
 
@@ -36,9 +40,19 @@ const emit = defineEmits(['terminate', 'review-submitted']);
 const showReviewModal = ref(false)
 const selectedLease = ref(null)
 
+const isLeaseReviewed = (lease) => {
+  return props.reviewedLeases.includes(lease.leaseId)
+}
+
 const handleTerminate = async (leaseId) => {
   try {
     await requestLeaseTermination(leaseId);
+
+    const lease = props.leases.find(l => l.leaseId === leaseId);
+    if (lease) {
+      lease.terminationStatus = 'PENDING';
+    }
+
     emit('terminate', leaseId);
   } catch (error) {
     console.error('Termination request failed:', error);
@@ -176,16 +190,27 @@ const navigateToTenantProfile = (lease) => {
         <!-- Actions Section -->
         <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
           <!-- Review Tenant Button -->
-          <button
-              v-if="canReviewLease(lease)"
-              @click="openReviewModal(lease)"
-              class="flex items-center bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            Review Tenant
-          </button>
+          <div v-if="canReviewLease(lease)">
+            <div
+                v-if="isLeaseReviewed(lease)"
+                class="flex items-center text-green-700 font-medium px-4 py-2 rounded-md bg-green-50"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Lease Reviewed
+            </div>
+            <button
+                v-else
+                @click="openReviewModal(lease)"
+                class="flex items-center bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              Review Tenant
+            </button>
+          </div>
 
           <!-- Termination Status or Action -->
           <div

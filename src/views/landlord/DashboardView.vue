@@ -75,7 +75,7 @@ onMounted(() => {
           </div>
           <div class="h-12 w-12 flex items-center justify-center rounded-lg bg-indigo-100">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m0 0H5m14 0V9a2 2 0 00-2-2M9 7h6m-6 4h6m-2 4h.01" />
             </svg>
           </div>
         </div>
@@ -91,19 +91,19 @@ onMounted(() => {
           <div>
             <p class="text-sm text-green-700 font-medium">Rent Collected</p>
             <div class="mt-1">
-              <p class="text-2xl font-bold text-gray-800">${{ store.rentPaymentsLastMonth.toLocaleString() }}</p>
+              <p class="text-2xl font-bold text-gray-800">${{ store.rentPaymentsLastMonth.toFixed(0) }}</p>
             </div>
             <p class="text-xs text-green-600 mt-1">Past 30 days</p>
           </div>
           <div class="h-12 w-12 flex items-center justify-center rounded-lg bg-green-100">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
             </svg>
           </div>
         </div>
         <!-- Progress Bar -->
         <div class="w-full bg-green-200 h-1.5">
-          <div class="bg-green-500 h-1.5" style="width: 75%"></div>
+          <div class="bg-green-500 h-1.5" style="width: 100%"></div>
         </div>
       </div>
 
@@ -113,19 +113,20 @@ onMounted(() => {
           <div>
             <p class="text-sm text-orange-700 font-medium">Maintenance Costs</p>
             <div class="mt-1">
-              <p class="text-2xl font-bold text-gray-800">${{ store.maintenanceCostThisMonth.toLocaleString() }}</p>
+              <p class="text-2xl font-bold text-gray-800">${{ store.maintenanceCostThisMonth.toFixed(0) }}</p>
             </div>
             <p class="text-xs text-orange-600 mt-1">Past 30 days</p>
           </div>
           <div class="h-12 w-12 flex items-center justify-center rounded-lg bg-orange-100">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </div>
         </div>
         <!-- Progress Bar -->
         <div class="w-full bg-orange-200 h-1.5">
-          <div class="bg-orange-500 h-1.5" style="width: 40%"></div>
+          <div class="bg-orange-500 h-1.5" style="width: 70%"></div>
         </div>
       </div>
 
@@ -135,7 +136,7 @@ onMounted(() => {
           <div>
             <p class="text-sm text-blue-700 font-medium">Net Income</p>
             <div class="mt-1">
-              <p class="text-2xl font-bold text-gray-800">${{ (store.rentPaymentsLastMonth - store.maintenanceCostThisMonth).toLocaleString() }}</p>
+              <p class="text-2xl font-bold text-gray-800">${{ (store.rentPaymentsLastMonth - store.maintenanceCostThisMonth).toFixed(0) }}</p>
             </div>
             <p class="text-xs text-blue-600 mt-1">Past 30 days</p>
           </div>
@@ -162,16 +163,15 @@ onMounted(() => {
           :maintenance-cost-this-month="store.maintenanceCostThisMonth"
       />
 
-      <!-- Recent Activity -->
+      <!-- Recent Activity - Always show, component handles empty state -->
       <RecentActivity
-          v-if="store.activities && store.activities.length"
-          :activities="store.activities"
+          :activities="store.activities || []"
           @view-all="store.showActivityModal = true"
       />
 
-      <!-- Upcoming Deadlines -->
+      <!-- Upcoming Deadlines - Always show, component handles empty state -->
       <UpcomingDeadlines
-          :calendar-events="store.calendarEvents"
+          :calendar-events="store.calendarEvents || []"
           @view-calendar="store.showCalendar = true"
       />
 

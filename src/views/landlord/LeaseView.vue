@@ -5,15 +5,17 @@ import LeaseList from '@/components/landlord/lease/LeaseList.vue';
 import LeaseSummaryCards from '@/components/landlord/lease/LeaseSummaryCards.vue';
 import LeaseTabs from '@/components/landlord/lease/LeaseTabs.vue';
 import LeaseCreateModal from "@/components/landlord/lease/LeaseCreateModal.vue";
+import { getReviewedLeaseIds } from '@/services/reviewService'
 
 const leaseStore = useLeaseStore()
 const activeTab = ref('ACTIVE')
 const showCreateModal = ref(false)
 const showSuccessMessage = ref(false)
 const successMessage = ref('')
-
+const reviewedLeases = ref([])
 onMounted(async () => {
   await leaseStore.loadLeasesAndData()
+  reviewedLeases.value = await getReviewedLeaseIds()
 })
 
 const filteredLeases = computed(() => {
@@ -36,9 +38,11 @@ const handleTerminate = (leaseId) => {
   console.log('Terminating lease:', leaseId)
 }
 
-const handleReviewSubmitted = () => {
+const handleReviewSubmitted = async () => {
   successMessage.value = 'Review submitted successfully!'
   showSuccessMessage.value = true
+
+  reviewedLeases.value = await getReviewedLeaseIds()
 
   setTimeout(() => {
     showSuccessMessage.value = false
@@ -48,6 +52,7 @@ const handleReviewSubmitted = () => {
 const hideSuccessMessage = () => {
   showSuccessMessage.value = false
 }
+
 </script>
 
 <template>
@@ -148,6 +153,7 @@ const hideSuccessMessage = () => {
               :leases="filteredLeases"
               :properties="leaseStore.properties"
               :tenants="leaseStore.tenants"
+              :reviewed-leases="reviewedLeases"
               :status-colors="{
               ACTIVE: { bg: 'bg-green-100', text: 'text-green-700' },
               TERMINATED: { bg: 'bg-red-100', text: 'text-red-700' },
