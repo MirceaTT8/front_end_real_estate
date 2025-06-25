@@ -3,6 +3,7 @@ import { onMounted, ref, computed, onUnmounted } from 'vue'
 import { useTenantLeaseStore } from "@/stores/tenant/leaseTenantStore.js"
 import { usePaymentTenantStore } from "@/stores/tenant/paymentTenantStore.js"
 import { formatDate, formatCurrencyCompact } from '@/utils/formatters.js'
+import { checkIfPropertyReviewed } from '@/services/reviewService'
 
 import LeaseHeader from '@/components/tenant/lease/LeaseHeader.vue'
 import LeasePropertyDetails from '@/components/tenant/lease/LeasePropertyDetails.vue'
@@ -17,6 +18,8 @@ const paymentStore = usePaymentTenantStore()
 
 const showReviewModal = ref(false)
 const selectedLeaseForReview = ref(null)
+const isLeaseReviewed = ref(false)
+const checkingReviewStatus = ref(false)
 
 const today = ref(new Date())
 
@@ -30,7 +33,18 @@ const shouldShowLeaseDashboard = computed(() => {
 
 // Check if current lease is terminated and can be reviewed
 const hasTerminatedLeaseForReview = computed(() => {
-  return !tenantStore.loading && tenantStore.lease?.status === 'TERMINATED'
+  return !tenantStore.loading &&
+      tenantStore.lease?.status === 'TERMINATED' &&
+      !isLeaseReviewed.value &&
+      !checkingReviewStatus.value
+})
+
+// Show reviewed state when lease is terminated and already reviewed
+const hasReviewedTerminatedLease = computed(() => {
+  return !tenantStore.loading &&
+      tenantStore.lease?.status === 'TERMINATED' &&
+      isLeaseReviewed.value &&
+      !checkingReviewStatus.value
 })
 
 const shouldShowNoLeaseMessage = computed(() => {
@@ -40,10 +54,27 @@ const shouldShowNoLeaseMessage = computed(() => {
       tenantStore.lease?.status !== 'TERMINATED'
 })
 
+// Check if the current terminated lease has been reviewed
+const checkCurrentLeaseReviewStatus = async () => {
+  if (tenantStore.lease?.status === 'TERMINATED' && tenantStore.lease?.propertyId) {
+    try {
+      checkingReviewStatus.value = true
+      const reviewed = await checkIfPropertyReviewed(tenantStore.lease.propertyId)
+      isLeaseReviewed.value = reviewed
+    } catch (error) {
+      console.error('Error checking review status:', error)
+      isLeaseReviewed.value = false
+    } finally {
+      checkingReviewStatus.value = false
+    }
+  }
+}
+
 const handleRetryLease = async () => {
   await tenantStore.retryLoadLease()
   if (tenantStore.lease) {
     await paymentStore.fetchPayments()
+    await checkCurrentLeaseReviewStatus()
   }
 }
 
@@ -59,6 +90,8 @@ const handleWriteReview = (lease) => {
 const handleReviewSubmitted = async () => {
   showReviewModal.value = false
   selectedLeaseForReview.value = null
+  // Update review status after submission
+  await checkCurrentLeaseReviewStatus()
 }
 
 const handleReviewModalClose = () => {
@@ -79,6 +112,9 @@ const openReviewForTerminatedLease = () => {
 
 onMounted(async () => {
   await tenantStore.loadTenantLeaseData()
+
+  // Check review status for terminated leases
+  await checkCurrentLeaseReviewStatus()
 
   if (tenantStore.tenantHasActiveLease) {
     await paymentStore.fetchPayments()
@@ -101,7 +137,7 @@ onUnmounted(() => {
 
 <template>
   <div class="max-w-6xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
-    <LoadingSpinner v-if="tenantStore.loading" message="Loading your lease information..." />
+    <LoadingSpinner v-if="tenantStore.loading || checkingReviewStatus" message="Loading your lease information..." />
 
     <template v-else>
       <!-- Pending Lease Message -->
@@ -110,7 +146,7 @@ onUnmounted(() => {
           @refresh="handleRefreshPending"
       />
 
-      <!-- No Lease Message (includes terminated leases) -->
+      <!-- No Lease Message (only for tenants with no lease history or truly no active lease) -->
       <NoLeaseMessage
           v-else-if="shouldShowNoLeaseMessage"
           :has-lease="tenantStore.tenantHasAnyLease"
@@ -121,7 +157,7 @@ onUnmounted(() => {
           @write-review="handleWriteReview"
       />
 
-      <!-- Terminated Lease Review Section -->
+      <!-- Terminated Lease Review Section (if not reviewed yet) -->
       <div v-else-if="hasTerminatedLeaseForReview" class="max-w-2xl mx-auto px-4 py-16">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
           <!-- Icon -->
@@ -168,6 +204,67 @@ onUnmounted(() => {
               </svg>
               Contact Support
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviewed Terminated Lease State -->
+      <div v-else-if="hasReviewedTerminatedLease" class="max-w-2xl mx-auto px-4 py-16">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+          <!-- Green Star Icon -->
+          <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          </div>
+
+          <!-- Title -->
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">Lease Completed</h2>
+
+          <!-- Subtitle -->
+          <p class="text-gray-600 mb-6">Your lease has ended. Would you like to review your experience?</p>
+
+          <!-- Thank you message -->
+          <p class="text-green-700 mb-6">Thank you for completing your review! Your feedback helps other tenants make informed decisions.</p>
+
+          <!-- Action buttons -->
+          <div class="space-y-4">
+            <button
+                @click="handleContactSupport"
+                class="w-full inline-flex items-center justify-center px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              Contact Support
+            </button>
+
+            <button
+                @click="handleRetryLease"
+                class="w-full inline-flex items-center justify-center px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh
+            </button>
+          </div>
+
+          <!-- Additional Info -->
+          <div class="mt-8 p-4 bg-green-50 rounded-lg border border-green-100">
+            <div class="flex items-start">
+              <div class="flex-shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div class="ml-3 text-left">
+                <p class="text-sm text-green-700">
+                  <strong>What's Next?</strong>
+                  You can start looking for new rental opportunities or contact your property manager if you need assistance with future housing.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

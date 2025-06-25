@@ -246,3 +246,24 @@ export const getReviewedLeaseIds = async () => {
         return [];
     }
 };
+
+export const checkIfPropertyReviewed = async (propertyId) => {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API}/check-reviewed/${propertyId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result.reviewed;
+    } catch (error) {
+        console.error('Error checking if property reviewed:', error);
+        return false;
+    }
+};

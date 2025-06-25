@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
-import { fetchPendingReviews, fetchPendingReviewsCount } from '@/services/reviewService'
+import { fetchPendingReviews, fetchPendingReviewsCount, checkIfPropertyReviewed } from '@/services/reviewService'
 
 const props = defineProps({
   hasLease: {
@@ -25,11 +25,23 @@ const pendingReviewsCount = ref(0)
 const hasPendingReviews = ref(false)
 const reviewsLoading = ref(false)
 const showReviewSection = ref(false)
+const reviewedProperties = ref(new Set())
+
+// Helper function to check if a property has been reviewed
+const isPropertyReviewed = (propertyId) => {
+  return reviewedProperties.value.has(propertyId)
+}
 
 // Determine what message to show based on tenant's lease history
 const messageType = computed(() => {
   if (props.hasLease === null) return 'unknown'
   if (props.hasLease === false) return 'never-had-lease'
+
+  // Check if has lease but no pending reviews = reviewed state
+  if (props.hasLease === true && !hasPendingReviews.value && !reviewsLoading.value) {
+    return 'lease-reviewed'
+  }
+
   return 'no-active-lease' // Had lease before but no active one
 })
 
@@ -42,6 +54,14 @@ const getMessage = computed(() => {
         description: 'You don\'t have any lease agreements in our system yet. Contact your property manager to get started with your rental.',
         icon: 'welcome',
         action: 'Contact Property Manager'
+      }
+    case 'lease-reviewed':
+      return {
+        title: 'Lease Completed',
+        subtitle: 'Your lease has ended. Would you like to review your experience?',
+        description: 'Thank you for completing your review! Your feedback helps other tenants make informed decisions.',
+        icon: 'completed',
+        action: 'Contact Support'
       }
     case 'no-active-lease':
       return {
@@ -77,6 +97,14 @@ const loadPendingReviews = async () => {
     pendingReviewsCount.value = countData.count || 0
     hasPendingReviews.value = countData.hasPendingReviews || false
     showReviewSection.value = hasPendingReviews.value
+
+    // Check each property individually for review status
+    for (const lease of pendingReviews.value) {
+      const isReviewed = await checkIfPropertyReviewed(lease.propertyId)
+      if (isReviewed) {
+        reviewedProperties.value.add(lease.propertyId)
+      }
+    }
   } catch (error) {
     console.error('Error loading pending reviews:', error)
     // Don't show review section if there's an error
@@ -94,8 +122,24 @@ const handleContactSupport = () => {
   emit('contact-support')
 }
 
-const handleWriteReview = (lease) => {
-  emit('write-review', lease)
+const handleWriteReview = async (lease) => {
+  try {
+    // Check if property has already been reviewed using the API
+    const alreadyReviewed = await checkIfPropertyReviewed(lease.propertyId)
+
+    if (alreadyReviewed) {
+      console.log('Property already reviewed')
+      // Add to reviewed set to update UI
+      reviewedProperties.value.add(lease.propertyId)
+      return
+    }
+
+    emit('write-review', lease)
+  } catch (error) {
+    console.error('Error checking review status:', error)
+    // If check fails, proceed to allow review (fail safe)
+    emit('write-review', lease)
+  }
 }
 
 const formatDate = (dateString) => {
@@ -108,7 +152,7 @@ const formatDate = (dateString) => {
 
 // Watch for changes in lease status and load reviews accordingly
 onMounted(() => {
-  if (messageType.value === 'no-active-lease') {
+  if (messageType.value === 'no-active-lease' || messageType.value === 'lease-reviewed') {
     loadPendingReviews()
   }
 })
@@ -158,13 +202,21 @@ onMounted(() => {
         <!-- Illustration -->
         <div class="flex justify-center mb-6">
           <div class="p-4 rounded-full inline-flex"
-               :class="messageType === 'never-had-lease' ? 'bg-green-50' : 'bg-yellow-50'">
+               :class="messageType === 'never-had-lease' || messageType === 'lease-reviewed' ? 'bg-green-50' : 'bg-yellow-50'">
             <!-- Welcome Icon for new tenants -->
             <svg v-if="messageType === 'never-had-lease'"
                  xmlns="http://www.w3.org/2000/svg"
                  class="h-16 w-16 text-green-400"
                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+
+            <!-- Star Icon for completed/reviewed leases -->
+            <svg v-else-if="messageType === 'lease-reviewed'"
+                 xmlns="http://www.w3.org/2000/svg"
+                 class="h-16 w-16 text-green-400"
+                 fill="currentColor" viewBox="0 0 24 24">
+              <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
 
             <!-- Expired Icon for ended leases -->
@@ -213,12 +265,18 @@ onMounted(() => {
               </div>
               <button
                   @click="handleWriteReview(lease)"
-                  class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  :disabled="isPropertyReviewed(lease.propertyId)"
+                  :class="[
+                    'inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+                    isPropertyReviewed(lease.propertyId)
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                  ]"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
-                Write Review
+                {{ isPropertyReviewed(lease.propertyId) ? 'Already Reviewed' : 'Write Review' }}
               </button>
             </div>
           </div>
@@ -241,7 +299,7 @@ onMounted(() => {
           <button
               @click="handleContactSupport"
               class="inline-flex items-center px-6 py-3 font-medium rounded-lg transition-colors shadow-sm"
-              :class="messageType === 'never-had-lease'
+              :class="messageType === 'never-had-lease' || messageType === 'lease-reviewed'
               ? 'bg-green-600 text-white hover:bg-green-700'
               : 'bg-yellow-600 text-white hover:bg-yellow-700'"
           >
@@ -263,20 +321,30 @@ onMounted(() => {
         </div>
 
         <!-- Additional Info -->
-        <div class="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
+        <div class="mt-8 p-4 rounded-lg border"
+             :class="messageType === 'lease-reviewed' ? 'bg-green-50 border-green-100' : 'bg-blue-50 border-blue-100'">
           <div class="flex items-start">
             <div class="flex-shrink-0 mt-0.5">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   class="h-5 w-5"
+                   :class="messageType === 'lease-reviewed' ? 'text-green-400' : 'text-blue-400'"
+                   fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div class="ml-3 text-left">
-              <p class="text-sm text-blue-700">
-                <strong>Need Help?</strong>
-                If you believe this is an error or need assistance setting up your lease,
-                please contact our support team or your property manager.
-                <span v-if="messageType === 'no-active-lease' && hasPendingReviews">
-                  Don't forget to complete your pending reviews to help other tenants!
+              <p class="text-sm"
+                 :class="messageType === 'lease-reviewed' ? 'text-green-700' : 'text-blue-700'">
+                <strong>{{ messageType === 'lease-reviewed' ? 'What\'s Next?' : 'Need Help?' }}</strong>
+                <span v-if="messageType === 'lease-reviewed'">
+                  You can start looking for new rental opportunities or contact your property manager if you need assistance with future housing.
+                </span>
+                <span v-else>
+                  If you believe this is an error or need assistance setting up your lease,
+                  please contact our support team or your property manager.
+                  <span v-if="messageType === 'no-active-lease' && hasPendingReviews">
+                    Don't forget to complete your pending reviews to help other tenants!
+                  </span>
                 </span>
               </p>
             </div>

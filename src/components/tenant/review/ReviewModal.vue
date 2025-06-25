@@ -58,11 +58,18 @@ const submitReview = async () => {
     console.log('Sending review data:', reviewData)
 
     await createReview(reviewData)
+
+    // Show success message briefly then refresh page
     emit('submitted')
+
+    // Refresh the page to show updated status
+    setTimeout(() => {
+      window.location.reload()
+    }, 1000)
+
   } catch (err) {
-    console.error('Review submission error:', err) // Debug log
+    console.error('Review submission error:', err)
     error.value = err.message || 'Failed to submit review. Please try again.'
-  } finally {
     loading.value = false
   }
 }
@@ -92,6 +99,7 @@ const getStarClass = (field, star) => {
           <button
               @click="closeModal"
               class="text-gray-400 hover:text-gray-600 transition-colors"
+              :disabled="loading"
           >
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -124,6 +132,17 @@ const getStarClass = (field, star) => {
           <p class="text-red-600 text-sm">{{ error }}</p>
         </div>
 
+        <!-- Success Message (shown while loading after submission) -->
+        <div v-if="loading" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div class="flex items-center">
+            <svg class="animate-spin h-5 w-5 text-green-600 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-green-600 text-sm font-medium">Lease reviewed! Refreshing page...</p>
+          </div>
+        </div>
+
         <!-- Review Form -->
         <form @submit.prevent="submitReview" class="space-y-6">
           <!-- Overall Rating -->
@@ -139,6 +158,7 @@ const getStarClass = (field, star) => {
                   @click="setRating('rating', star)"
                   class="text-2xl transition-colors hover:text-yellow-400"
                   :class="getStarClass('rating', star)"
+                  :disabled="loading"
               >
                 ★
               </button>
@@ -146,92 +166,18 @@ const getStarClass = (field, star) => {
             </div>
           </div>
 
-          <!-- Detailed Ratings -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Landlord Rating -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Landlord Rating</label>
-              <div class="flex items-center space-x-1">
-                <button
-                    v-for="star in 5"
-                    :key="`landlord-${star}`"
-                    type="button"
-                    @click="setRating('landlordRating', star)"
-                    class="text-lg transition-colors hover:text-yellow-400"
-                    :class="getStarClass('landlordRating', star)"
-                >
-                  ★
-                </button>
-                <span class="ml-2 text-sm text-gray-600">({{ form.landlordRating }}/5)</span>
-              </div>
-            </div>
-
-            <!-- Property Rating -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Property Rating</label>
-              <div class="flex items-center space-x-1">
-                <button
-                    v-for="star in 5"
-                    :key="`property-${star}`"
-                    type="button"
-                    @click="setRating('propertyRating', star)"
-                    class="text-lg transition-colors hover:text-yellow-400"
-                    :class="getStarClass('propertyRating', star)"
-                >
-                  ★
-                </button>
-                <span class="ml-2 text-sm text-gray-600">({{ form.propertyRating }}/5)</span>
-              </div>
-            </div>
-
-            <!-- Maintenance Rating -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Maintenance Rating</label>
-              <div class="flex items-center space-x-1">
-                <button
-                    v-for="star in 5"
-                    :key="`maintenance-${star}`"
-                    type="button"
-                    @click="setRating('maintenanceRating', star)"
-                    class="text-lg transition-colors hover:text-yellow-400"
-                    :class="getStarClass('maintenanceRating', star)"
-                >
-                  ★
-                </button>
-                <span class="ml-2 text-sm text-gray-600">({{ form.maintenanceRating }}/5)</span>
-              </div>
-            </div>
-
-            <!-- Communication Rating -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Communication Rating</label>
-              <div class="flex items-center space-x-1">
-                <button
-                    v-for="star in 5"
-                    :key="`communication-${star}`"
-                    type="button"
-                    @click="setRating('communicationRating', star)"
-                    class="text-lg transition-colors hover:text-yellow-400"
-                    :class="getStarClass('communicationRating', star)"
-                >
-                  ★
-                </button>
-                <span class="ml-2 text-sm text-gray-600">({{ form.communicationRating }}/5)</span>
-              </div>
-            </div>
-          </div>
-
           <!-- Comment -->
           <div>
-            <label for="comment" class="block text-sm font-medium text-gray-700 mb-2">
-              Your Review <span class="text-red-500">*</span>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Your Experience <span class="text-red-500">*</span>
             </label>
             <textarea
-                id="comment"
                 v-model="form.comment"
-                rows="6"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                rows="4"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                 placeholder="Share your experience with this property and landlord. What did you like? What could be improved? (minimum 10 characters)"
+                maxlength="500"
+                :disabled="loading"
                 required
             ></textarea>
             <p class="mt-1 text-sm text-gray-500">
