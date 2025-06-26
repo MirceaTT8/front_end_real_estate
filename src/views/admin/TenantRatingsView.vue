@@ -1,8 +1,11 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue'
 import { useTenantRatingsStore } from '@/stores/admin/adminTenantRatingsStore.js'
+import { useUserStore } from '@/stores/admin/userStore.js'
+import { getTenantDisplayName } from '@/utils/leaseNameUtils.js'
 
 const store = useTenantRatingsStore()
+const userStore = useUserStore()
 const sortBy = ref('overallScore')
 const sortDirection = ref('desc')
 
@@ -28,10 +31,20 @@ const getScoreColor = (score) => {
 
 const handleRefresh = async () => {
   await store.refreshRatings()
+  await userStore.loadUsers()
+
 }
 
-onMounted(() => {
-  store.fetchRatings()
+const getDisplayName = (tenant) => {
+  console.log(userStore.users)
+  return getTenantDisplayName(tenant, userStore.users)
+}
+
+onMounted(async () => {
+  await Promise.all([
+    store.fetchRatings(),
+    userStore.loadUsers()
+  ])
 })
 </script>
 
@@ -121,7 +134,7 @@ onMounted(() => {
           <tr>
             <th @click="toggleSort('tenantId')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
               <div class="flex items-center gap-1">
-                Tenant ID
+                Tenant
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                 </svg>
@@ -172,7 +185,8 @@ onMounted(() => {
           <tbody class="bg-white divide-y divide-gray-200">
           <tr v-for="tenant in sortedTenants" :key="tenant.tenantId" class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm font-medium text-gray-900">#{{ tenant.tenantId }}</div>
+              <div class="text-sm font-medium text-gray-900">{{ getDisplayName(tenant) }}</div>
+              <div class="text-sm text-gray-500">#{{ tenant.tenantId }}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <span :class="getScoreColor(tenant.overallScore)" class="text-sm font-semibold">

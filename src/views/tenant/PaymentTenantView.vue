@@ -3,11 +3,15 @@ import { ref, onMounted } from 'vue'
 import { usePaymentTenantStore } from "@/stores/tenant/paymentTenantStore.js"
 import { loadStripe } from "@stripe/stripe-js"
 import { formatDate } from "@/utils/dateUtils.js"
-const stripePromise = loadStripe('pk_test_51MMELpFqC40RfDoFO6Jg3gMWPzmE16VwhlDkBdaa5DlTHn7s7jtjok0zsiLT3x4v2h8TB6nTEgtg9552gtGCGsYn00Qg9p6wT4')
+import {STRIPE_PUBLIC_KEY} from "@/configs/config.js";
 import PaymentHistory from "@/components/tenant/payment/PaymentHistory.vue"
 
+
+const stripePromise = loadStripe(STRIPE_PUBLIC_KEY)
 const paymentStore = usePaymentTenantStore()
 const showPaymentModal = ref(false)
+
+console.log(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
 
 const paymentForm = ref({
   amount: 0,

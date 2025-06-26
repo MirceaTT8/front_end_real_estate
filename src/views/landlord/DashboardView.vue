@@ -169,7 +169,6 @@ onMounted(() => {
           @view-all="store.showActivityModal = true"
       />
 
-      <!-- Upcoming Deadlines - Always show, component handles empty state -->
       <UpcomingDeadlines
           :calendar-events="store.calendarEvents || []"
           @view-calendar="store.showCalendar = true"

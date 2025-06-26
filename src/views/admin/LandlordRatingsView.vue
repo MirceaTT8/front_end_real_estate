@@ -1,8 +1,11 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue'
 import { useLandlordRatingsStore } from '@/stores/admin/adminLandlordRatingsStore.js'
+import { useUserStore } from '@/stores/admin/userStore.js'
+import { getLandlordDisplayName } from '@/utils/leaseNameUtils.js'
 
 const store = useLandlordRatingsStore()
+const userStore = useUserStore()
 const sortBy = ref('overallScore')
 const sortDirection = ref('desc')
 
@@ -37,10 +40,19 @@ const formatDate = (dateString) => {
 
 const handleRefresh = async () => {
   await store.refreshRatings()
+  await userStore.loadUsers() // Refresh users too
 }
 
-onMounted(() => {
-  store.fetchRatings()
+// Helper function that passes users to getLandlordDisplayName
+const getDisplayName = (landlord) => {
+  return getLandlordDisplayName(landlord, userStore.users)
+}
+
+onMounted(async () => {
+  await Promise.all([
+    store.fetchRatings(),
+    userStore.loadUsers()
+  ])
 })
 </script>
 
@@ -140,7 +152,7 @@ onMounted(() => {
           <tr>
             <th @click="toggleSort('landlordId')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
               <div class="flex items-center">
-                Landlord ID
+                Landlord
                 <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
                 </svg>
@@ -210,8 +222,8 @@ onMounted(() => {
           <tbody class="bg-white divide-y divide-gray-200">
           <tr v-for="landlord in sortedLandlords" :key="landlord.landlordId" class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm font-medium text-gray-900">#{{ landlord.landlordId }}</div>
-              <div class="text-sm text-gray-500">{{ landlord.name }}</div>
+              <div class="text-sm font-medium text-gray-900">{{ getDisplayName(landlord) }}</div>
+              <div class="text-sm text-gray-500">#{{ landlord.landlordId }}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <span :class="getScoreColor(landlord.overallScore)" class="text-sm font-semibold">
