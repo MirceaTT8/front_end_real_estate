@@ -66,7 +66,7 @@ const login = async () => {
           <span class="text-blue-600 text-3xl font-bold">I</span>
         </div>
         <h1 class="text-2xl font-bold text-white">Immobille</h1>
-        <p class="text-blue-100 text-sm">Property Management Simplified</p>
+        <p class="text-blue-100 text-sm">Lease Management Simplified</p>
       </div>
 
       <!-- Login Card -->

@@ -1,12 +1,14 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import {getUserNameById} from "../../../utils/leaseNameUtils.js";
 
 const router = useRouter()
 
 const props = defineProps({
   visible: Boolean,
   properties: Array,
+  users: Array,
   loading: Boolean
 })
 
@@ -114,8 +116,8 @@ const viewPropertyDetails = (propertyId) => {
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 <div>
-                  <p class="text-sm font-medium text-gray-500">Owner ID</p>
-                  <p class="font-medium text-gray-900">{{ property.ownerId }}</p>
+                  <p class="text-sm font-medium text-gray-500">Owner </p>
+                  <p class="font-medium text-gray-900">{{ getUserNameById(property.ownerId, users) }}</p>
                 </div>
               </div>
 

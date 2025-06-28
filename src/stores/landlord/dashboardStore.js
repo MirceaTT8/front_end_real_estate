@@ -13,6 +13,13 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
     const activities = ref([])
     const calendarEvents = ref([])
 
+    // All-time data for top cards - Initialize with default values
+    const totalProperties = ref(0)
+    const totalRentCollected = ref(0)
+    const totalMaintenanceCosts = ref(0)
+    const totalNetIncome = ref(0)
+
+    // 30-day data for Monthly Summary section - Initialize with default values
     const occupancyRate = ref(0)
     const vacantUnits = ref(0)
     const rentPaymentsLastMonth = ref(0)
@@ -51,6 +58,7 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
         }
     })
 
+    // WORKING LOGIC FROM FIRST FILE - Get months with actual data
     const getMonthsWithData = (payments, maintenance) => {
         const monthsSet = new Set()
 
@@ -73,18 +81,29 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
 
     const generateConsecutiveMonths = (firstDataMonth) => {
         const months = []
-        const start = new Date(firstDataMonth + '-01')
+        const [startYear, startMonth] = firstDataMonth.split('-').map(Number)
         const now = new Date()
+        const currentYear = now.getFullYear()
+        const currentMonth = now.getMonth() + 1
 
-        const current = new Date(start)
-        while (current <= now) {
-            months.push(current.toISOString().slice(0, 7))
-            current.setMonth(current.getMonth() + 1)
+        let year = startYear
+        let month = startMonth
+
+        while (year < currentYear || (year === currentYear && month <= currentMonth)) {
+            const monthStr = String(month).padStart(2, '0')
+            months.push(`${year}-${monthStr}`)
+
+            month++
+            if (month > 12) {
+                month = 1
+                year++
+            }
         }
 
         return months
     }
 
+    // WORKING LOGIC FROM FIRST FILE - Correct range availability
     const updateRangeAvailability = (payments, maintenance) => {
         const monthsWithData = getMonthsWithData(payments, maintenance)
 
@@ -98,12 +117,14 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
 
         rangeOptions.value.forEach(range => {
             const limit = { '1M': 1, '3M': 3, '6M': 6, '1Y': 12, '5Y': 60 }[range.value]
+            const wasEnabled = range.enabled
             range.enabled = totalMonths >= limit
+
         })
 
         const enabledRanges = rangeOptions.value.filter(r => r.enabled)
         if (enabledRanges.length > 0 && !rangeOptions.value.find(r => r.value === activeRange.value)?.enabled) {
-            activeRange.value = enabledRanges[0].value
+            activeRange.value = enabledRanges[enabledRanges.length - 1].value
         }
     }
 
@@ -114,153 +135,177 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
         const now = new Date();
 
         const diffInMs = now.getTime() - inputDate.getTime();
-
         const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
 
         return diffInDays >= 0 && diffInDays <= 30;
     }
 
     const initDashboard = async () => {
-        const paymentStore = usePaymentLandlordStore()
-        const maintenanceStore = useMaintenanceLandlordStore()
-        const leaseStore = useLeaseStore()
+        try {
+            const paymentStore = usePaymentLandlordStore()
+            const maintenanceStore = useMaintenanceLandlordStore()
+            const leaseStore = useLeaseStore()
 
-        await Promise.all([
-            paymentStore.loadPayments(),
-            maintenanceStore.loadRequests(),
-            leaseStore.loadLeases()
-        ])
+            // Use correct method names
+            await Promise.all([
+                paymentStore.loadPayments(),
+                maintenanceStore.loadRequests(),
+                leaseStore.loadLeasesAndData()
+            ])
 
-        const payments = paymentStore.payments
-        const maintenance = maintenanceStore.requests
-        const leases = leaseStore.leases
-        const properties = await fetchMyProperties()
+            const payments = paymentStore.payments || []
+            const maintenance = maintenanceStore.requests || []
+            const leases = leaseStore.leases || []
+            const properties = leaseStore.properties || []
 
-        // Get months with actual data
-        const monthsWithData = getMonthsWithData(payments, maintenance)
+            // Calculate all-time aggregated data for top cards
+            totalProperties.value = properties.length
 
-        let months = []
-        let rentTotals = {}
-        let maintenanceTotals = {}
+            // All-time rent collected (sum of all completed payments)
+            totalRentCollected.value = payments
+                .filter(p => p.status === 'COMPLETED')
+                .reduce((sum, p) => sum + (p.amount || 0), 0)
 
-        if (monthsWithData.length > 0) {
-            months = generateConsecutiveMonths(monthsWithData[0])
+            // All-time maintenance costs (sum of all completed maintenance)
+            totalMaintenanceCosts.value = maintenance
+                .filter(r => r.status === 'COMPLETED')
+                .reduce((sum, r) => sum + (r.cost || 0), 0)
 
-            months.forEach(month => {
-                rentTotals[month] = 0
-                maintenanceTotals[month] = 0
-            })
+            // All-time net income (rent - maintenance costs)
+            totalNetIncome.value = totalRentCollected.value - totalMaintenanceCosts.value
 
-            payments.forEach(p => {
-                const month = p.paymentDate?.slice(0, 7)
-                if (rentTotals[month] !== undefined) {
-                    rentTotals[month] += p.amount
-                }
-            })
+            // WORKING CHART LOGIC FROM FIRST FILE - Dynamic month generation
+            const monthsWithData = getMonthsWithData(payments, maintenance)
 
-            maintenance.forEach(r => {
-                const month = r.updatedAt?.slice(0, 7)
-                if (r.status === 'COMPLETED' && maintenanceTotals[month] !== undefined) {
-                    maintenanceTotals[month] += r.cost || 0
-                }
-            })
-        }
+            let months = []
+            let rentTotals = {}
+            let maintenanceTotals = {}
 
-        chartData.value = {
-            labels: months.map(m => new Date(m + '-01').toLocaleString(undefined, { month: 'short', year: 'numeric' })),
-            datasets: [
-                { label: 'Rent Collection', data: months.map(m => rentTotals[m] || 0), backgroundColor: '#4CAF50' },
-                { label: 'Maintenance Costs', data: months.map(m => maintenanceTotals[m] || 0), backgroundColor: '#FF9800' }
-            ]
-        }
+            if (monthsWithData.length > 0) {
+                months = generateConsecutiveMonths(monthsWithData[0])
 
-        chartOptions.value = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom' } },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '$' + value.toLocaleString()
+                months.forEach(month => {
+                    rentTotals[month] = 0
+                    maintenanceTotals[month] = 0
+                })
+
+                payments.forEach(p => {
+                    const month = p.paymentDate?.slice(0, 7)
+                    if (rentTotals[month] !== undefined) {
+                        rentTotals[month] += p.amount || 0
+                    }
+                })
+
+                maintenance.forEach(r => {
+                    const month = r.updatedAt?.slice(0, 7)
+                    if (r.status === 'COMPLETED' && maintenanceTotals[month] !== undefined) {
+                        maintenanceTotals[month] += r.cost || 0
+                    }
+                })
+            }
+
+            chartData.value = {
+                labels: months.map(m => new Date(m + '-01').toLocaleString(undefined, { month: 'short', year: 'numeric' })),
+                datasets: [
+                    { label: 'Rent Collection', data: months.map(m => rentTotals[m] || 0), backgroundColor: '#4CAF50' },
+                    { label: 'Maintenance Costs', data: months.map(m => maintenanceTotals[m] || 0), backgroundColor: '#FF9800' }
+                ]
+            }
+
+            chartOptions.value = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString()
+                            }
                         }
                     }
                 }
             }
-        }
 
-        updateRangeAvailability(payments, maintenance)
+            // WORKING RANGE LOGIC FROM FIRST FILE
+            updateRangeAvailability(payments, maintenance)
 
-        const total = properties.length
-        const vacant = properties.filter(p => p.status === 'AVAILABLE').length
-        const occupied = total - vacant
+            // Calculate 30-day data for Monthly Summary (occupancy, etc.)
+            const total = properties.length
+            const vacant = properties.filter(p => p.status === 'AVAILABLE').length
+            const occupied = total - vacant
 
-        occupancyRate.value = total ? Math.round((occupied / total) * 100) : 0
-        vacantUnits.value = vacant
+            occupancyRate.value = total ? Math.round((occupied / total) * 100) : 0
+            vacantUnits.value = vacant
 
-        rentPaymentsLastMonth.value = payments
-            .filter(p => isInLast30Days(p.paymentDate))
-            .reduce((sum, p) => sum + p.amount, 0)
+            rentPaymentsLastMonth.value = payments
+                .filter(p => isInLast30Days(p.paymentDate) && p.status === 'COMPLETED')
+                .reduce((sum, p) => sum + (p.amount || 0), 0)
 
-        maintenanceCostThisMonth.value = maintenance
-            .filter(r => isInLast30Days(r.updatedAt) && r.status === 'COMPLETED')
-            .reduce((sum, r) => sum + (r.cost || 0), 0)
+            maintenanceCostThisMonth.value = maintenance
+                .filter(r => isInLast30Days(r.updatedAt) && r.status === 'COMPLETED')
+                .reduce((sum, r) => sum + (r.cost || 0), 0)
 
-        const events = []
+            const events = []
 
-        payments.forEach(p => {
-            const date = new Date(p.paymentDate)
-            if (p.status !== 'PAID') {
-                events.push({
-                    start: date,
-                    end: date,
-                    title: `Rent Payment: $${p.amount.toFixed(2)}`,
-                    content: 'Payment',
-                    class: 'payment-event'
-                })
-            }
-        })
-
-        maintenance.forEach(r => {
-            if (['OPEN', 'PENDING'].includes(r.status)) {
-                const date = new Date(r.createdAt)
-                events.push({
-                    start: date,
-                    end: date,
-                    title: `Maintenance: ${r.description}`,
-                    content: 'Maintenance',
-                    class: 'maintenance-event'
-                })
-            }
-        })
-
-        const now = new Date()
-        leases.forEach(l => {
-            if (l.endDate) {
-                const end = new Date(l.endDate)
-                const soon = new Date()
-                soon.setDate(now.getDate() + 60)
-                if (end >= now && end <= soon) {
+            payments.forEach(p => {
+                const date = new Date(p.paymentDate)
+                if (p.status == 'COMPLETED') {
                     events.push({
-                        start: end,
-                        end: end,
-                        title: `Lease ending (Property #${l.propertyId})`,
-                        content: 'Lease',
-                        class: 'lease-event'
+                        start: date,
+                        end: date,
+                        title: `Rent Payment: $${(p.amount || 0).toFixed(2)}`,
+                        content: 'Payment',
+                        class: 'payment-event'
                     })
                 }
+            })
+
+            maintenance.forEach(r => {
+                if (['PENDING', 'IN_PROGRESS'].includes(r.status)) {
+                    const date = new Date(r.createdAt)
+                    events.push({
+                        start: date,
+                        end: date,
+                        title: `Maintenance: ${r.description}`,
+                        content: 'Maintenance',
+                        class: 'maintenance-event'
+                    })
+                }
+            })
+
+            const now = new Date()
+            leases.forEach(l => {
+                if (l.endDate) {
+                    const end = new Date(l.endDate)
+                    const soon = new Date()
+                    soon.setDate(now.getDate() + 60)
+                    if (end >= now && end <= soon) {
+                        events.push({
+                            start: end,
+                            end: end,
+                            title: `Lease ending (Property #${l.propertyId})`,
+                            content: 'Lease',
+                            class: 'lease-event'
+                        })
+                    }
+                }
+            })
+
+            calendarEvents.value = events
+
+            try {
+                const logs = await fetchRecentLogs()
+                activities.value = formatActivityLogs(logs)
+            } catch (error) {
+                console.warn('Could not load recent activities:', error)
+                activities.value = []
             }
-        })
 
-        calendarEvents.value = events
-
-        try {
-            const logs = await fetchRecentLogs()
-            activities.value = formatActivityLogs(logs)
         } catch (error) {
-            console.warn('Could not load recent activities:', error)
-            activities.value = []
+            console.error('Error initializing dashboard:', error)
+            // Keep default values on error
         }
     }
 
@@ -274,6 +319,12 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
         activeRange,
         rangeOptions,
         filteredChartData,
+        // All-time data for top cards
+        totalProperties,
+        totalRentCollected,
+        totalMaintenanceCosts,
+        totalNetIncome,
+        // 30-day data for Monthly Summary
         occupancyRate,
         vacantUnits,
         rentPaymentsLastMonth,

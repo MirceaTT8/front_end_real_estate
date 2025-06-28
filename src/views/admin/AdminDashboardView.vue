@@ -6,6 +6,8 @@ import LeaseTerminationModal from '@/components/admin/dashboard/LeaseTermination
 import PendingLeasesModal from '@/components/admin/dashboard/PendingLeasesModal.vue'
 import PendingPropertiesModal from '@/components/admin/dashboard/PendingPropertiesModal.vue'
 import StatsCards from '@/components/admin/dashboard/StatsCards.vue'
+import {fetchAllUsers} from "@/services/userService.js";
+import {fetchAllPropertiesAdmin} from "@/services/propertyService.js";
 
 const store = useAdminDashboardStore()
 const chartPeriod = ref('monthly')
@@ -15,6 +17,8 @@ const successMessage = ref('')
 const showErrorMessage = ref(false)
 const errorMessage = ref('')
 const statsLoading = ref(false)
+const users = ref([])
+const properties = ref([])
 
 onMounted(async () => {
   statsLoading.value = true
@@ -22,6 +26,8 @@ onMounted(async () => {
   try {
     await Promise.all([
       store.initDashboard(),
+      fetchAllUsers().then(data => users.value = data),
+      fetchAllPropertiesAdmin().then(data => properties.value = data)
     ])
   } catch (error) {
     console.error('Error loading dashboard data:', error)
@@ -313,6 +319,8 @@ const handleRejectProperty = async (propertyId) => {
         :visible="store.showTerminateModal"
         :leases="store.pendingLeaseTerminations"
         :loading="store.loading"
+        :users="users"
+        :properties="properties"
         @update:visible="store.showTerminateModal = $event"
         @approve="store.approveTermination"
         @reject="store.rejectTermination"
@@ -322,6 +330,8 @@ const handleRejectProperty = async (propertyId) => {
         :visible="store.showPendingLeasesModal"
         :leases="store.pendingLeaseApprovals"
         :loading="store.loading"
+        :users="users"
+        :properties="properties"
         @update:visible="store.showPendingLeasesModal = $event"
         @approve="store.approveLease"
         @reject="store.rejectLease"
@@ -330,6 +340,7 @@ const handleRejectProperty = async (propertyId) => {
     <PendingPropertiesModal
         :visible="store.showPendingPropertiesModal"
         :properties="store.pendingProperties"
+        :users="users"
         :loading="store.loading"
         @update:visible="store.showPendingPropertiesModal = $event"
         @approve-property="handleApproveProperty"

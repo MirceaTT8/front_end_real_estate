@@ -20,6 +20,11 @@ const formatDate = (date) => {
   });
 }
 
+// Safe formatting functions to prevent errors
+const formatCurrency = (value) => {
+  return (value || 0).toFixed(0)
+}
+
 onMounted(() => {
   store.initDashboard()
 
@@ -61,17 +66,17 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Dashboard Quick Stats Cards -->
+    <!-- Dashboard Quick Stats Cards - ALL TIME DATA -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <!-- Occupancy Rate Card -->
+      <!-- Total Properties Card (replaces Occupancy Rate) -->
       <div class="rounded-xl bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 overflow-hidden">
         <div class="px-6 py-5 flex justify-between items-center">
           <div>
-            <p class="text-sm text-indigo-700 font-medium">Occupancy Rate</p>
+            <p class="text-sm text-indigo-700 font-medium">Total Properties</p>
             <div class="mt-1">
-              <p class="text-2xl font-bold text-gray-800">{{ store.occupancyRate }}%</p>
+              <p class="text-2xl font-bold text-gray-800">{{ store.totalProperties || 0 }}</p>
             </div>
-            <p class="text-xs text-indigo-600 mt-1">{{ store.vacantUnits }} units available</p>
+            <p class="text-xs text-indigo-600 mt-1">Total Properties</p>
           </div>
           <div class="h-12 w-12 flex items-center justify-center rounded-lg bg-indigo-100">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -81,19 +86,19 @@ onMounted(() => {
         </div>
         <!-- Progress Bar -->
         <div class="w-full bg-indigo-200 h-1.5">
-          <div class="bg-indigo-500 h-1.5" :style="`width: ${store.occupancyRate}%`"></div>
+          <div class="bg-indigo-500 h-1.5" style="width: 100%"></div>
         </div>
       </div>
 
-      <!-- Rent Collected Card -->
+      <!-- Total Rent Collected Card -->
       <div class="rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 overflow-hidden">
         <div class="px-6 py-5 flex justify-between items-center">
           <div>
             <p class="text-sm text-green-700 font-medium">Rent Collected</p>
             <div class="mt-1">
-              <p class="text-2xl font-bold text-gray-800">${{ store.rentPaymentsLastMonth.toFixed(0) }}</p>
+              <p class="text-2xl font-bold text-gray-800">${{ formatCurrency(store.totalRentCollected) }}</p>
             </div>
-            <p class="text-xs text-green-600 mt-1">Past 30 days</p>
+            <p class="text-xs text-green-600 mt-1">All time</p>
           </div>
           <div class="h-12 w-12 flex items-center justify-center rounded-lg bg-green-100">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -107,15 +112,15 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Maintenance Costs Card -->
+      <!-- Total Maintenance Costs Card -->
       <div class="rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100 overflow-hidden">
         <div class="px-6 py-5 flex justify-between items-center">
           <div>
             <p class="text-sm text-orange-700 font-medium">Maintenance Costs</p>
             <div class="mt-1">
-              <p class="text-2xl font-bold text-gray-800">${{ store.maintenanceCostThisMonth.toFixed(0) }}</p>
+              <p class="text-2xl font-bold text-gray-800">${{ formatCurrency(store.totalMaintenanceCosts) }}</p>
             </div>
-            <p class="text-xs text-orange-600 mt-1">Past 30 days</p>
+            <p class="text-xs text-orange-600 mt-1">All time</p>
           </div>
           <div class="h-12 w-12 flex items-center justify-center rounded-lg bg-orange-100">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,19 +131,19 @@ onMounted(() => {
         </div>
         <!-- Progress Bar -->
         <div class="w-full bg-orange-200 h-1.5">
-          <div class="bg-orange-500 h-1.5" style="width: 70%"></div>
+          <div class="bg-orange-500 h-1.5" style="width: 100%"></div>
         </div>
       </div>
 
-      <!-- Net Income Card -->
+      <!-- Total Net Income Card -->
       <div class="rounded-xl bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-100 overflow-hidden">
         <div class="px-6 py-5 flex justify-between items-center">
           <div>
             <p class="text-sm text-blue-700 font-medium">Net Income</p>
             <div class="mt-1">
-              <p class="text-2xl font-bold text-gray-800">${{ (store.rentPaymentsLastMonth - store.maintenanceCostThisMonth).toFixed(0) }}</p>
+              <p class="text-2xl font-bold text-gray-800">${{ formatCurrency(store.totalNetIncome) }}</p>
             </div>
-            <p class="text-xs text-blue-600 mt-1">Past 30 days</p>
+            <p class="text-xs text-blue-600 mt-1">All time</p>
           </div>
           <div class="h-12 w-12 flex items-center justify-center rounded-lg bg-blue-100">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

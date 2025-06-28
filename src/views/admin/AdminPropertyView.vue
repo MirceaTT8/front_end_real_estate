@@ -4,16 +4,13 @@ import { useAdminPropertyStore } from '@/stores/admin/adminPropertyStore.js'
 
 const store = useAdminPropertyStore()
 
-// Status colors matching landlord PropertyCard component
 const statusColors = {
-  // Property Status Colors
   AVAILABLE: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
   RENTED: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
   INACTIVE: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' },
   MAINTENANCE: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
   ACTIVE: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
 
-  // Validation Status Colors
   APPROVED: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
   PENDING: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
   REJECTED: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' }

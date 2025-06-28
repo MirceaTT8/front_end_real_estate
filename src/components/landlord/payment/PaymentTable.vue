@@ -91,13 +91,6 @@ const getStatusDot = (status) => {
           :key="payment.paymentId"
           class="hover:bg-gray-50 transition-colors duration-200"
       >
-<!--        <td class="px-6 py-4 whitespace-nowrap">-->
-<!--          <div class="flex items-center">-->
-<!--            <div class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-md text-xs font-medium">-->
-<!--              #{{ payment.paymentId }}-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </td>-->
         <td class="px-6 py-4 whitespace-nowrap">
           <div class="text-sm font-medium text-gray-900">
             {{ getPropertyName(payment.leaseId) || 'Unknown Property' }}

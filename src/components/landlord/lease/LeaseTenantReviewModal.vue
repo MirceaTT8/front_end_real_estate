@@ -129,10 +129,10 @@ const setRating = (rating) => {
               <span class="text-gray-500">Property:</span>
               <p class="font-medium text-gray-800">{{ propertyName }}</p>
             </div>
-            <div>
-              <span class="text-gray-500">Lease ID:</span>
-              <p class="font-medium text-gray-800">#{{ lease.leaseId }}</p>
-            </div>
+<!--            <div>-->
+<!--              <span class="text-gray-500">Lease ID:</span>-->
+<!--              <p class="font-medium text-gray-800">#{{ lease.leaseId }}</p>-->
+<!--            </div>-->
             <div>
               <span class="text-gray-500">Monthly Rent:</span>
               <p class="font-medium text-gray-800">${{ lease.monthlyRent?.toLocaleString() }}</p>

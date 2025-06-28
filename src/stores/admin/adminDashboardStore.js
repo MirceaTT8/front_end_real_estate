@@ -14,22 +14,18 @@ import { fetchAllMaintenanceRequests } from '@/services/maintenanceService.js'
 import { BASE_URL } from "@/configs/config.js"
 
 export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
-    // Modal states
     const showTerminateModal = ref(false)
     const showPendingLeasesModal = ref(false)
     const showPendingPropertiesModal = ref(false)
 
-    // Loading states
     const loading = ref(false)
     const chartLoading = ref(false)
     const statsLoading = ref(false)
 
-    // Data arrays
     const pendingLeaseTerminations = ref([])
     const pendingLeaseApprovals = ref([])
     const pendingProperties = ref([])
 
-    // KPI and stats data
     const kpiMetrics = ref({})
     const statsData = ref({
         totalUsers: 0,
@@ -40,13 +36,11 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         urgentRequests: 0
     })
 
-    // Chart data
     const leaseChartData = ref({
         labels: [],
         datasets: []
     })
 
-    // Computed properties
     const stats = computed(() => ({
         activeLeases: kpiMetrics.value['Total Leases'] || 0,
         pendingApprovals: pendingLeaseTerminations.value.length + pendingLeaseApprovals.value.length + pendingProperties.value.length,
@@ -152,7 +146,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         return date >= period.start && date <= period.end
     }
 
-    // Data fetching functions
     const fetchLeaseTerminations = async () => {
         pendingLeaseTerminations.value = await fetchPendingLeaseTerminations()
     }
@@ -240,7 +233,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
                     leaseStartCount++
                 }
 
-                // Count leases that were terminated in the current period
                 const isTerminated = lease.status === 'TERMINATED' ||
                     lease.terminationStatus === 'APPROVED' ||
                     lease.terminationRequestedAt
@@ -313,7 +305,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         }
     }
 
-    // Modal functions
     const openTerminationModal = async () => {
         showTerminateModal.value = true
         await fetchLeaseTerminations()
@@ -329,7 +320,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         await fetchProperties()
     }
 
-    // Action functions
     const approveTermination = async (id) => {
         await approveLeaseTermination(id)
         pendingLeaseTerminations.value = pendingLeaseTerminations.value.filter(l => l.leaseId !== id)
@@ -372,7 +362,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         }
     }
 
-    // Main initialization function
     const initDashboard = async () => {
         loading.value = true
         try {

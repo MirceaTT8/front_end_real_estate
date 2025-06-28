@@ -32,8 +32,7 @@ const update = (key, value) => {
           type="text"
           class="w-full border border-gray-300 rounded px-3 py-2 text-sm shadow-sm"
           :value="filters.query"
-          @input="update('query', $event.target.value)"
-          placeholder="e.g. 14 or 6"
+          @input="update('query', $event.target.value)""
       />
     </div>
   </div>

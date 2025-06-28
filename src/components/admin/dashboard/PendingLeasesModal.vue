@@ -1,3 +1,23 @@
+<script setup>
+import {getPropertyNameById, getUserNameById} from "../../../utils/leaseNameUtils.js";
+
+defineProps({
+  visible: Boolean,
+  leases: Array,
+  loading: Boolean,
+  users: Array,
+  properties: Array
+})
+
+defineEmits(['update:visible', 'approve', 'reject'])
+
+function formatDate(dateString) {
+  if (!dateString) return 'N/A';
+  const options = { year: 'numeric', month: 'short', day: 'numeric' };
+  return new Date(dateString).toLocaleDateString(undefined, options);
+}
+</script>
+
 <template>
   <Dialog
       :visible="visible"
@@ -51,8 +71,8 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 <div>
-                  <p class="text-sm font-medium text-gray-500">Tenant ID</p>
-                  <p class="font-medium text-gray-900">{{ lease.tenantId }}</p>
+                  <p class="text-sm font-medium text-gray-500">Tenant </p>
+                  <p class="font-medium text-gray-900">{{ getUserNameById(lease.tenantId, users) }}</p>
                 </div>
               </div>
 
@@ -61,8 +81,8 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
                 <div>
-                  <p class="text-sm font-medium text-gray-500">Property ID</p>
-                  <p class="font-medium text-gray-900">{{ lease.propertyId }}</p>
+                  <p class="text-sm font-medium text-gray-500">Property </p>
+                  <p class="font-medium text-gray-900">{{ getPropertyNameById(lease.propertyId, properties) }}</p>
                 </div>
               </div>
 
@@ -128,20 +148,3 @@
     </div>
   </Dialog>
 </template>
-
-<script setup>
-defineProps({
-  visible: Boolean,
-  leases: Array,
-  loading: Boolean
-})
-
-defineEmits(['update:visible', 'approve', 'reject'])
-
-// Format date to more readable format
-function formatDate(dateString) {
-  if (!dateString) return 'N/A';
-  const options = { year: 'numeric', month: 'short', day: 'numeric' };
-  return new Date(dateString).toLocaleDateString(undefined, options);
-}
-</script>

@@ -237,11 +237,7 @@ async function saveProperty() {
               <p class="text-sm font-medium text-gray-700">Selected Address:</p>
               <p class="text-sm text-blue-700">{{ form.address }}</p>
             </div>
-
-            <div v-if="form.longitude && form.latitude" class="mt-2 p-3 bg-green-50 rounded-md border border-green-100">
-              <p class="text-sm font-medium text-gray-700">Coordinates:</p>
-              <p class="text-sm text-green-700">{{ form.latitude.toFixed(6) }}, {{ form.longitude.toFixed(6) }}</p>
-            </div>
+            
           </div>
         </div>
 

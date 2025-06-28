@@ -22,7 +22,7 @@
 
             <div>
               <h4 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Property Type</h4>
-              <p class="text-gray-800">{{ property?.type || 'Type not available' }}</p>
+              <p class="text-gray-800">{{ formatStatus(property?.type) || 'Type not available' }}</p>
             </div>
           </div>
 
@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-import {onMounted} from "vue";
+import { formatStatus } from "@/utils/formatters.js";
 
 const props = defineProps({
   property: {
@@ -44,7 +44,4 @@ const props = defineProps({
   }
 })
 
-onMounted(() =>{
-  console.log(props.property)
-})
 </script>
