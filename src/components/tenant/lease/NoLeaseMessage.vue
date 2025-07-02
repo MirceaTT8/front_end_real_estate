@@ -5,7 +5,7 @@ import { fetchPendingReviews, fetchPendingReviewsCount, checkIfPropertyReviewed 
 const props = defineProps({
   hasLease: {
     type: Boolean,
-    default: null // null means unknown, true = had lease before, false = never had lease
+    default: null
   },
   loading: {
     type: Boolean,

@@ -1,3 +1,117 @@
+
+<script setup>
+import { onMounted, computed, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { useLandlordPropertyStore } from '@/stores/landlord/propertyStore.js'
+import { useLeaseStore } from "@/stores/landlord/leaseStore.js"
+import { getTenantNameByLeaseId } from '@/utils/leaseNameUtils.js'
+import { formatDate, formatCurrencyCompact } from '@/utils/formatters.js'
+
+const route = useRoute()
+const propertyStore = useLandlordPropertyStore()
+const leaseStore = useLeaseStore()
+const currentImageIndex = ref(0)
+const isImageModalOpen = ref(false)
+const imageLoadError = ref(false)
+
+const getHighQualityImageUrl = (imageId, forceRefresh = false) => {
+  const baseUrl = `http://localhost:8080/image/${imageId}`
+  const params = new URLSearchParams()
+
+  params.append('quality', '100')
+  params.append('format', 'original')
+
+  if (forceRefresh) {
+    params.append('t', Date.now().toString())
+  }
+
+  return `${baseUrl}?${params.toString()}`
+}
+
+const statusColors = {
+  AVAILABLE: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  RENTED: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  INACTIVE: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' }
+}
+
+const nextImage = () => {
+  if (!property.value?.imageUrls?.length) return
+  currentImageIndex.value = (currentImageIndex.value + 1) % property.value.imageUrls.length
+  imageLoadError.value = false
+}
+
+const prevImage = () => {
+  if (!property.value?.imageUrls?.length) return
+  currentImageIndex.value = (currentImageIndex.value - 1 + property.value.imageUrls.length) % property.value.imageUrls.length
+  imageLoadError.value = false
+}
+
+const openImageModal = () => {
+  isImageModalOpen.value = true
+}
+
+const closeImageModal = () => {
+  isImageModalOpen.value = false
+}
+
+const handleImageError = () => {
+  imageLoadError.value = true
+  console.error('Failed to load property image')
+}
+
+const handleImageLoad = (event) => {
+  const img = event.target
+  img.style.imageRendering = 'high-quality'
+  img.style.imageRendering = '-webkit-optimize-contrast'
+  imageLoadError.value = false
+}
+
+const property = computed(() => propertyStore.selectedProperty)
+const loading = computed(() => propertyStore.loading || leaseStore.loading)
+const error = computed(() => propertyStore.error || leaseStore.error)
+
+const shouldShowValidationWarning = computed(() => {
+  return property.value?.validationStatus === 'PENDING'
+})
+
+const currentLease = computed(() => {
+  if (!property.value || !leaseStore.leases?.length) return null
+  return leaseStore.leases.find(lease => lease.propertyId === property.value.propertyId)
+})
+
+const tenantName = computed(() => {
+  if (!property.value || property.value.status !== 'RENTED') {
+    return null
+  }
+
+  const leases = leaseStore.leases || []
+  const tenants = leaseStore.tenants || []
+
+  const lease = leases.find(l => l.propertyId === property.value.propertyId)
+  if (!lease) return 'Unknown Lease'
+
+  return getTenantNameByLeaseId(lease.leaseId, leases, tenants)
+})
+
+const leaseDetails = computed(() => {
+  if (!currentLease.value) return null
+
+  return {
+    startDate: currentLease.value.startDate,
+    endDate: currentLease.value.endDate,
+    monthlyRent: currentLease.value.monthlyRent,
+    securityDeposit: currentLease.value.securityDeposit,
+    status: currentLease.value.status
+  }
+})
+
+onMounted(async () => {
+  const propertyId = Number(route.params.id)
+  await propertyStore.loadPropertyById(propertyId)
+  await leaseStore.loadLeases()
+})
+</script>
+
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
     <div class="container mx-auto px-4 py-8 max-w-6xl">
@@ -281,119 +395,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { onMounted, computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import { useLandlordPropertyStore } from '@/stores/landlord/propertyStore.js'
-import { useLeaseStore } from "@/stores/landlord/leaseStore.js"
-import { getTenantNameByLeaseId } from '@/utils/leaseNameUtils.js'
-import { formatDate, formatCurrencyCompact } from '@/utils/formatters.js'
-
-const route = useRoute()
-const propertyStore = useLandlordPropertyStore()
-const leaseStore = useLeaseStore()
-const currentImageIndex = ref(0)
-const isImageModalOpen = ref(false)
-const imageLoadError = ref(false)
-
-const getHighQualityImageUrl = (imageId, forceRefresh = false) => {
-  const baseUrl = `http://localhost:8080/image/${imageId}`
-  const params = new URLSearchParams()
-
-  params.append('quality', '100')
-  params.append('format', 'original')
-
-  if (forceRefresh) {
-    params.append('t', Date.now().toString())
-  }
-
-  return `${baseUrl}?${params.toString()}`
-}
-
-const statusColors = {
-  AVAILABLE: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-  RENTED: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-  INACTIVE: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' }
-}
-
-const nextImage = () => {
-  if (!property.value?.imageUrls?.length) return
-  currentImageIndex.value = (currentImageIndex.value + 1) % property.value.imageUrls.length
-  imageLoadError.value = false
-}
-
-const prevImage = () => {
-  if (!property.value?.imageUrls?.length) return
-  currentImageIndex.value = (currentImageIndex.value - 1 + property.value.imageUrls.length) % property.value.imageUrls.length
-  imageLoadError.value = false
-}
-
-const openImageModal = () => {
-  isImageModalOpen.value = true
-}
-
-const closeImageModal = () => {
-  isImageModalOpen.value = false
-}
-
-const handleImageError = () => {
-  imageLoadError.value = true
-  console.error('Failed to load property image')
-}
-
-const handleImageLoad = (event) => {
-  const img = event.target
-  img.style.imageRendering = 'high-quality'
-  img.style.imageRendering = '-webkit-optimize-contrast'
-  imageLoadError.value = false
-}
-
-const property = computed(() => propertyStore.selectedProperty)
-const loading = computed(() => propertyStore.loading || leaseStore.loading)
-const error = computed(() => propertyStore.error || leaseStore.error)
-
-const shouldShowValidationWarning = computed(() => {
-  return property.value?.validationStatus === 'PENDING'
-})
-
-const currentLease = computed(() => {
-  if (!property.value || !leaseStore.leases?.length) return null
-  return leaseStore.leases.find(lease => lease.propertyId === property.value.propertyId)
-})
-
-const tenantName = computed(() => {
-  if (!property.value || property.value.status !== 'RENTED') {
-    return null
-  }
-
-  const leases = leaseStore.leases || []
-  const tenants = leaseStore.tenants || []
-
-  const lease = leases.find(l => l.propertyId === property.value.propertyId)
-  if (!lease) return 'Unknown Lease'
-
-  return getTenantNameByLeaseId(lease.leaseId, leases, tenants)
-})
-
-const leaseDetails = computed(() => {
-  if (!currentLease.value) return null
-
-  return {
-    startDate: currentLease.value.startDate,
-    endDate: currentLease.value.endDate,
-    monthlyRent: currentLease.value.monthlyRent,
-    securityDeposit: currentLease.value.securityDeposit,
-    status: currentLease.value.status
-  }
-})
-
-onMounted(async () => {
-  const propertyId = Number(route.params.id)
-  await propertyStore.loadPropertyById(propertyId)
-  await leaseStore.loadLeases()
-})
-</script>
 
 <style scoped>
 .high-quality-image {

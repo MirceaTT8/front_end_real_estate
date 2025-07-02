@@ -69,14 +69,6 @@ onMounted(() => {
 
           <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto mt-4 md:mt-0">
             <button
-                class="flex items-center justify-center gap-2 px-4 py-2 bg-white text-blue-700 text-sm font-medium rounded-xl hover:bg-blue-50 transition-colors shadow-sm"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-              Add Property
-            </button>
-            <button
                 @click="store.refresh"
                 :disabled="store.loading"
                 class="flex items-center justify-center gap-2 px-4 py-2 bg-white/10 text-white text-sm font-medium rounded-xl hover:bg-white/20 transition-colors disabled:opacity-50"

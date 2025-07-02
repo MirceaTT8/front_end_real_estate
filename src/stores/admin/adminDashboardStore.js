@@ -51,7 +51,6 @@ export const useAdminDashboardStore = defineStore('adminDashboardStore', () => {
         pendingPropertiesCount: pendingProperties.value.length
     }))
 
-    // Chart options with improved styling
     const leaseChartOptions = ref({
         responsive: true,
         maintainAspectRatio: false,

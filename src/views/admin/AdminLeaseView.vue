@@ -89,17 +89,6 @@ onMounted(async () => {
               <p class="text-indigo-100 mt-1">Manage all property lease agreements</p>
             </div>
           </div>
-
-          <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto mt-4 md:mt-0">
-            <button
-                class="flex items-center justify-center gap-2 px-4 py-2 bg-white text-indigo-700 text-sm font-medium rounded-xl hover:bg-indigo-50 transition-colors shadow-sm"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-              </svg>
-              Create Lease
-            </button>
-          </div>
         </div>
       </div>
     </div>

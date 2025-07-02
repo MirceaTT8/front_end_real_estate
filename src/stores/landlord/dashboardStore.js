@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { formatActivityLogs } from '@/utils/formatActivityLog.js'
 import { fetchRecentLogs } from '@/services/logsService.js'
-import { fetchMyProperties } from '@/services/propertyService.js'
 import { usePaymentLandlordStore } from './paymentStore.js'
 import { useMaintenanceLandlordStore } from './maintenanceStore.js'
 import { useLeaseStore } from './leaseStore.js'
@@ -13,13 +12,11 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
     const activities = ref([])
     const calendarEvents = ref([])
 
-    // All-time data for top cards - Initialize with default values
     const totalProperties = ref(0)
     const totalRentCollected = ref(0)
     const totalMaintenanceCosts = ref(0)
     const totalNetIncome = ref(0)
 
-    // 30-day data for Monthly Summary section - Initialize with default values
     const occupancyRate = ref(0)
     const vacantUnits = ref(0)
     const rentPaymentsLastMonth = ref(0)
@@ -58,7 +55,6 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
         }
     })
 
-    // WORKING LOGIC FROM FIRST FILE - Get months with actual data
     const getMonthsWithData = (payments, maintenance) => {
         const monthsSet = new Set()
 
@@ -158,23 +154,18 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
             const leases = leaseStore.leases || []
             const properties = leaseStore.properties || []
 
-            // Calculate all-time aggregated data for top cards
             totalProperties.value = properties.length
 
-            // All-time rent collected (sum of all completed payments)
             totalRentCollected.value = payments
                 .filter(p => p.status === 'COMPLETED')
                 .reduce((sum, p) => sum + (p.amount || 0), 0)
 
-            // All-time maintenance costs (sum of all completed maintenance)
             totalMaintenanceCosts.value = maintenance
                 .filter(r => r.status === 'COMPLETED')
                 .reduce((sum, r) => sum + (r.cost || 0), 0)
 
-            // All-time net income (rent - maintenance costs)
             totalNetIncome.value = totalRentCollected.value - totalMaintenanceCosts.value
 
-            // WORKING CHART LOGIC FROM FIRST FILE - Dynamic month generation
             const monthsWithData = getMonthsWithData(payments, maintenance)
 
             let months = []
@@ -228,10 +219,8 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
                 }
             }
 
-            // WORKING RANGE LOGIC FROM FIRST FILE
             updateRangeAvailability(payments, maintenance)
 
-            // Calculate 30-day data for Monthly Summary (occupancy, etc.)
             const total = properties.length
             const vacant = properties.filter(p => p.status === 'AVAILABLE').length
             const occupied = total - vacant
@@ -305,7 +294,6 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
 
         } catch (error) {
             console.error('Error initializing dashboard:', error)
-            // Keep default values on error
         }
     }
 
@@ -319,12 +307,12 @@ export const useLandlordDashboardStore = defineStore('landlordDashboardStore', (
         activeRange,
         rangeOptions,
         filteredChartData,
-        // All-time data for top cards
+
         totalProperties,
         totalRentCollected,
         totalMaintenanceCosts,
         totalNetIncome,
-        // 30-day data for Monthly Summary
+
         occupancyRate,
         vacantUnits,
         rentPaymentsLastMonth,

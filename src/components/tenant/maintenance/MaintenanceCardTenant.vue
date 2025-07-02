@@ -25,34 +25,6 @@ const props = defineProps({
   }
 });
 
-const userFixedResponse = ref(props.request.is_fixed ?? null);
-const hasSubmittedResponse = ref(props.request.is_fixed !== null);
-
-const submitFixedStatus = async (isFixed) => {
-  try {
-    if (isFixed) {
-      userFixedResponse.value = true;
-      hasSubmittedResponse.value = true;
-    } else {
-      await maintenanceStore.markAsNotFixed(props.request.requestId);
-
-      userFixedResponse.value = false;
-      hasSubmittedResponse.value = true;
-
-      // Emit event to parent component
-      emit('feedback-submitted', {
-        requestId: props.request.requestId,
-        isFixed: false
-      });
-    }
-  } catch (error) {
-    console.error('Failed to submit feedback:', error);
-    alert('Failed to submit feedback. Please try again.');
-  }
-};
-
-const emit = defineEmits(['feedback-submitted']);
-
 const statusDisplay = {
   PENDING: {
     label: 'Pending',

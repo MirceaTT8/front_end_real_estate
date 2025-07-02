@@ -54,7 +54,6 @@ const getStatusDot = (status) => {
     <table class="min-w-full table-auto">
       <thead class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
       <tr>
-<!--        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Payment ID</th>-->
         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Property</th>
         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tenant</th>
         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>

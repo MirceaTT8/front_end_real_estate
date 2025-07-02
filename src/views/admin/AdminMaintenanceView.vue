@@ -22,7 +22,7 @@ const openImageModal = (ids) => {
 }
 
 const updateFilters = (newFilters) => {
-  store.filters = newFilters
+  store.updateFilters(newFilters)
 }
 
 const sortBy = (field) => {
@@ -125,7 +125,8 @@ onMounted(() => {
         <p class="text-sm text-gray-500">Narrow down maintenance requests by various criteria</p>
       </div>
       <div class="p-6">
-        <MaintenanceFilters :filters="store.filters" @update:filters="updateFilters" />
+        <MaintenanceFilters :filters="store.filters"
+                            @update:filters="store.updateFilters" />
       </div>
     </div>
 
@@ -170,7 +171,7 @@ onMounted(() => {
       <PaginationControls
           :current-page="store.currentPage"
           :total-pages="store.totalPages"
-          @update:currentPage="store.currentPage = $event"
+          @update:currentPage="store.setCurrentPage"
           class="bg-white rounded-xl shadow-md px-6 py-4 inline-flex"
       />
     </div>
@@ -183,7 +184,3 @@ onMounted(() => {
     />
   </div>
 </template>
-
-<style scoped>
-/* Add any component-specific styles here */
-</style>

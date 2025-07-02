@@ -20,7 +20,6 @@ const formatDate = (date) => {
   });
 }
 
-// Safe formatting functions to prevent errors
 const formatCurrency = (value) => {
   return (value || 0).toFixed(0)
 }

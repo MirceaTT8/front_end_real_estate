@@ -16,11 +16,21 @@ export const useMaintenanceAdminStore = defineStore('maintenanceAdmin', () => {
         idField: 'requestId'
     })
 
+    const updateFilters = (newFilters) => {
+        baseStore.filters.value = { ...baseStore.filters.value, ...newFilters }
+    }
+
     const fetchRequests = () => baseStore.fetchItems(fetchAllMaintenanceRequests)
+
+    const setCurrentPage = (page) => {
+        baseStore.currentPage.value = page
+    }
 
     return {
         ...baseStore,
+        updateFilters,
         fetchRequests,
+        setCurrentPage,
         requests: baseStore.items,
         filteredRequests: baseStore.filteredItems,
         paginatedRequests: baseStore.paginatedItems

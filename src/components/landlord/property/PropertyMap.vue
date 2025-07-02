@@ -141,7 +141,6 @@ watch(() => props.showMap, async (show) => {
 
 watch(() => props.properties, (newProps) => {
   if (!newProps || !newProps.length) {
-    // Reset to default view if no properties
     if (map.value) {
       map.value.setCenter({ lat: 45.7489, lng: 21.2087 })
       map.value.setZoom(12)

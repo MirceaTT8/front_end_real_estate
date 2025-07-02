@@ -62,29 +62,3 @@ export const formatStatus = (status) => {
     if (typeof status !== 'string') return '?'
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase().replace(/_/g, ' ')
 }
-
-export const formatAction = (actionType) => {
-    if (typeof actionType !== 'string') return 'Unknown action'
-    return actionType.toLowerCase().replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase())
-}
-
-export const formatPercentage = (value, options = {}) => {
-    const defaultOptions = {
-        style: 'percent',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 1
-    }
-
-    const finalOptions = { ...defaultOptions, ...options }
-    return new Intl.NumberFormat('en-US', finalOptions).format(value / 100)
-}
-
-export const formatNumber = (value, options = {}) => {
-    const defaultOptions = {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-    }
-
-    const finalOptions = { ...defaultOptions, ...options }
-    return new Intl.NumberFormat('en-US', finalOptions).format(value)
-}

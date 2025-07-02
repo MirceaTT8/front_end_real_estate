@@ -38,7 +38,6 @@ const propertyName = computed(() => {
     return tenantStore.property.name
   }
 
-  // Fallback to using property ID
   return `Property #${props.lease.propertyId}`
 })
 
@@ -72,10 +71,8 @@ const submitReview = async () => {
 
     await createReview(reviewData)
 
-    // Show success message briefly then refresh page
     emit('submitted')
 
-    // Refresh the page to show updated status
     setTimeout(() => {
       window.location.reload()
     }, 1000)

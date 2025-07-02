@@ -31,7 +31,6 @@ const shouldShowLeaseDashboard = computed(() => {
   return !tenantStore.loading && tenantStore.tenantHasActiveLease && tenantStore.lease
 })
 
-// Check if current lease is terminated and can be reviewed
 const hasTerminatedLeaseForReview = computed(() => {
   return !tenantStore.loading &&
       tenantStore.lease?.status === 'TERMINATED' &&
@@ -39,7 +38,6 @@ const hasTerminatedLeaseForReview = computed(() => {
       !checkingReviewStatus.value
 })
 
-// Show reviewed state when lease is terminated and already reviewed
 const hasReviewedTerminatedLease = computed(() => {
   return !tenantStore.loading &&
       tenantStore.lease?.status === 'TERMINATED' &&
@@ -54,7 +52,6 @@ const shouldShowNoLeaseMessage = computed(() => {
       tenantStore.lease?.status !== 'TERMINATED'
 })
 
-// Check if the current terminated lease has been reviewed
 const checkCurrentLeaseReviewStatus = async () => {
   if (tenantStore.lease?.status === 'TERMINATED' && tenantStore.lease?.propertyId) {
     try {
@@ -103,7 +100,6 @@ const handleRefreshPending = async () => {
   await tenantStore.retryLoadLease()
 }
 
-// Quick review function for terminated leases
 const openReviewForTerminatedLease = () => {
   if (hasTerminatedLeaseForReview.value) {
     handleWriteReview(tenantStore.lease)

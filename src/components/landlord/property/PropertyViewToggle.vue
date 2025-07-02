@@ -9,12 +9,10 @@ const props = defineProps({
 const emit = defineEmits(['update:showMap'])
 
 const handleListView = () => {
-  console.log('Switching to list view')
   emit('update:showMap', false)
 }
 
 const handleMapView = () => {
-  console.log('Switching to map view')
   emit('update:showMap', true)
 }
 </script>
